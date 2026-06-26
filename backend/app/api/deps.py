@@ -31,3 +31,13 @@ async def get_current_user_id(token: str = Depends(oauth2_scheme)) -> uuid.UUID:
         return uuid.UUID(user_id)
     except JWTError:
         raise HTTPException(status_code=401, detail="Token tidak valid atau kadaluarsa")
+
+async def require_admin(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    from app.crud import user as crud_user
+    user = await crud_user.get_user_by_id(db, user_id)
+    if not user or user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user_id

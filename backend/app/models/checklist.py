@@ -13,3 +13,12 @@ class ChecklistLog(Base):
     water_intake_glasses = Column(Integer, default=0)
     notes = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class ChecklistItem(Base):
+    __tablename__ = "checklist_items"
+    
+    item_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    label = Column(String, nullable=False)
+    category = Column(String(50), nullable=True)
+    is_active = Column(Boolean, default=True)
+    order_index = Column(Integer, nullable=False)

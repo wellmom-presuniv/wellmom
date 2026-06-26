@@ -7,10 +7,11 @@ class AssessmentQuestion(Base):
     __tablename__ = "assessment_questions"
     question_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     question_text = Column(String, nullable=False)
-    category = Column(String, nullable=False)
+    category = Column(String, nullable=True)
     weight = Column(Integer, default=1)
     is_red_flag = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    order_index = Column(Integer, nullable=False)
 
 class AssessmentResponse(Base):
     __tablename__ = "assessment_responses"
