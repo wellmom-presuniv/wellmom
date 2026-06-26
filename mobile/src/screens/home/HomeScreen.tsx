@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, riskCategoryStyle } from "../../theme/colors";
+import { fonts } from "../../theme/fonts";
 
 // NOTE: data dummy — ganti dengan data asli dari API profil & assessment result
 const DUMMY = {
@@ -15,12 +16,12 @@ const DUMMY = {
 };
 
 const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }[] = [
-  { label: "Edukasi", icon: "book", color: colors.primary, bg: colors.primaryLight },
+  { label: "Edukasi", icon: "book", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
   { label: "Checklist", icon: "checkbox", color: colors.riskLow, bg: colors.riskLowBg },
-  { label: "Self-Assessment", icon: "heart", color: colors.secondary, bg: colors.secondaryLight },
-  { label: "Catatan Harian", icon: "camera", color: colors.primaryDark, bg: colors.primaryLight },
-  { label: "Panduan", icon: "document-text", color: colors.secondary, bg: colors.secondaryLight },
-  { label: "Profil", icon: "person", color: colors.textSecondary, bg: "#F3F4F6" },
+  { label: "Self-Assessment", icon: "pulse", color: colors.riskHigh, bg: colors.riskHighBg },
+  { label: "Catatan Harian", icon: "journal-outline", color: colors.primary, bg: "rgba(177,14,107,0.1)" },
+  { label: "Panduan", icon: "medkit-outline", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
+  { label: "Profil", icon: "person", color: colors.textSecondary, bg: "rgba(139,112,121,0.1)" },
 ];
 
 export default function HomeScreen() {
@@ -32,12 +33,18 @@ export default function HomeScreen() {
       <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-xl font-bold text-text-primary">Hi, Ibu Sehat! 👋</Text>
-          <View className="flex-row gap-3">
-            <Ionicons name="globe-outline" size={22} color={colors.textSecondary} />
-            <Ionicons name="notifications-outline" size={22} color={colors.textSecondary} />
-          </View>
+        <View>
+          <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>Hi, Ibu Sehat! 👋</Text>
+          <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.8 }}>
+            Selamat pagi, Bunda.
+          </Text>
         </View>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
+        >
+          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
 
         {/* Trimester progress card */}
         <LinearGradient
@@ -60,23 +67,32 @@ export default function HomeScreen() {
         </LinearGradient>
 
         {/* Risk status card */}
-        <View className="bg-surface rounded-2xl p-4 mb-4 border border-border">
-          <Text className="text-text-secondary text-sm mb-1">Risiko Saat Ini</Text>
-          <View className="flex-row items-center justify-between">
-            <Text style={{ color: risk.color }} className="font-bold text-base">
-              {risk.label}
-            </Text>
-            <View style={{ backgroundColor: risk.bg }} className="w-8 h-8 rounded-full items-center justify-center">
-              <Ionicons name="checkmark" size={18} color={risk.color} />
+        <View
+          className="bg-surface rounded-2xl p-4 mb-4 flex-row items-center justify-between"
+          style={{ borderLeftWidth: 4, borderLeftColor: risk.color }}
+        >
+          <View className="flex-1">
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.textSecondary }}>Risiko Saat Ini</Text>
+            <View className="flex-row items-center" style={{ gap: 6 }}>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: risk.color }}>{risk.label}</Text>
+              <Ionicons name="checkmark-circle" size={18} color={risk.color} />
             </View>
+            <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+              Terus jaga pola makan dan lakukan pemeriksaan kehamilan rutin.
+            </Text>
           </View>
-          <Text className="text-text-secondary text-xs mt-1">
-            Terus jaga pola makan dan lakukan pemeriksaan kehamilan rutin.
-          </Text>
+          <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: risk.bg, alignItems: "center", justifyContent: "center" }}>
+            <Ionicons name="pulse" size={22} color={risk.color} />
+          </View>
         </View>
 
         {/* Quick menu grid */}
-        <Text className="text-text-primary font-semibold mb-2">Menu Cepat</Text>
+        <View className="flex-row justify-between items-center mb-2">
+          <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>Menu Cepat</Text>
+          <TouchableOpacity>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.primary }}>Lihat Semua</Text>
+          </TouchableOpacity>
+        </View>
         <View className="flex-row flex-wrap justify-between mb-6">
           {MENU_ITEMS.map((item) => (
             <TouchableOpacity
@@ -92,6 +108,18 @@ export default function HomeScreen() {
               <Text className="text-text-primary text-xs text-center">{item.label}</Text>
             </TouchableOpacity>
           ))}
+        </View>
+        <View
+          className="rounded-2xl p-4 flex-row items-start mb-6"
+          style={{ backgroundColor: colors.surfaceContainer, gap: 12 }}
+        >
+          <Ionicons name="bulb" size={22} color={colors.primary} />
+          <View className="flex-1">
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.primary, marginBottom: 2 }}>Tips Hari Ini</Text>
+            <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
+              Bunda, jangan lupa minum setidaknya 8 gelas air hari ini untuk menjaga hidrasi ketuban yang optimal.
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
