@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 
 import HomeScreen from "../screens/home/HomeScreen";
-import EducationListScreen from "../screens/education/EducationListScreen";
+import EducationStack from "./EducationStack";
 import ChecklistScreen from "../screens/checklist/ChecklistScreen";
 import HistoryScreen from "../screens/history/HistoryScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
@@ -34,14 +34,14 @@ export default function BottomTabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: { borderTopColor: colors.border, height: 60, paddingBottom: 8, paddingTop: 6 },
+        tabBarStyle: { borderTopColor: colors.outline, height: 60, paddingBottom: 8, paddingTop: 6 },
         tabBarIcon: ({ color, size }) => (
           <Ionicons name={ICONS[route.name as keyof TabParamList]} size={size} color={color} />
         ),
       })}
     >
       <Tab.Screen name="Beranda" component={HomeScreen} />
-      <Tab.Screen name="Edukasi" component={EducationListScreen} />
+      <Tab.Screen name="Edukasi" component={EducationStack} />
       <Tab.Screen name="Checklist" component={ChecklistScreen} />
       <Tab.Screen name="Riwayat" component={HistoryScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
