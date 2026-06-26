@@ -32,7 +32,6 @@ export default function RegisterScreen({ navigation }: any) {
           value={name}
           onChangeText={setName}
         />
-        // GANTI seluruh blok Email & Password jadi:
         <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Email</Text>
         <TextInput
           className="bg-surface-container-low rounded-full px-4 py-3 mb-4"
