@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "WellMom",
+    "slug": "wellmom-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FFF5F9"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": { "supportsTablet": false },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#EC4899"
+      }
+    },
+    "web": { "bundler": "metro" }
+  }
+}

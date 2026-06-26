@@ -1,0 +1,30 @@
+# ===== Node / Expo / React (mobile & cms) =====
+node_modules/
+.expo/
+dist/
+web-build/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# ===== Python / FastAPI (backend) =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# ===== Environment & secrets =====
+.env
+.env.local
+.env.*.local
+
+# ===== Editor / OS =====
+.DS_Store
+.vscode/
+.idea/
