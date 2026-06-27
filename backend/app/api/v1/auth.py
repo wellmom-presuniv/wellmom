@@ -1,44 +1,38 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from app.api import deps
-from app.schemas.user import UserCreate, UserResponse
-from app.schemas.token import Token
-from app.services import auth_service
-from app.crud import user as crud_user
+from sqlalchemy.ext.asyncio import AsyncSession
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+from app.api.deps import get_db
+from app.schemas.user import UserCreate, UserResponse
+from app.services import auth_service
+
+router = APIRouter()
 
 @router.post("/register", response_model=UserResponse)
 async def register(
-    user_in: UserCreate, 
-    db: AsyncSession = Depends(deps.get_db)
+    user_in: UserCreate,
+    db: AsyncSession = Depends(get_db)
 ):
-    # Pastikan default role selalu mother jika tidak diisi admin
-    if user_in.role not in ["mother", "admin"]:
-        user_in.role = "mother"
-        
-    user = await crud_user.get_user_by_email(db, email=user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="Email sudah terdaftar."
-        )
-    user = await crud_user.create_user(db, user_in)
-    return user
-
-@router.post("/login", response_model=Token)
-async def login(
-    db: AsyncSession = Depends(deps.get_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
-):
-    user = await auth_service.authenticate(
-        db, email=form_data.username, password=form_data.password
+    # Menggunakan auth_service yang sudah kita perbaiki tadi
+    result = await auth_service.register_user(
+        db=db,
+        email=user_in.email,
+        password=user_in.password,
+        full_name=user_in.full_name,
+        role=user_in.role
     )
-    if not user:
-        raise HTTPException(
-            status_code=400, detail="Email atau password salah."
-        )
-    
-    access_token = auth_service.create_access_token(subject=str(user.id))
-    return {"access_token": access_token, "token_type": "bearer"}
+    return result
+
+@router.post("/login")
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
+):
+    # auth_service.authenticate_user sudah mengembalikan format JSON lengkap 
+    # (termasuk access_token dan token_type)
+    result = await auth_service.authenticate_user(
+        db=db, 
+        email=form_data.username, 
+        password=form_data.password
+    )
+    return result
