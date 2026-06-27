@@ -22,13 +22,26 @@ npm run dev
 
 Akses di `http://localhost:5173`
 
+## Authentication
+
+CMS menggunakan JWT token yang disimpan **in-memory** (bukan localStorage).
+
+Alur login:
+1. Chelsea buka CMS → otomatis redirect ke `/login`
+2. Isi email + password → POST ke `/api/auth/login`
+3. Token disimpan di `AuthContext`
+4. Semua request Axios otomatis attach `Authorization: Bearer <token>`
+5. Kalau token expired (response 401) → otomatis redirect ke `/login`
+
+Kredensial admin dibuat oleh Alek di sisi backend.                                                          
+
 ## Struktur Folder
 src/
+├── contexts/     # AuthContext — brankas JWT token
 ├── layouts/      # AdminLayout (sidebar + outlet)
+├── lib/          # Axios instance + interceptor
 ├── pages/        # Halaman per modul CMS
-├── types/        # Type definitions seluruh entitas CMS
-├── lib/          # Axios instance, utilities
-└── contexts/     # AuthContext (JWT storage)
+└── types/        # Type definitions seluruh entitas CMS
 
 ## Modul CMS
 | Modul | Path | Status |
