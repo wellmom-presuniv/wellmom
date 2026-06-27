@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "../../store/useAuthStore";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 
@@ -10,10 +11,19 @@ export default function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const registerUser = useAuthStore((s) => s.register);
+  const isSubmitting = useAuthStore((s) => s.isSubmitting);
+  const authError = useAuthStore((s) => s.authError);
+  const clearError = useAuthStore((s) => s.clearError);
 
-  const handleRegister = () => {
-    // TODO: call endpoint register Alek, lalu arahkan ke Login
-    navigation.navigate("Login");
+  const handleRegister = async () => {
+    try {
+      await registerUser({email, full_name: name, password });
+      // Sukses: arahkan ke Login
+      navigation.navigate("Login");
+    } catch {
+      // Error message udah di-handle & disimpan di store (authError).
+    }
   };
 
   return (
@@ -22,7 +32,6 @@ export default function RegisterScreen({ navigation }: any) {
       <Text style={{ fontFamily: fonts.regular, fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 24 }}>
         Mulai perjalanan kehamilan sehatmu bersama kami.
       </Text>
-
       <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 24, shadowColor: colors.primary, shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 4 } }}>
         <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Nama</Text>
         <TextInput
@@ -30,7 +39,7 @@ export default function RegisterScreen({ navigation }: any) {
           style={{ color: colors.textPrimary }}
           placeholder="Masukkan nama Anda"
           value={name}
-          onChangeText={setName}
+          onChangeText={(v) => { setName(v); clearError(); }}
         />
         <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Email</Text>
         <TextInput
@@ -39,7 +48,7 @@ export default function RegisterScreen({ navigation }: any) {
           placeholder="contoh@email.com"
           autoCapitalize="none"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(v) => { setEmail(v); clearError(); }}
         />
 
         <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Password</Text>
@@ -49,8 +58,13 @@ export default function RegisterScreen({ navigation }: any) {
           placeholder="Buat kata sandi"
           secureTextEntry
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(v) => { setPassword(v); clearError(); }}
         />
+        {authError && (
+          <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskHigh, marginBottom: 4 }}>
+            {authError}
+          </Text>
+        )}
       <View
         style={{ height: 120, borderRadius: 16, backgroundColor: colors.primaryContainer, alignItems: "center", justifyContent: "center", marginBottom: 16, opacity: 0.85 }}
       >
@@ -58,10 +72,19 @@ export default function RegisterScreen({ navigation }: any) {
         <Ionicons name="woman" size={48} color="#FFFFFF" />
       </View>
 
-      <TouchableOpacity onPress={handleRegister} activeOpacity={0.85}>
-        <LinearGradient colors={[colors.primary, colors.secondary]} style={{ borderRadius: 999, paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF", marginRight: 6 }}>Daftar Sekarang</Text>
-          <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+      <TouchableOpacity onPress={handleRegister} activeOpacity={0.85} disabled={isSubmitting}>
+        <LinearGradient
+          colors={[colors.primary, colors.secondary]}
+          style={{ borderRadius: 999, paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", opacity: isSubmitting ? 0.7 : 1 }}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <>
+              <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF", marginRight: 6 }}>Daftar Sekarang</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+            </>
+          )}
         </LinearGradient>
       </TouchableOpacity>
     </View>          

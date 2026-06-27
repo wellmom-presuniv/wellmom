@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,10 +11,17 @@ export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = useAuthStore((s) => s.login);
+  const isSubmitting = useAuthStore((s) => s.isSubmitting);
+  const authError = useAuthStore((s) => s.authError);
+  const clearError = useAuthStore((s) => s.clearError);
 
   const handleLogin = async () => {
-    // TODO: ganti dengan call ke endpoint auth Alek, lalu simpan token asli
-    await login("dummy-token-replace-me");
+    try {
+    await login(email, password);
+    // Sukses: RootNavigator otomatis switch screen begitu token ke-set, ga perlu navigate manual.
+  } catch {
+    // Error message udah di-handle & disimpan di store (authError).
+  }
   };
 
   return (
@@ -51,7 +58,7 @@ export default function LoginScreen({ navigation }: any) {
             style={{ color: colors.textPrimary }}
             placeholder="nama@email.com"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(v) => { setEmail(v); clearError(); }}
             autoCapitalize="none"
           />
         </View>
@@ -65,16 +72,20 @@ export default function LoginScreen({ navigation }: any) {
             placeholder="••••••••"
             secureTextEntry
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(v) => { setPassword(v); clearError(); }}
           />
         </View>
-
-        <TouchableOpacity onPress={handleLogin} activeOpacity={0.85}>
+        {authError && (
+          <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskHigh, marginBottom: 8 }}>
+            {authError}
+          </Text>
+        )}
+        <TouchableOpacity onPress={handleLogin} activeOpacity={0.85} disabled={isSubmitting}>
           <LinearGradient
             colors={[colors.primary, colors.secondary]}
-            style={{ borderRadius: 999, paddingVertical: 16, alignItems: "center" }}
+            style={{ borderRadius: 999, paddingVertical: 16, alignItems: "center", opacity: isSubmitting ? 0.7 : 1 }}
           >
-            <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>Masuk</Text>
+            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>Masuk</Text>}
           </LinearGradient>
         </TouchableOpacity>
       </View>
