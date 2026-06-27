@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# WellMom CMS
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Internal admin tool untuk mengelola konten aplikasi WellMom — 
+dikembangkan oleh tim FCS × FKPU President University.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React + TypeScript (Vite)
+- Tailwind CSS v4 (`@tailwindcss/vite`)
+- shadcn/ui (Radix + Nova preset)
+- React Router v6
+- TanStack Query + Axios
+- React Hook Form + Zod
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd cms
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Akses di `http://localhost:5173`
+
+## Struktur Folder
+src/
+├── layouts/      # AdminLayout (sidebar + outlet)
+├── pages/        # Halaman per modul CMS
+├── types/        # Type definitions seluruh entitas CMS
+├── lib/          # Axios instance, utilities
+└── contexts/     # AuthContext (JWT storage)
+
+## Modul CMS
+| Modul | Path | Status |
+|---|---|---|
+| Pertanyaan Assessment | `/assessment-questions` | Sprint 2 |
+| Konfigurasi Cutoff | `/score-cutoffs` | Sprint 2 |
+| Konten Edukasi | `/education-content` | Sprint 2 |
+| Checklist Harian | `/checklist-items` | Sprint 2 |
+| Mapping Rujukan | `/referral-mapping` | Sprint 2 |
