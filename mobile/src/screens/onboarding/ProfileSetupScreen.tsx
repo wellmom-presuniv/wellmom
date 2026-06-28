@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, Platform } from "react-native";
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,6 +15,8 @@ import Animated, {
 import { useAuthStore } from "../../store/useAuthStore";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
+import { submitProfile } from "../../api/profileService";
+import { PregnancyProfile } from "../../types";
 
 const MONTHS_ID = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -31,14 +33,14 @@ function daysInMonth(month: number, year: number) {
  * TODO: kalau nanti ada input HPHT (hari pertama haid terakhir), hitungan bisa
  * lebih presisi — untuk sekarang cukup pakai HPL sesuai yang diminta di proposal.
  */
-function getGestationalInfo(dueDate: Date, today: Date = new Date()) {
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const daysUntilDue = Math.round((dueDate.getTime() - today.getTime()) / msPerDay);
-  const daysPregnant = Math.max(0, 280 - daysUntilDue);
-  const week = Math.min(40, Math.floor(daysPregnant / 7));
-  const trimester = week <= 13 ? 1 : week <= 27 ? 2 : 3;
-  return { week, trimester };
-}
+// function getGestationalInfo(dueDate: Date, today: Date = new Date()) {
+//   const msPerDay = 24 * 60 * 60 * 1000;
+//   const daysUntilDue = Math.round((dueDate.getTime() - today.getTime()) / msPerDay);
+//   const daysPregnant = Math.max(0, 280 - daysUntilDue);
+//   const week = Math.min(40, Math.floor(daysPregnant / 7));
+//   const trimester = week <= 13 ? 1 : week <= 27 ? 2 : 3;
+//   return { week, trimester };
+// }
 
 export default function ProfileSetupScreen() {
   const today = new Date();
@@ -52,7 +54,9 @@ export default function ProfileSetupScreen() {
   const maxDay = daysInMonth(month, year);
   const selectedDate = useMemo(() => new Date(year, month, Math.min(day, maxDay)), [day, month, year, maxDay]);
   const formattedDate = `${Math.min(day, maxDay)} ${MONTHS_ID[month]} ${year}`;
-  const gestational = useMemo(() => getGestationalInfo(selectedDate), [selectedDate]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submittedProfile, setSubmittedProfile] = useState<PregnancyProfile | null>(null);
 
   // ===== Floating illustration =====
   const floatY = useSharedValue(0);
@@ -81,17 +85,29 @@ export default function ProfileSetupScreen() {
     transform: [{ scale: heart2.value }, { translateY: heart2.value * -12 }],
   }));
 
-  const handleContinue = () => {
-    // TODO: simpan profil (HPL, trimester, minggu) ke API Alek begitu endpoint ready.
-    setShowCelebration(true);
-    overlayOpacity.value = withTiming(1, { duration: 200 });
-    heart0.value = withDelay(0, withTiming(1, { duration: 400 }));
-    heart1.value = withDelay(120, withTiming(1, { duration: 400 }));
-    heart2.value = withDelay(240, withTiming(1, { duration: 400 }));
+  const handleContinue = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const safeDay = Math.min(day, maxDay);
+      const hpht = `${year}-${String(month + 1).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
+      const profile = await submitProfile({ hpht });
+      setSubmittedProfile(profile);
 
-    setTimeout(() => {
-      completeOnboarding();
-    }, 900);
+      setShowCelebration(true);
+      overlayOpacity.value = withTiming(1, { duration: 200 });
+      heart0.value = withDelay(0, withTiming(1, { duration: 400 }));
+      heart1.value = withDelay(120, withTiming(1, { duration: 400 }));
+      heart2.value = withDelay(240, withTiming(1, { duration: 400 }));
+
+      setTimeout(() => {
+        completeOnboarding();
+      }, 900);
+    } catch (err) {
+      setError("Gagal menyimpan profil. Cek koneksi internet kamu.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -172,10 +188,8 @@ export default function ProfileSetupScreen() {
         {/* Heading */}
         <View className="items-center mb-6">
           <Text style={{ fontFamily: fonts.bold, fontSize: 24, color: colors.textPrimary }}>Lengkapi Profil</Text>
-          <Text
-            style={{ fontFamily: fonts.regular, fontSize: 14, color: colors.textSecondary, textAlign: "center", marginTop: 8 }}
-          >
-            Masukkan perkiraan Hari Perkiraan Lahir (HPL) Anda untuk mendapatkan panduan kesehatan yang lebih personal.
+          <Text style={{ fontFamily: fonts.regular, fontSize: 14, color: colors.textSecondary, textAlign: "center", marginTop: 8 }}>
+            Masukkan Hari Pertama Haid Terakhir (HPHT) Anda untuk menghitung usia kehamilan dan mendapatkan panduan yang personal.
           </Text>
         </View>
 
@@ -195,7 +209,7 @@ export default function ProfileSetupScreen() {
           }}
         >
           <View className="flex-row justify-between items-center mb-4">
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>Pilih Tanggal HPL</Text>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>Pilih Tanggal HPHT</Text>
             <Ionicons name="calendar" size={20} color={colors.primary} />
           </View>
 
@@ -229,7 +243,7 @@ export default function ProfileSetupScreen() {
               onValueChange={setYear}
               itemStyle={Platform.OS === "ios" ? { fontFamily: fonts.semibold } : undefined}
             >
-              {[today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1].map((y) => (
+              {[today.getFullYear() - 1, today.getFullYear()].map((y) => (
                 <Picker.Item key={y} label={String(y)} value={y} />
               ))}
             </Picker>
@@ -237,7 +251,7 @@ export default function ProfileSetupScreen() {
 
           <View className="items-center mt-2 pt-3" style={{ borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
             <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, letterSpacing: 1 }}>
-              HPL TERPILIH
+              HPHT TERPILIH
             </Text>
             <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.primary, marginTop: 2 }}>
               {formattedDate}
@@ -245,12 +259,12 @@ export default function ProfileSetupScreen() {
           </View>
         </View>
 
-        <Text
+        {/* <Text
           style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, textAlign: "center", marginTop: 16 }}
         >
-          Belum tahu HPL Anda?{" "}
+          Belum tahu HPHT Anda?{" "}
           <Text style={{ fontFamily: fonts.bold, color: colors.secondary }}>Hitung di sini</Text>
-        </Text>
+        </Text> */}
       </View>
 
       {/* Celebration overlay — pakai Reanimated langsung, bukan Moti */}
@@ -282,13 +296,18 @@ export default function ProfileSetupScreen() {
           </Animated.View>
         </View>
         <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>
-          Kamu di Trimester {gestational.trimester}, Minggu ke-{gestational.week}! 🎉
+          Kamu di Trimester {submittedProfile?.trimester}, Minggu ke-{submittedProfile?.gestational_week}! 🎉
         </Text>
       </Animated.View>
 
       {/* Bottom action */}
       <View className="px-5 pb-4">
-        <TouchableOpacity onPress={handleContinue} activeOpacity={0.85}>
+        {error && (
+          <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskHigh, textAlign: "center", marginBottom: 8 }}>
+            {error}
+          </Text>
+        )}
+        <TouchableOpacity onPress={handleContinue} activeOpacity={0.85} disabled={isSubmitting}>
           <LinearGradient
             colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }}
@@ -304,10 +323,17 @@ export default function ProfileSetupScreen() {
               shadowRadius: 12,
               shadowOffset: { width: 0, height: 6 },
               elevation: 4,
+              opacity: isSubmitting ? 0.7 : 1,
             }}
           >
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF", marginRight: 8 }}>Lanjutkan</Text>
-            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF", marginRight: 8 }}>Lanjutkan</Text>
+                <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+              </>
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </View>

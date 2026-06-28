@@ -1,19 +1,18 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, riskCategoryStyle } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
+import { getMyProfile } from "../../api/profileService";
+import { PregnancyProfile } from "../../types";
 
-// NOTE: data dummy — ganti dengan data asli dari API profil & assessment result
-const DUMMY = {
-  trimester: 2,
-  gestationalWeek: 20,
-  totalWeeks: 40,
-  estimatedDueDate: "10 Okt 2025",
-  riskCategory: "LOW" as const,
-};
+const DUMMY_RISK_CATEGORY = "LOW" as const;
+
+function formatTanggalIndo(isoDate: string) {
+  return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}
 
 const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }[] = [
   { label: "Edukasi", icon: "book", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
@@ -24,11 +23,38 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
   { label: "Profil", icon: "person", color: colors.textSecondary, bg: "rgba(139,112,121,0.1)" },
 ];
 
-export default function HomeScreen() {
-  const progress = DUMMY.gestationalWeek / DUMMY.totalWeeks;
-  const risk = riskCategoryStyle[DUMMY.riskCategory];
+  export default function HomeScreen() {
+    const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-  return (
+    useEffect(() => {
+      getMyProfile()
+        .then(setProfile)
+        .catch((err) => console.warn("Gagal ambil profil:", err))
+        .finally(() => setIsLoading(false));
+    }, []);
+
+    const risk = riskCategoryStyle[DUMMY_RISK_CATEGORY];
+
+    if (isLoading) {
+      return (
+        <SafeAreaView className="flex-1 bg-background items-center justify-center">
+          <ActivityIndicator size="large" color={colors.primary} />
+        </SafeAreaView>
+      );
+    }
+
+    if (!profile) {
+      return (
+        <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
+          <Text style={{ fontFamily: fonts.medium, color: colors.textSecondary, textAlign: "center" }}>
+            Gagal memuat data profil. Coba lagi nanti.
+          </Text>
+        </SafeAreaView>
+      );
+    }
+
+    return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Header */}
@@ -53,16 +79,16 @@ export default function HomeScreen() {
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: 16, padding: 16, marginBottom: 16 }}
         >
-          <Text className="text-white font-bold text-lg">Trimester {DUMMY.trimester}</Text>
-          <Text className="text-white/90 text-sm mb-2">Minggu ke-{DUMMY.gestationalWeek}</Text>
+          <Text className="text-white font-bold text-lg">Trimester {profile.trimester}</Text>
+          <Text className="text-white/90 text-sm mb-2">Minggu ke-{profile.gestational_week}</Text>
           <View className="h-2 bg-white/30 rounded-full overflow-hidden mb-1">
             <View
               className="h-2 bg-white rounded-full"
-              style={{ width: `${Math.round(progress * 100)}%` }}
+              style={{ width: `${Math.round(profile.progress_pct)}%` }}
             />
           </View>
           <Text className="text-white/90 text-xs">
-            {Math.round(progress * 100)}% · Perkiraan HPL: {DUMMY.estimatedDueDate}
+            {Math.round(profile.progress_pct)}% · Perkiraan HPL: {formatTanggalIndo(profile.hpl)}
           </Text>
         </LinearGradient>
 
