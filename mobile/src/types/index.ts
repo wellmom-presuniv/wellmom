@@ -39,12 +39,12 @@ export interface RiskThreshold {
   category: RiskCategory;
 }
 
-// NOTE: endpoint POST /assessment/submit BELUM dibuat (cuma scoring engine
-// core-nya yang udah merged di PR #4). Shape di bawah ini disusun dari kolom
-// tabel assessment_results (migration Alek) — BUKAN dari response schema endpoint
-// asli, karena endpoint-nya sendiri belum ada. Verifikasi ulang begitu endpoint jadi.
+// CONFIRMED — sesuai app/schemas/assessment.py (AssessmentResultResponse), dikonfirmasi Alek.
+// Kolom DB masih "risk_level", tapi response JSON-nya "risk_category" (di-mapping di
+// assessment_service.py). Alek akan migrasi rename kolom DB biar konsisten — ga ngubah
+// shape ini lagi dari sisi FE.
 export interface AssessmentResult {
-  risk_level: RiskCategory; // nama kolom DB "risk_level", BUKAN "risk_category"
+  risk_category: RiskCategory;
   total_score: number;
   bp_assessment_status: BpAssessmentStatus;
   triggered_red_flags: TriggeredRedFlag[] | null; // null/[] kalau ga ada yang trigger
