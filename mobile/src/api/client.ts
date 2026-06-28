@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // TODO: ganti ke base URL backend Alek (staging/production) begitu ready.
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = "http://<IP-laptop-kamu>:8000/api/v1";
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
