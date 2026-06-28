@@ -57,6 +57,13 @@ export interface TokenResponse {
   token_type: string;
 }
 
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user_id: string;
+  // TODO: field lain belum confirmed — Alek cuma bilang "dll", minta exact shape
+}
+
 export interface RegisterPayload {
   email: string;
   full_name: string;
@@ -109,7 +116,7 @@ export interface ChecklistItem {
 }
 
 export interface ChecklistLogEntry {
-  itemId: string;
-  date: string; // ISO date
-  isDone: boolean;
+  item_id: string;
+  date: string;
+  is_done: boolean;
 }

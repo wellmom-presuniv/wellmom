@@ -1,28 +1,24 @@
 import apiClient from "./client";
-import { TokenResponse, RegisterPayload, UserResponse } from "../types";
+import { TokenResponse, RegisterPayload, AuthResponse } from "../types";
 
 /**
- * Login pakai OAuth2PasswordRequestForm — backend WAJIB terima form-urlencoded,
- * field name "username" (isinya email), BUKAN JSON { email, password }.
- * Lihat review PR #2 — kalau ini dikirim sebagai JSON, backend balas 422.
+ * Login pakai JSON biasa { email, password } — sesuai update Alek terbaru.
+ * NOTE: sebelumnya ini form-urlencoded (OAuth2PasswordRequestForm), tapi
+ * backend sudah diubah ke JSON biasa. Kalau ke depan ketemu 422 lagi,
+ * cek dulu apakah backend balik lagi ke versi form-urlencoded.
  */
 export async function login(email: string, password: string): Promise<TokenResponse> {
-  const body = new URLSearchParams();
-  body.append("username", email);
-  body.append("password", password);
-
-  const { data } = await apiClient.post<TokenResponse>("/auth/login", body, {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
+  const { data } = await apiClient.post<TokenResponse>("/auth/login", { email, password });
   return data;
 }
 
 /**
- * Register pakai JSON biasa (Pydantic UserCreate). Backend TIDAK return token
- * di sini — cuma data user. Setelah register sukses, arahkan ke Login,
- * JANGAN asumsikan user otomatis login.
+ * Register sekarang JUGA return token (skema AuthResponse), bukan cuma
+ * data user — backend auto-login user setelah register. TODO: field exact
+ * AuthResponse belum confirmed dari Alek (cuma "ada access_token, user_id, dll"),
+ * verifikasi field lain begitu ketemu response asli.
  */
-export async function register(payload: RegisterPayload): Promise<UserResponse> {
-  const { data } = await apiClient.post<UserResponse>("/auth/register", payload);
+export async function register(payload: RegisterPayload): Promise<AuthResponse> {
+  const { data } = await apiClient.post<AuthResponse>("/auth/register", payload);
   return data;
 }

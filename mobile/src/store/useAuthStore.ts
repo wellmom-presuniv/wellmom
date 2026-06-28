@@ -41,20 +41,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   register: async (payload: RegisterPayload) => {
-    set({ isSubmitting: true, authError: null });
-    try {
-      await authService.register(payload);
-      set({ isSubmitting: false });
-      // NOTE: backend TIDAK return token di register — user harus login manual setelah ini.
-    } catch (err: any) {
-      const message =
-        err?.response?.status === 422
-          ? "Data yang dimasukkan tidak valid."
-          : "Gagal mendaftar. Cek koneksi internet kamu.";
-      set({ isSubmitting: false, authError: message });
-      throw err;
-    }
-  },
+  set({ isSubmitting: true, authError: null });
+  try {
+    const { access_token } = await authService.register(payload);
+    await AsyncStorage.setItem("auth_token", access_token);
+    set({ token: access_token, isSubmitting: false });
+    // NOTE: backend SEKARANG auto-login setelah register (return token).
+    // RootNavigator otomatis switch ke ProfileSetup begitu token ke-set.
+  } catch (err: any) {
+    const message =
+      err?.response?.status === 422
+        ? "Data yang dimasukkan tidak valid."
+        : "Gagal mendaftar. Cek koneksi internet kamu.";
+    set({ isSubmitting: false, authError: message });
+    throw err;
+  }
+},
 
   logout: async () => {
     await AsyncStorage.removeItem("auth_token");

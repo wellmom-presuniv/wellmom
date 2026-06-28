@@ -16,11 +16,11 @@ export default function RegisterScreen({ navigation }: any) {
   const authError = useAuthStore((s) => s.authError);
   const clearError = useAuthStore((s) => s.clearError);
 
-  const handleRegister = async () => {
+ const handleRegister = async () => {
     try {
-      await registerUser({email, full_name: name, password });
-      // Sukses: arahkan ke Login
-      navigation.navigate("Login");
+      await registerUser({ email, full_name: name, password });
+      // Sukses: backend auto-login, token udah ke-set di store.
+      // RootNavigator otomatis switch ke ProfileSetup, ga perlu navigate manual.
     } catch {
       // Error message udah di-handle & disimpan di store (authError).
     }
