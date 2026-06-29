@@ -1,11 +1,12 @@
-// ============================================================
-// SHARED
-// ============================================================
-export type RiskCategory = "low" | "medium" | "high";
 
-// ============================================================
+// SHARED
+
+export type RiskCategory = "low" | "medium" | "high"; // for scoreCutoffs
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH"; // for RefferalMapping
+
+
 // ASSESSMENT QUESTIONS
-// ============================================================
+
 export interface AssessmentQuestion {
     id: string;
     question_text: string;
@@ -18,11 +19,11 @@ export interface AssessmentQuestion {
 export type CreateAssessmentQuestionPayload = Omit<AssessmentQuestion, "id">;
 export type UpdateAssessmentQuestionPayload = Partial<CreateAssessmentQuestionPayload>;
 
-// ============================================================
+
 // SCORE CUTOFFS
 // max_score: 999 pada HIGH = sentinel "tidak ada batas atas"
 // Render sebagai "≥5" di UI, jangan tampilkan 999.
-// ============================================================
+
 export interface ScoreBand {
     min_score: number;
     max_score: number;
@@ -33,15 +34,15 @@ export interface ScoreCutoffs {
     high: ScoreBand;
 }
 
-// ============================================================
+
 // EDUCATION CONTENT
 // status adalah string literal, BUKAN boolean.
-// ============================================================
+
 export type EducationStatus = "published" | "draft";
 export type Trimester = 1 | 2 | 3;
 
 export interface EducationContent {
-    id: string;
+    content_id: string;   // updated from id to content_id
     title: string;
     trimester: Trimester;
     category: string;
@@ -49,28 +50,28 @@ export interface EducationContent {
     status: EducationStatus;
     order_in_category: number;
 }
-export type CreateEducationContentPayload = Omit<EducationContent, "id">;
+export type CreateEducationContentPayload = Omit<EducationContent, "content_id">;
 export type UpdateEducationContentPayload = Partial<CreateEducationContentPayload>;
 
-// ============================================================
+
 // CHECKLIST ITEMS
-// ============================================================
+
 export interface ChecklistItem {
-    id: string;
+    item_id: string;    // updated from id to item_id
     label: string;
     category: string | null;
     is_active: boolean;
     order_index: number;
 }
-export type CreateChecklistItemPayload = Omit<ChecklistItem, "id">;
+export type CreateChecklistItemPayload = Omit<ChecklistItem, "item_id">;
 export type UpdateChecklistItemPayload = Partial<CreateChecklistItemPayload>;
 
-// ============================================================
+
 // REFERRAL MAPPING
-// ============================================================
+
 export interface ReferralMapping {
     id: string;
-    risk_category: RiskCategory;
+    risk_level: RiskLevel;    // changing from risk_category to risk_level   
     facility_type: string;    // "Puskesmas" | "RSIA" | "RS Umum" | dst
     recommendation: string;   // deskripsi tindakan
     urgency_label: string;    // "Segera" | "Dalam 24 jam" | "Saat ANC rutin"
@@ -79,11 +80,11 @@ export interface ReferralMapping {
 export type CreateReferralMappingPayload = Omit<ReferralMapping, "id">;
 export type UpdateReferralMappingPayload = Partial<CreateReferralMappingPayload>;
 
-// ============================================================
+
 // BLOOD PRESSURE THRESHOLDS
 // [BLOCKED] — semua nilai null sampai dr. Nucky konfirmasi angka.
 // Scoring engine TIDAK AKTIF selama status "pending_confirmation".
-// ============================================================
+
 export type BPThresholdStatus = "pending_confirmation" | "confirmed";
 
 export interface BloodPressureThresholds {
