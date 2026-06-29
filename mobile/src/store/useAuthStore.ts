@@ -49,13 +49,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     // NOTE: backend SEKARANG auto-login setelah register (return token).
     // RootNavigator otomatis switch ke ProfileSetup begitu token ke-set.
   } catch (err: any) {
+    const status = err?.response?.status;
     const message =
-      err?.response?.status === 422
+      status === 409
+        ? "Email sudah terdaftar. Coba login langsung."
+        : status === 422
         ? "Data yang dimasukkan tidak valid."
         : "Gagal mendaftar. Cek koneksi internet kamu.";
-    set({ isSubmitting: false, authError: message });
-    throw err;
-  }
+        set({ isSubmitting: false, authError: message });
+        throw err;
+      }
 },
 
   logout: async () => {
