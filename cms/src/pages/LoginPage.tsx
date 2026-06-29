@@ -31,7 +31,7 @@ export default function LoginPage() {
     async function onSubmit(values: LoginFormValues) {
         setServerError(null);
         try {
-            const response = await apiClient.post("/api/auth/login", values);
+            const response = await apiClient.post("/api/v1/auth/login", values); // update endpoint
             const token = response.data.access_token;
             login(token);              // simpan ke AuthContext + axios
             navigate("/");             // redirect ke dashboard
