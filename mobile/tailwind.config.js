@@ -4,31 +4,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ===== Primary: Pink (WellMom brand color, replaces ErgoAlert's sky blue) =====
+        // ===== "Serene Glow" — design system dari Stitch AI, DESIGN.md jadi source of truth =====
         primary: {
-          DEFAULT: "#EC4899", // main brand pink — buttons, active tab, primary CTA
-          dark: "#BE185D",    // headings, "WellMom" title text
-          light: "#FBCFE8",   // light pink backgrounds, soft cards
+          DEFAULT: "#B10E6B",
+          container: "#D23284", // aksen lebih terang / gradient end
         },
-        // ===== Secondary: Purple accent (Self-Assessment icon, supporting headings) =====
         secondary: {
-          DEFAULT: "#7C3AED",
-          light: "#EDE9FE",
+          DEFAULT: "#712AE2",
+          container: "#8A4CFC",
         },
-        background: "#FFF5F9", // app background — soft pink tint
-        surface: "#FFFFFF",     // card background
-        border: "#F3D4E3",
-        "text-primary": "#1F2937",
-        "text-secondary": "#6B7280",
-        // ===== Risk category colors (self-assessment result) =====
-        "risk-low": "#16A34A",
-        "risk-low-bg": "#DCFCE7",
-        "risk-medium": "#F59E0B",
-        "risk-medium-bg": "#FEF3C7",
-        "risk-high": "#DC2626",
-        "risk-high-bg": "#FEE2E2",
+        background: "#FFF8F8",
+        surface: "#FFFFFF",
+        "surface-container": "#FFE8EE",
+        "surface-container-low": "#FFF0F3",
+        outline: "#8B7079",
+        "outline-variant": "#DEBEC8",
+        "text-primary": "#25181D",
+        "text-secondary": "#574048",
+        // ===== Risk category colors — traffic-light hijau/kuning/merah (medium TETAP amber) =====
+        "risk-low": "#136B00",
+        "risk-medium": "#B45309",
+        "risk-high": "#BA1A1A",
+      },
+      borderRadius: {
+        card: "24px",
+        input: "16px",
       },
     },
   },
   plugins: [],
 };
+

@@ -1,48 +1,98 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/useAuthStore";
+import { colors } from "../../theme/colors";
+import { fonts } from "../../theme/fonts";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = useAuthStore((s) => s.login);
+  const isSubmitting = useAuthStore((s) => s.isSubmitting);
+  const authError = useAuthStore((s) => s.authError);
+  const clearError = useAuthStore((s) => s.clearError);
 
   const handleLogin = async () => {
-    // TODO: ganti dengan call ke endpoint auth Alek, lalu simpan token asli
-    await login("dummy-token-replace-me");
+    try {
+    await login(email, password);
+    // Sukses: RootNavigator otomatis switch screen begitu token ke-set, ga perlu navigate manual.
+  } catch {
+    // Error message udah di-handle & disimpan di store (authError).
+  }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background justify-center px-6">
-      <Text className="text-3xl font-bold text-primary-dark mb-1">WellMom</Text>
-      <Text className="text-text-secondary mb-8">Healthy Mom, Healthy Baby 💗</Text>
+      <View className="items-center mb-4">
+        <LinearGradient
+          colors={[colors.primary, colors.secondary]}
+          style={{ width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center", marginBottom: 16 }}
+        >
+          <Ionicons name="heart" size={36} color="#FFFFFF" />
+        </LinearGradient>
+        <Text style={{ fontFamily: fonts.extrabold, fontSize: 28, color: colors.primary }}>WellMom</Text>
+        <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>
+          Healthy Mom, Healthy Baby 💗
+        </Text>
+      </View>
 
-      <Text className="text-text-secondary text-sm mb-1">Email</Text>
-      <TextInput
-        className="bg-surface border border-border rounded-xl px-4 py-3 mb-4 text-text-primary"
-        placeholder="nama@email.com"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-      />
+      <View
+        style={{
+          backgroundColor: colors.surface,
+          borderRadius: 24,
+          padding: 24,
+          shadowColor: colors.primary,
+          shadowOpacity: 0.08,
+          shadowRadius: 24,
+          shadowOffset: { width: 0, height: 4 },
+        }}
+      >
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Email</Text>
+        <View className="flex-row items-center bg-surface-container-low rounded-full px-4 mb-4">
+          <Ionicons name="mail-outline" size={18} color={colors.textSecondary} />
+          <TextInput
+            className="flex-1 py-3 px-3"
+            style={{ color: colors.textPrimary }}
+            placeholder="nama@email.com"
+            value={email}
+            onChangeText={(v) => { setEmail(v); clearError(); }}
+            autoCapitalize="none"
+          />
+        </View>
 
-      <Text className="text-text-secondary text-sm mb-1">Password</Text>
-      <TextInput
-        className="bg-surface border border-border rounded-xl px-4 py-3 mb-6 text-text-primary"
-        placeholder="••••••••"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      <TouchableOpacity className="bg-primary rounded-xl py-4 items-center mb-4" onPress={handleLogin}>
-        <Text className="text-white font-semibold">Masuk</Text>
-      </TouchableOpacity>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Password</Text>
+        <View className="flex-row items-center bg-surface-container-low rounded-full px-4 mb-6">
+          <Ionicons name="lock-closed-outline" size={18} color={colors.textSecondary} />
+          <TextInput
+            className="flex-1 py-3 px-3"
+            style={{ color: colors.textPrimary }}
+            placeholder="••••••••"
+            secureTextEntry
+            value={password}
+            onChangeText={(v) => { setPassword(v); clearError(); }}
+          />
+        </View>
+        {authError && (
+          <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskHigh, marginBottom: 8 }}>
+            {authError}
+          </Text>
+        )}
+        <TouchableOpacity onPress={handleLogin} activeOpacity={0.85} disabled={isSubmitting}>
+          <LinearGradient
+            colors={[colors.primary, colors.secondary]}
+            style={{ borderRadius: 999, paddingVertical: 16, alignItems: "center", opacity: isSubmitting ? 0.7 : 1 }}
+          >
+            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>Masuk</Text>}
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text className="text-text-secondary text-center">
-          Belum punya akun? <Text className="text-primary font-semibold">Daftar</Text>
+        <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center", marginTop: 24 }}>
+          Belum punya akun? <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>Daftar</Text>
         </Text>
       </TouchableOpacity>
     </SafeAreaView>

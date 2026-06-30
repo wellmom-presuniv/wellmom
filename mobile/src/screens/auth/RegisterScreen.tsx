@@ -1,48 +1,98 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "../../store/useAuthStore";
+import { colors } from "../../theme/colors";
+import { fonts } from "../../theme/fonts";
 
 export default function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const registerUser = useAuthStore((s) => s.register);
+  const isSubmitting = useAuthStore((s) => s.isSubmitting);
+  const authError = useAuthStore((s) => s.authError);
+  const clearError = useAuthStore((s) => s.clearError);
 
-  const handleRegister = () => {
-    // TODO: call endpoint register Alek, lalu arahkan ke Login
-    navigation.navigate("Login");
+ const handleRegister = async () => {
+    try {
+      await registerUser({ email, full_name: name, password });
+      // Sukses: backend auto-login, token udah ke-set di store.
+      // RootNavigator otomatis switch ke ProfileSetup, ga perlu navigate manual.
+    } catch {
+      // Error message udah di-handle & disimpan di store (authError).
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background justify-center px-6">
-      <Text className="text-3xl font-bold text-primary-dark mb-1">Buat Akun</Text>
-      <Text className="text-text-secondary mb-8">Mulai perjalanan kehamilan sehatmu</Text>
+      <Text style={{ fontFamily: fonts.extrabold, fontSize: 26, color: colors.textPrimary }}>Buat Akun</Text>
+      <Text style={{ fontFamily: fonts.regular, fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 24 }}>
+        Mulai perjalanan kehamilan sehatmu bersama kami.
+      </Text>
+      <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 24, shadowColor: colors.primary, shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 4 } }}>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Nama</Text>
+        <TextInput
+          className="bg-surface-container-low rounded-full px-4 py-3 mb-4"
+          style={{ color: colors.textPrimary }}
+          placeholder="Masukkan nama Anda"
+          value={name}
+          onChangeText={(v) => { setName(v); clearError(); }}
+        />
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Email</Text>
+        <TextInput
+          className="bg-surface-container-low rounded-full px-4 py-3 mb-4"
+          style={{ color: colors.textPrimary }}
+          placeholder="contoh@email.com"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={(v) => { setEmail(v); clearError(); }}
+        />
 
-      <Text className="text-text-secondary text-sm mb-1">Nama</Text>
-      <TextInput
-        className="bg-surface border border-border rounded-xl px-4 py-3 mb-4 text-text-primary"
-        value={name}
-        onChangeText={setName}
-      />
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Password</Text>
+        <TextInput
+          className="bg-surface-container-low rounded-full px-4 py-3 mb-4"
+          style={{ color: colors.textPrimary }}
+          placeholder="Buat kata sandi"
+          secureTextEntry
+          value={password}
+          onChangeText={(v) => { setPassword(v); clearError(); }}
+        />
+        {authError && (
+          <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskHigh, marginBottom: 4 }}>
+            {authError}
+          </Text>
+        )}
+      <View
+        style={{ height: 120, borderRadius: 16, backgroundColor: colors.primaryContainer, alignItems: "center", justifyContent: "center", marginBottom: 16, opacity: 0.85 }}
+      >
+        {/* TODO: ganti pakai ilustrasi asli kalau udah ada aset-nya */}
+        <Ionicons name="woman" size={48} color="#FFFFFF" />
+      </View>
 
-      <Text className="text-text-secondary text-sm mb-1">Email</Text>
-      <TextInput
-        className="bg-surface border border-border rounded-xl px-4 py-3 mb-4 text-text-primary"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <Text className="text-text-secondary text-sm mb-1">Password</Text>
-      <TextInput
-        className="bg-surface border border-border rounded-xl px-4 py-3 mb-6 text-text-primary"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      <TouchableOpacity className="bg-primary rounded-xl py-4 items-center mb-4" onPress={handleRegister}>
-        <Text className="text-white font-semibold">Daftar</Text>
+      <TouchableOpacity onPress={handleRegister} activeOpacity={0.85} disabled={isSubmitting}>
+        <LinearGradient
+          colors={[colors.primary, colors.secondary]}
+          style={{ borderRadius: 999, paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", opacity: isSubmitting ? 0.7 : 1 }}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <>
+              <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF", marginRight: 6 }}>Daftar Sekarang</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+            </>
+          )}
+        </LinearGradient>
       </TouchableOpacity>
+    </View>          
+
+      <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, textAlign: "center", marginTop: 12 }}>
+        Dengan mendaftar, kamu menyetujui{" "}
+        <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>Syarat & Ketentuan</Text>
+      </Text>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text className="text-text-secondary text-center">
