@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 
-import HomeScreen from "../screens/home/HomeScreen";
+import HomeStack from "./HomeStack";
 import EducationStack from "./EducationStack";
 import ChecklistScreen from "../screens/checklist/ChecklistScreen";
 import HistoryScreen from "../screens/history/HistoryScreen";
@@ -40,7 +40,7 @@ export default function BottomTabs() {
         ),
       })}
     >
-      <Tab.Screen name="Beranda" component={HomeScreen} />
+      <Tab.Screen name="Beranda" component={HomeStack} />
       <Tab.Screen name="Edukasi" component={EducationStack} />
       <Tab.Screen name="Checklist" component={ChecklistScreen} />
       <Tab.Screen name="Riwayat" component={HistoryScreen} />
