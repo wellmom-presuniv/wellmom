@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
@@ -8,7 +8,7 @@ from app.models.assessment import (
     AssessmentResponseItem, AssessmentResult,
 )
 from app.models.risk_threshold import RiskThreshold
-from datetime import datetime, timezone
+
 
 async def get_active_questions(db: AsyncSession) -> list[AssessmentQuestion]:
     result = await db.execute(
@@ -26,10 +26,13 @@ async def get_risk_thresholds(db: AsyncSession) -> list[RiskThreshold]:
     return result.scalars().all()
 
 
-async def get_today_response(db: AsyncSession, user_id: uuid.UUID, today: date) -> AssessmentResponse | None:
+async def get_today_response(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    today: date,
+) -> AssessmentResponse | None:
     query = select(AssessmentResponse).where(
         AssessmentResponse.user_id == user_id,
-        # Di sini yang kita ganti, menyesuaikan nama kolom di model lu
         func.date(AssessmentResponse.assessment_date) == today
     )
     result = await db.execute(query)
@@ -46,7 +49,7 @@ async def get_today_result(
               AssessmentResult.response_id == AssessmentResponse.response_id)
         .where(
             AssessmentResponse.user_id == user_id,
-            AssessmentResponse.submitted_date == today,
+            func.date(AssessmentResponse.assessment_date) == today,
         )
     )
     return result.scalar_one_or_none()
@@ -56,7 +59,6 @@ async def create_response(
     db: AsyncSession,
     user_id: uuid.UUID,
     pregnancy_profile_id: uuid.UUID,
-    submitted_date: date,
     systolic_bp: int | None,
     diastolic_bp: int | None,
 ) -> AssessmentResponse:
@@ -108,3 +110,27 @@ async def create_result(
     db.add(result)
     await db.flush()
     return result
+
+
+async def get_assessment_history(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    limit: int = 20,
+    offset: int = 0,
+) -> list[tuple[AssessmentResult, datetime]]:
+    """
+    Mengambil riwayat asesmen (AssessmentResult + Tanggal)
+    diurutkan dari yang paling baru untuk kebutuhan frontend.
+    """
+    result = await db.execute(
+        select(AssessmentResult, AssessmentResponse.assessment_date)
+        .join(
+            AssessmentResponse,
+            AssessmentResult.response_id == AssessmentResponse.response_id,
+        )
+        .where(AssessmentResponse.user_id == user_id)
+        .order_by(AssessmentResponse.assessment_date.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return result.all()

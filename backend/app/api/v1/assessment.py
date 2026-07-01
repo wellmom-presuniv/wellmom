@@ -1,11 +1,14 @@
 import uuid
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_user_id
 from app.schemas.assessment import (
-    SubmitAssessmentRequest, AssessmentResultResponse, QuestionResponse
+    SubmitAssessmentRequest,
+    AssessmentResultResponse,
+    AssessmentHistoryItem,
+    QuestionResponse,
 )
 from app.services import assessment_service
 
@@ -62,3 +65,25 @@ async def get_today_result(
     """
     result = await assessment_service.get_today_result(db, user_id)
     return result
+
+@router.get(
+    "/assessment/history",
+    response_model=list[AssessmentHistoryItem],
+)
+async def get_assessment_history(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """
+    Mengambil riwayat assessment user.
+    Diurutkan dari assessment terbaru.
+    """
+
+    return await assessment_service.get_assessment_history(
+        db=db,
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+    )

@@ -29,6 +29,14 @@ class AssessmentResultResponse(BaseModel):
     total_score: Optional[int]      # None kalau red flag short-circuit
     bp_assessment_status: str       # NOT_PROVIDED | PENDING_THRESHOLD | NORMAL | FLAGGED
 
+class AssessmentHistoryItem(BaseModel):
+    response_id: uuid.UUID
+    date: str
+    risk_category: str
+    red_flag_triggered: bool
+    triggered_red_flags: list[TriggeredFlag]
+    total_score: Optional[int]
+    bp_assessment_status: str
 
 class QuestionResponse(BaseModel):
     question_id: uuid.UUID

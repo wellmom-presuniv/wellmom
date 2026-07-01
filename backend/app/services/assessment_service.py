@@ -51,7 +51,6 @@ async def submit_assessment(
         db=db,
         user_id=user_id,
         pregnancy_profile_id=profile.profile_id,
-        submitted_date=today,
         systolic_bp=systolic_bp,
         diastolic_bp=diastolic_bp,
     )
@@ -108,3 +107,35 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
         "total_score": result.total_score,
         "bp_assessment_status": result.bp_assessment_status,
     }
+
+async def get_assessment_history(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    limit: int = 20,
+    offset: int = 0,
+) -> list[dict]:
+    rows = await crud.assessment.get_assessment_history(
+        db=db,
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+    )
+
+    history = []
+
+    for result, assessment_date in rows:
+        triggered = result.triggered_red_flags or []
+
+        history.append(
+            {
+                "response_id": result.response_id,
+                "date": assessment_date.date().isoformat(),
+                "risk_category": result.risk_level,
+                "red_flag_triggered": bool(triggered),
+                "triggered_red_flags": triggered,
+                "total_score": result.total_score,
+                "bp_assessment_status": result.bp_assessment_status,
+            }
+        )
+
+    return history
