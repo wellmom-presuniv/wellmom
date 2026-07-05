@@ -23,7 +23,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
   { label: "Profil", icon: "person", color: colors.textSecondary, bg: "rgba(139,112,121,0.1)" },
 ];
 
-  export default function HomeScreen() {
+  export default function HomeScreen({ navigation }: any) {
     const [profile, setProfile] = useState<PregnancyProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -123,6 +123,11 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
           {MENU_ITEMS.map((item) => (
             <TouchableOpacity
               key={item.label}
+              onPress={() => {
+                if (item.label === "Self-Assessment") navigation.navigate("SelfAssessmentForm");
+                // TODO: tambahin navigasi tile lain begitu screen-nya siap
+              }}
+              activeOpacity={0.7}
               className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3 border border-border"
             >
               <View

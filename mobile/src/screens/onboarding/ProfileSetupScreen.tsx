@@ -15,8 +15,8 @@ import Animated, {
 import { useAuthStore } from "../../store/useAuthStore";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
-import { submitProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
+import { submitProfile, getMyProfile } from "../../api/profileService";
 
 const MONTHS_ID = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -91,18 +91,27 @@ export default function ProfileSetupScreen() {
     try {
       const safeDay = Math.min(day, maxDay);
       const hpht = `${year}-${String(month + 1).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
-      const profile = await submitProfile({ hpht });
+      
+      let profile: PregnancyProfile;
+      try {
+        profile = await submitProfile({ hpht });
+      } catch (err: any) {
+        if (err?.response?.status === 409) {
+          // Profil udah ada — fetch yang existing
+          profile = await getMyProfile();
+        } else {
+          throw err;
+        }
+      }
+      
       setSubmittedProfile(profile);
-
       setShowCelebration(true);
       overlayOpacity.value = withTiming(1, { duration: 200 });
       heart0.value = withDelay(0, withTiming(1, { duration: 400 }));
       heart1.value = withDelay(120, withTiming(1, { duration: 400 }));
       heart2.value = withDelay(240, withTiming(1, { duration: 400 }));
 
-      setTimeout(() => {
-        completeOnboarding();
-      }, 900);
+      setTimeout(() => { completeOnboarding(); }, 900);
     } catch (err) {
       setError("Gagal menyimpan profil. Cek koneksi internet kamu.");
     } finally {

@@ -85,7 +85,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           </TouchableOpacity>
         ) : null}
 
-        <TouchableOpacity onPress={() => navigation.navigate("Beranda")} activeOpacity={0.85} style={{ marginBottom: 24 }}>
+        <TouchableOpacity onPress={() => navigation.popToTop()} activeOpacity={0.85} style={{ marginBottom: 24 }}>
           <View
             style={{
               borderWidth: 1.5,

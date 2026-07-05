@@ -29,7 +29,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { access_token } = await authService.login(email, password);
       await AsyncStorage.setItem("auth_token", access_token);
-      set({ token: access_token, isSubmitting: false });
+      
+      // Cek profil setelah login — tentuin apakah perlu Onboarding atau langsung Home
+      let hasProfile = false;
+      try {
+        const { getMyProfile } = await import("../api/profileService");
+        await getMyProfile();
+        hasProfile = true;
+      } catch {
+        hasProfile = false;
+      }
+
+      set({ token: access_token, hasCompletedOnboarding: hasProfile, isSubmitting: false });
     } catch (err: any) {
       const message =
         err?.response?.status === 401
@@ -72,9 +83,17 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   hydrate: async () => {
     const token = await AsyncStorage.getItem("auth_token");
-    set({ token, isLoading: false });
-    // TODO: begitu integrasi Profile jalan, cek GET /profile/me di sini juga —
-    // kalau profil udah ada, set hasCompletedOnboarding: true otomatis,
-    // jangan andelin state lokal yang reset tiap reload.
+    if (!token) {
+      set({ token: null, isLoading: false });
+      return;
+    }
+
+    try {
+      const { getMyProfile } = await import("../api/profileService");
+      const profile = await getMyProfile();
+      set({ token, hasCompletedOnboarding: true, isLoading: false });
+    } catch (err: any) {
+      set({ token, hasCompletedOnboarding: false, isLoading: false });
+    }
   },
 }));
