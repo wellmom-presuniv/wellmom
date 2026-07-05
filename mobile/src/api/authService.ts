@@ -8,13 +8,7 @@ import { TokenResponse, RegisterPayload, AuthResponse } from "../types";
  * TODO: balik ke JSON begitu fix Alek beneran di-merge ke main + di-pull.
  */
 export async function login(email: string, password: string): Promise<TokenResponse> {
-  const body = new URLSearchParams();
-  body.append("username", email);
-  body.append("password", password);
-
-  const { data } = await apiClient.post<TokenResponse>("/auth/login", body, {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
+  const { data } = await apiClient.post<TokenResponse>("/auth/login", { email, password });
   return data;
 }
 
