@@ -1,30 +1,52 @@
 [
     {
         "category": "NORMAL",
-        "sys_max": 119,
-        "dia_max": 79
+        "metric": "systolic",
+        "max": 119
     },
     {
         "category": "ELEVATED",
-        "sys_min": 120,
-        "sys_max": 129,
-        "dia_max": 79
+        "metric": "systolic",
+        "min": 120,
+        "max": 129
     },
     {
         "category": "STAGE_1",
-        "sys_min": 130,
-        "sys_max": 139,
-        "dia_min": 80,
-        "dia_max": 89
+        "metric": "systolic",
+        "min": 130,
+        "max": 139
     },
     {
         "category": "STAGE_2",
-        "sys_min": 140,
-        "dia_min": 90
+        "metric": "systolic",
+        "min": 140,
+        "max": 180
     },
     {
         "category": "CRISIS",
-        "sys_min": 181,
-        "dia_min": 121
+        "metric": "systolic",
+        "min": 181
+    },
+    {
+        "category": "NORMAL",
+        "metric": "diastolic",
+        "max": 79
+    },
+    {
+        "category": "STAGE_1",
+        "metric": "diastolic",
+        "min": 80,
+        "max": 89
+    },
+    {
+        "category": "STAGE_2",
+        "metric": "diastolic",
+        "min": 90,
+        "max": 120
+    },
+    {
+        "category": "CRISIS",
+        "metric": "diastolic",
+        "min": 121
     }
 ]
