@@ -11,12 +11,12 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-    { to: "/", label: "Dasbor", icon: LayoutDashboard, end: true },
-    { to: "/assessment-questions", label: "Pertanyaan Assessment", icon: ClipboardList, end: false },
-    { to: "/score-cutoffs", label: "Konfigurasi Cutoff", icon: SlidersHorizontal, end: false },
-    { to: "/education-content", label: "Konten Edukasi", icon: BookOpen, end: false },
-    { to: "/checklist-items", label: "Checklist Harian", icon: CheckSquare, end: false },
-    { to: "/referral-mapping", label: "Mapping Rujukan", icon: MapPin, end: false },
+    { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+    { to: "/assessment-questions", label: "Assessment Questions", icon: ClipboardList, end: false },
+    { to: "/score-cutoffs", label: "Score Cutoffs", icon: SlidersHorizontal, end: false },
+    { to: "/education-content", label: "Education Content", icon: BookOpen, end: false },
+    { to: "/checklist-items", label: "Checklist Items", icon: CheckSquare, end: false },
+    { to: "/referral-mapping", label: "Referral Mapping", icon: MapPin, end: false },
 ];
 
 export default function AdminLayout() {
