@@ -48,7 +48,7 @@ interface EducationFormDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: CreateEducationContentPayload) => Promise<void>;
-  initialData?: EducationContent | null; // null = mode tambah, ada data = mode edit
+  initialData?: EducationContent | null;
   isSubmitting: boolean;
 }
 
@@ -87,30 +87,39 @@ export function EducationFormDialog({
   // Kalau mode tambah: reset ke default kosong
   // -------------------------------------------------------
   useEffect(() => {
-    if (initialData) {
-      reset({
-        title: initialData.title,
-        trimester: initialData.trimester,
-        category: initialData.category,
-        body: initialData.body,
-        status: initialData.status,
-        order_in_category: initialData.order_in_category,
-      });
-    } else {
-      reset({
-        title: "",
-        trimester: 1,
-        category: "",
-        body: "",
-        status: "draft",
-        order_in_category: 1,
-      });
-    }
-  }, [initialData, reset]);
+  if (initialData) {
+    reset({
+      title: initialData.title,
+      trimester: initialData.trimester ?? 1,  // null → default 1
+      category: initialData.category,
+      body: initialData.body,
+      status: initialData.is_published ? "published" : "draft", // Konversi is_published (boolean) → status (string) untuk form UX
+      order_in_category: initialData.order_in_category,
+    });
+  } else {
+    reset({
+      title: "",
+      trimester: 1,
+      category: "",
+      body: "",
+      status: "draft",
+      order_in_category: 1,
+    });
+  }
+}, [initialData, reset]);
 
   async function handleFormSubmit(values: FormValues) {
-    await onSubmit(values as CreateEducationContentPayload);
-  }
+  // Konversi status string → is_published boolean sesuai contract backend
+  const payload: CreateEducationContentPayload = {
+    title: values.title,
+    trimester: values.trimester,
+    category: values.category,
+    body: values.body,
+    is_published: values.status === "published",  // ← konversi di sini
+    order_in_category: values.order_in_category,
+  };
+  await onSubmit(payload);
+}
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

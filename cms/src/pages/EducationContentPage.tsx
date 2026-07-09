@@ -170,13 +170,9 @@ export default function EducationContentPage() {
                   <TableCell>
                     {/* Badge berubah warna sesuai status */}
                     <Badge
-                      variant={
-                        content.status === "published"
-                          ? "default"
-                          : "secondary"
-                      }
+                      variant={content.is_published ? "default" : "secondary"}
                     >
-                      {content.status === "published" ? "Published" : "Draft"}
+                      {content.is_published ? "Published" : "Draft"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

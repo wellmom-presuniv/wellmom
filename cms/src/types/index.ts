@@ -36,19 +36,17 @@ export interface ScoreCutoffs {
 
 
 // EDUCATION CONTENT
-// status adalah string literal, BUKAN boolean.
 
-export type EducationStatus = "published" | "draft";
 export type Trimester = 1 | 2 | 3;
 
 export interface EducationContent {
-    content_id: string;   // updated from id to content_id
-    title: string;
-    trimester: Trimester;
-    category: string;
-    body: string;
-    status: EducationStatus;
-    order_in_category: number;
+  content_id: string;
+  title: string;
+  trimester: Trimester | null;   // ← tambah | null (support general content)
+  category: string;
+  body: string;
+  is_published: boolean;         // ← ganti dari: status: EducationStatus
+  order_in_category: number;
 }
 export type CreateEducationContentPayload = Omit<EducationContent, "content_id">;
 export type UpdateEducationContentPayload = Partial<CreateEducationContentPayload>;
