@@ -6,6 +6,9 @@ export type RiskLevel = "LOW" | "MEDIUM" | "HIGH"; // for RefferalMapping
 
 
 // ASSESSMENT QUESTIONS
+// Update 30 Jun 2026: 9 pertanyaan (bukan 8).
+// is_red_flag berlaku untuk 4 item (Q5 tidak lagi red-flag).
+// Struktur kolom tidak berubah — form tetap generic.
 
 export interface AssessmentQuestion {
     id: string;
