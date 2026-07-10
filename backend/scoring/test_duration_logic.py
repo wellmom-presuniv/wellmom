@@ -128,7 +128,7 @@ def test_category_day1_is_warning():
         last_reported_date=today,
         resolved=False,
     )
-    assert get_duration_category(record, today) == DurationCategory.WARNING
+    assert get_duration_category(record) == DurationCategory.WARNING
     print("✅ test_category_day1_is_warning passed")
 
 
@@ -142,7 +142,7 @@ def test_category_day2_is_high():
         last_reported_date=day2,
         resolved=False,
     )
-    assert get_duration_category(record, day2) == DurationCategory.HIGH
+    assert get_duration_category(record) == DurationCategory.HIGH
     print("✅ test_category_day2_is_high passed")
 
 
@@ -155,14 +155,14 @@ def test_category_resolved_is_none():
         last_reported_date=today,
         resolved=True,
     )
-    assert get_duration_category(record, today) == DurationCategory.NONE
+    assert get_duration_category(record) == DurationCategory.NONE
     print("✅ test_category_resolved_is_none passed")
 
 
 def test_category_none_record_is_none():
     """Tidak ada record sama sekali -> NONE"""
     today = date(2026, 7, 10)
-    assert get_duration_category(None, today) == DurationCategory.NONE
+    assert get_duration_category(None) == DurationCategory.NONE
     print("✅ test_category_none_record_is_none passed")
 
 
@@ -188,7 +188,7 @@ def test_evaluate_all_takes_worst_case():
         ),  # sudah hari 2 -> HIGH
     }
     
-    category, details = evaluate_all_duration_symptoms(records, day2)
+    category, details = evaluate_all_duration_symptoms(records)
     
     assert category == DurationCategory.HIGH
     assert len(details) == 2  # kedua gejala tercatat di detail
@@ -207,7 +207,7 @@ def test_evaluate_all_none_active():
         ),
     }
     
-    category, details = evaluate_all_duration_symptoms(records, today)
+    category, details = evaluate_all_duration_symptoms(records)
     
     assert category == DurationCategory.NONE
     assert details == []

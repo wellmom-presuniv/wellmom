@@ -55,18 +55,27 @@ def classify_blood_pressure(
     Logic: ambil kategori yang PALING PARAH antara systolic dan diastolic,
     bukan menganggap keduanya harus match di satu range yang sama.
     
-    Contoh: sistol 125 (Elevated) + diastol 85 (Stage 1) -> hasil Stage 1,
-    karena diastol menunjukkan kondisi yang lebih parah.
+    Boundary CRISIS: tabel AHA pakai frasa "higher than 180/120" (bukan 
+    "180 or higher") -- artinya 180 dan 120 tepat masih STAGE_2, CRISIS 
+    baru mulai di 181/121. Ini bukan off-by-one error, sesuai sumber asli.
     
     Args:
-        systolic: tekanan darah sistolik (mmHg)
-        diastolic: tekanan darah diastolik (mmHg)
-        thresholds: list of dict dari bp_thresholds.json, contoh:
-            [{"category": "NORMAL", "metric": "systolic", "max": 119}, ...]
+        systolic: tekanan darah sistolik (mmHg), harus > 0
+        diastolic: tekanan darah diastolik (mmHg), harus > 0
+        thresholds: list of dict dari bp_thresholds.json
     
     Returns:
         BPCategory yang paling parah dari kedua metric
+    
+    Raises:
+        ValueError: kalau systolic atau diastolic <= 0 (data tidak valid)
     """
+    if systolic <= 0 or diastolic <= 0:
+        raise ValueError(
+            f"Nilai tensi tidak valid: systolic={systolic}, diastolic={diastolic}. "
+            f"Keduanya harus lebih besar dari 0."
+        )
+    
     sys_category = _classify_single_metric(systolic, "systolic", thresholds)
     dia_category = _classify_single_metric(diastolic, "diastolic", thresholds)
     

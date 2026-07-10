@@ -84,7 +84,22 @@ def test_boundary_stage2_crisis():
     assert classify_blood_pressure(181, 70, THRESHOLDS) == BPCategory.CRISIS
     print("✅ test_boundary_stage2_crisis passed")
 
+def test_rejects_zero_systolic():
+    """Sistol 0 harus raise ValueError, bukan diam-diam jadi NORMAL"""
+    try:
+        classify_blood_pressure(0, 70, THRESHOLDS)
+        assert False, "Harusnya raise ValueError"
+    except ValueError:
+        print("✅ test_rejects_zero_systolic passed")
 
+
+def test_rejects_negative_diastolic():
+    """Diastol negatif harus raise ValueError"""
+    try:
+        classify_blood_pressure(120, -10, THRESHOLDS)
+        assert False, "Harusnya raise ValueError"
+    except ValueError:
+        print("✅ test_rejects_negative_diastolic passed")
 # ── Run all tests ──────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -98,4 +113,6 @@ if __name__ == "__main__":
     test_crisis_via_diastolic()
     test_boundary_normal_elevated()
     test_boundary_stage2_crisis()
+    test_rejects_zero_systolic()
+    test_rejects_negative_diastolic()
     print("\n🎉 Semua test passed!")

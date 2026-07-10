@@ -43,11 +43,11 @@ class SymptomTrackingRecord:
     resolved: bool = False
 
 
-# Mapping dari question_id ke SymptomType -- sesuai keputusan final
-QUESTION_TO_SYMPTOM = {
-    "q2": SymptomType.BLURRED_VISION,  # "Pusing, Pandangan kabur?"
-    "q5": SymptomType.BLEEDING,         # "Perdarahan atau flek?"
-    "q9": SymptomType.HIGH_FEVER,       # "Demam tinggi (>=38°C)?"
+# Mapping dari order_index ke SymptomType -- sesuai keputusan final
+ORDER_INDEX_TO_SYMPTOM = {
+    2: SymptomType.BLURRED_VISION,  # "Pusing, Pandangan kabur?"
+    5: SymptomType.BLEEDING,         # "Perdarahan atau flek?"
+    9: SymptomType.HIGH_FEVER,       # "Demam tinggi (>=38°C)?"
 }
 
 
@@ -88,12 +88,11 @@ def update_tracking_record(
     return existing_record
 
 
-def get_duration_category(record: SymptomTrackingRecord | None, today: date) -> DurationCategory:
+def get_duration_category(record: SymptomTrackingRecord | None) -> DurationCategory:
     """
     Tentukan kategori durasi untuk SATU record tracking.
     
-    Hari ke berapa dihitung dari onset_date sampai last_reported_date 
-    (bukan sampai 'today' saja -- supaya konsisten kalau ada gap laporan).
+    Hari ke berapa dihitung dari onset_date sampai last_reported_date.
     """
     if record is None or record.resolved:
         return DurationCategory.NONE
@@ -107,13 +106,9 @@ def get_duration_category(record: SymptomTrackingRecord | None, today: date) -> 
 
 def evaluate_all_duration_symptoms(
     tracking_records: dict[SymptomType, SymptomTrackingRecord],
-    today: date,
 ) -> tuple[DurationCategory, list[dict]]:
     """
     Cek SEMUA gejala durasi sekaligus, ambil kategori paling parah.
-    
-    Returns:
-        (kategori_final, list_detail_gejala_yang_trigger)
     """
     severity_rank = {
         DurationCategory.NONE: 0,
@@ -125,7 +120,7 @@ def evaluate_all_duration_symptoms(
     triggered_details = []
     
     for symptom_type, record in tracking_records.items():
-        category = get_duration_category(record, today)
+        category = get_duration_category(record)
         if category == DurationCategory.NONE:
             continue
         
