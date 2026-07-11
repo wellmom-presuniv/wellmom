@@ -65,9 +65,17 @@ def update_tracking_record(
       record baru kalau memang belum ada.
     - Kalau dijawab "Ya" dan belum ada record aktif -> buat record baru, 
       onset_date = hari ini (ini onset baru, hari 1).
-    - Kalau dijawab "Ya" dan sudah ada record aktif (belum resolved) -> 
-      update last_reported_date jadi hari ini, onset_date TETAP (tidak 
-      berubah -- ini kelanjutan gejala yang sama).
+    - Kalau dijawab "Ya" dan sudah ada record aktif (belum resolved) TAPI 
+      ada gap (user skip submit di hari sebelumnya) -> dianggap onset BARU, 
+      bukan kelanjutan.
+    - Kalau dijawab "Ya" dan sudah ada record aktif, TANPA gap -> update 
+      last_reported_date, onset_date TETAP (kelanjutan gejala yang sama).
+    
+    Kebijakan gap (locked, konfirmasi Alek 10 Juli): kalau ada hari yang 
+    ke-skip (user tidak submit sama sekali), gejala dianggap ONSET BARU 
+    saat muncul lagi -- bukan kelanjutan dari onset lama. Alasan: tanpa 
+    submission di hari yang kosong, tidak ada bukti gejala benar-benar 
+    berlanjut terus-menerus.
     """
     if not answered_yes:
         if existing_record and not existing_record.resolved:
@@ -83,7 +91,18 @@ def update_tracking_record(
             resolved=False,
         )
     
-    # Gejala berlanjut dari hari sebelumnya
+    # Cek gap -- kalau selisih hari lebih dari 1, berarti ada hari yang 
+    # ke-skip (tidak submit sama sekali), dianggap onset baru
+    gap_days = (today - existing_record.last_reported_date).days
+    if gap_days > 1:
+        return SymptomTrackingRecord(
+            symptom_type=symptom_type,
+            onset_date=today,
+            last_reported_date=today,
+            resolved=False,
+        )
+    
+    # Tidak ada gap -- gejala berlanjut dari hari sebelumnya
     existing_record.last_reported_date = today
     return existing_record
 

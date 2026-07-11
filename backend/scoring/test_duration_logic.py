@@ -213,6 +213,53 @@ def test_evaluate_all_none_active():
     assert details == []
     print("✅ test_evaluate_all_none_active passed")
 
+def test_symptom_resets_after_skip_day():
+    """Hari 1 = Ya, hari 2 = SKIP (tidak submit), hari 3 = Ya -> dianggap onset BARU, bukan lanjutan"""
+    day1 = date(2026, 7, 10)
+    # hari 2 dilewati sama sekali -- tidak ada pemanggilan fungsi untuk hari itu
+    day3 = date(2026, 7, 12)
+    
+    record_day1 = update_tracking_record(
+        symptom_type=SymptomType.BLEEDING,
+        existing_record=None,
+        answered_yes=True,
+        today=day1,
+    )
+    # Langsung lompat ke hari 3, simulasikan user skip hari 2 sepenuhnya
+    record_day3 = update_tracking_record(
+        symptom_type=SymptomType.BLEEDING,
+        existing_record=record_day1,
+        answered_yes=True,
+        today=day3,
+    )
+    
+    assert record_day3.onset_date == day3  # onset BARU, bukan day1
+    assert record_day3.last_reported_date == day3
+    print("✅ test_symptom_resets_after_skip_day passed")
+
+
+def test_symptom_continues_with_no_gap():
+    """Pastikan submission berturut-turut TANPA gap tetap dianggap lanjutan (regresi check)"""
+    day1 = date(2026, 7, 10)
+    day2 = date(2026, 7, 11)  # persis 1 hari setelah day1, tidak ada gap
+    
+    record_day1 = update_tracking_record(
+        symptom_type=SymptomType.HIGH_FEVER,
+        existing_record=None,
+        answered_yes=True,
+        today=day1,
+    )
+    record_day2 = update_tracking_record(
+        symptom_type=SymptomType.HIGH_FEVER,
+        existing_record=record_day1,
+        answered_yes=True,
+        today=day2,
+    )
+    
+    assert record_day2.onset_date == day1  # onset TETAP, karena tidak ada gap
+    assert record_day2.last_reported_date == day2
+    print("✅ test_symptom_continues_with_no_gap passed")
+
 
 # ── Run all tests ──────────────────────────────────────────────────────────
 
@@ -228,4 +275,6 @@ if __name__ == "__main__":
     test_category_none_record_is_none()
     test_evaluate_all_takes_worst_case()
     test_evaluate_all_none_active()
+    test_symptom_resets_after_skip_day()
+    test_symptom_continues_with_no_gap()
     print("\n🎉 Semua test passed!")
