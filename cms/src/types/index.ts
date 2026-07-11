@@ -11,7 +11,7 @@ export type RiskLevel = "LOW" | "MEDIUM" | "HIGH"; // for RefferalMapping
 // Struktur kolom tidak berubah — form tetap generic.
 
 export interface AssessmentQuestion {
-    id: string;
+    question_id: string;
     question_text: string;
     weight: number;
     is_red_flag: boolean;
@@ -19,7 +19,7 @@ export interface AssessmentQuestion {
     is_active: boolean;
     category: string | null;
 }
-export type CreateAssessmentQuestionPayload = Omit<AssessmentQuestion, "id">;
+export type CreateAssessmentQuestionPayload = Omit<AssessmentQuestion, "question_id">;
 export type UpdateAssessmentQuestionPayload = Partial<CreateAssessmentQuestionPayload>;
 
 

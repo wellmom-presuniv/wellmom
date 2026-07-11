@@ -90,7 +90,7 @@ export default function AssessmentQuestionsPage() {
   ) {
     if (selectedQuestion) {
       await updateMutation.mutateAsync({
-        id: selectedQuestion.id,
+        id: selectedQuestion.question_id,
         payload: data,
       });
     } else {
@@ -155,7 +155,7 @@ export default function AssessmentQuestionsPage() {
                 .sort((a, b) => a.order_index - b.order_index)
                 .map((question, index) => (
                   <TableRow
-                    key={question.id}
+                    key={question.question_id}
                     className={
                       question.is_red_flag ? "bg-rose-50/50" : ""
                     }
@@ -247,7 +247,7 @@ export default function AssessmentQuestionsPage() {
               className="bg-rose-500 hover:bg-rose-600"
               onClick={() =>
                 deleteTarget &&
-                deleteMutation.mutate(deleteTarget.id)
+                deleteMutation.mutate(deleteTarget.question_id)
               }
             >
               {deleteMutation.isPending ? "Deleting..." : "Delete"}

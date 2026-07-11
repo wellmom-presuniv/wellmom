@@ -28,7 +28,7 @@ const assessmentSchema = z.object({
   weight: z
     .number({ error: "The weight must be filled in" })
     .int()
-    .min(1, "The weight must be at least 1"),
+    .min(0, "The weight must be at least 0"),
   is_red_flag: z.boolean(),
   order_index: z
     .number({ error: "The order must be filled in" })
@@ -147,7 +147,7 @@ export function AssessmentFormDialog({
               <Input
                 {...register("weight", { valueAsNumber: true })}
                 type="number"
-                min={1}
+                min={0}
                 placeholder="1"
               />
               {errors.weight && (
