@@ -29,7 +29,8 @@ def test_score_medium_duration_none():
 
 
 def test_score_low_duration_warning():
-    """Skor LOW, tapi durasi WARNING (gejala hari 1) -> hasil akhir WARNING (durasi menang)"""
+    """Skor LOW, tapi durasi WARNING (gejala hari 1) -> risk_category MEDIUM (WARNING di-map ke storage), 
+    tapi duration_triggered_symptoms tetap simpan status asli WARNING"""
     score_result = {
         "risk_category": "LOW",
         "red_flag_triggered": False,
@@ -38,9 +39,10 @@ def test_score_low_duration_warning():
     }
     duration_symptoms = [{"symptom": "BLEEDING", "days_active": 1, "status": "WARNING"}]
     result = combine_final_risk(score_result, "WARNING", duration_symptoms)
-    assert result.risk_category == FinalRiskCategory.WARNING
-    assert result.total_score == 1  # skor tetap dilaporkan apa adanya
+    assert result.risk_category == FinalRiskCategory.MEDIUM  # bukan WARNING lagi
+    assert result.total_score == 1
     assert len(result.duration_triggered_symptoms) == 1
+    assert result.duration_triggered_symptoms[0]["status"] == "WARNING"  # detail asli tetap ada
     print("✅ test_score_low_duration_warning passed")
 
 
@@ -100,6 +102,14 @@ def test_duration_high_beats_score_high_no_conflict():
     assert result.risk_category == FinalRiskCategory.HIGH
     print("✅ test_duration_high_beats_score_high_no_conflict passed")
 
+def test_map_to_storage_category():
+    """Verifikasi WARNING -> MEDIUM, kategori lain tidak berubah"""
+    from risk_combiner import map_to_storage_category
+    assert map_to_storage_category(FinalRiskCategory.WARNING) == FinalRiskCategory.MEDIUM
+    assert map_to_storage_category(FinalRiskCategory.LOW) == FinalRiskCategory.LOW
+    assert map_to_storage_category(FinalRiskCategory.MEDIUM) == FinalRiskCategory.MEDIUM
+    assert map_to_storage_category(FinalRiskCategory.HIGH) == FinalRiskCategory.HIGH
+    print("✅ test_map_to_storage_category passed")
 
 # ── Run all tests ──────────────────────────────────────────────────────────
 
@@ -111,4 +121,5 @@ if __name__ == "__main__":
     test_red_flag_overrides_everything()
     test_bp_category_informational_only()
     test_duration_high_beats_score_high_no_conflict()
+    test_map_to_storage_category()
     print("\n🎉 Semua test passed!")

@@ -63,6 +63,14 @@ def _map_duration_category(duration_category_str: str) -> FinalRiskCategory:
     }
     return mapping[duration_category_str]
 
+def map_to_storage_category(category: str) -> str:
+    """
+    Map FINAL kategori ke yang boleh disimpan di database:
+    WARNING -> MEDIUM (per-symptom WARNING tetap disimpan di triggered_symptoms)
+    """
+    if category == "WARNING":
+        return "MEDIUM"
+    return category
 
 def combine_final_risk(
     score_result: dict,
@@ -74,6 +82,10 @@ def combine_final_risk(
     Gabungkan jalur skor dan jalur durasi, ambil yang paling parah.
     Tensi (bp_category) TIDAK ikut menentukan kategori -- murni informasional.
     
+    risk_category yang di-return SUDAH melalui storage mapping -- WARNING 
+    tidak akan pernah muncul di field ini, otomatis jadi MEDIUM. Detail 
+    WARNING per-gejala tetap ada di duration_triggered_symptoms.
+    
     Args:
         score_result: dict hasil dari compute_risk() 
             {"risk_category": str, "red_flag_triggered": bool, 
@@ -84,7 +96,7 @@ def combine_final_risk(
         bp_category: hasil dari classify_blood_pressure(), opsional
     
     Returns:
-        FinalAssessmentResult dengan kategori final yang sudah digabung
+        FinalAssessmentResult dengan kategori final yang sudah storage-safe
     """
     score_category = _map_score_category(score_result)
     duration_cat = _map_duration_category(duration_category)
@@ -92,7 +104,8 @@ def combine_final_risk(
     score_rank = _SEVERITY_ORDER.index(score_category)
     duration_rank = _SEVERITY_ORDER.index(duration_cat)
     
-    final_category = _SEVERITY_ORDER[max(score_rank, duration_rank)]
+    raw_category = _SEVERITY_ORDER[max(score_rank, duration_rank)]
+    final_category = map_to_storage_category(raw_category)
     
     return FinalAssessmentResult(
         risk_category=final_category,
