@@ -9,7 +9,7 @@ import EducationContentPage from "@/pages/EducationContentPage";
 import ChecklistItemsPage from "@/pages/ChecklistItemsPage";
 import ReferralMappingPage from "@/pages/ReferralMappingPage";
 
-// Penjaga route - cek token sebelum izinkan masuk - Kalau belum login redirect ke login
+// Route guard - check token before allowing access - if not logged in redirect to login
 function ProtectedRoute() {
     const { isAuthenticated } = useAuth();
     if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -23,7 +23,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/",
-        element: <ProtectedRoute />,     // penjaga pintu
+        element: <ProtectedRoute />,     // door guard
         children: [
             {
                 element: <AdminLayout />,
