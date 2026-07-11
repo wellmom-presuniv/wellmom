@@ -108,7 +108,7 @@ export function ReferralFormDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Edit Mapping Referral" : "Add Referral Mapping"}
+            {isEdit ? "Edit Referral Mapping" : "Add Referral Mapping"}
           </DialogTitle>
         </DialogHeader>
 
@@ -162,7 +162,7 @@ export function ReferralFormDialog({
             <Label>Facility Type</Label>
             <Input
               {...register("facility_type")}
-              placeholder="Facility type"
+              placeholder="Example: Clinic / Hospital / Medical Center"
             />
             {errors.facility_type && (
               <p className="text-xs text-rose-500">
@@ -180,7 +180,7 @@ export function ReferralFormDialog({
             */}
             <Textarea
               {...register("recommendation")}
-              placeholder="Example: Immediately consult with a healthcare provider and have the next ANC examination earlier."
+              placeholder="Example: Consult immediately with a healthcare professional and have the next ANC examination earlier."
               className="resize-y"
               rows={3}
             />
@@ -196,7 +196,7 @@ export function ReferralFormDialog({
             <Label>Urgency Label</Label>
             <Input
               {...register("urgency_label")}
-              placeholder="Example: Immediated / Within 24 hours / At routine ANC"
+              placeholder="Example: Immediately / Within 24 hours / During routine ANC"
             />
             {errors.urgency_label && (
               <p className="text-xs text-rose-500">
@@ -204,8 +204,8 @@ export function ReferralFormDialog({
               </p>
             )}
             <p className="text-xs text-slate-400">
-              Short label displayed in the mobile app as an indicator of how
-              quickly pregnant women should go to health facilities.
+              A short label displayed in the mobile app to indicate how
+              quickly the pregnant woman should go to the facility.
             </p>
           </div>
 
@@ -248,7 +248,7 @@ export function ReferralFormDialog({
             {isSubmitting
               ? "Saving..."
               : isEdit
-              ? "Update Mapping"
+              ? "Save Changes"
               : "Add Mapping"}
           </Button>
         </DialogFooter>
