@@ -1,0 +1,14 @@
+{
+    "answers": [
+        { "question_id": "f8e7b192-a814-4a02-9526-c8c673371a4a", "answer": false },
+        { "question_id": "33a945c5-d422-4f60-a268-89f277c7ed20", "answer": false },
+        { "question_id": "3ad22fef-34e5-4349-bb44-0f767ee7a61a", "answer": false },
+        { "question_id": "c425c773-610a-41a7-97db-985cf4431670", "answer": false },
+        { "question_id": "bdcd6e9a-ba4a-4520-9b83-ad432bf96261", "answer": true },
+        { "question_id": "e363d004-b31b-4157-9271-189382c31bea", "answer": false },
+        { "question_id": "5f9d7d39-613b-478d-9ee7-16a6eb69bc99", "answer": false },
+        { "question_id": "96ec723b-6dcd-4313-bfd0-8fdce4dc810c", "answer": false }
+    ],
+    "systolic_bp": 120,
+    "diastolic_bp": 80
+}

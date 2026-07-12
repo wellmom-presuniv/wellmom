@@ -33,7 +33,7 @@ class AssessmentResult(Base):
     __tablename__ = "assessment_results"
     result_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     response_id = Column(UUID(as_uuid=True), ForeignKey("assessment_responses.response_id", ondelete="CASCADE"), nullable=False)
-    total_score = Column(Integer, nullable=False)
+    total_score = Column(Integer, nullable=True)
     risk_level = Column(String, nullable=False) # LOW, MEDIUM, HIGH
     triggered_red_flags = Column(JSONB, nullable=True) # [{"question_id": "uuid", "question_text": "text"}]
     bp_assessment_status = Column(String(20), nullable=False, default="NOT_PROVIDED") # NOT_PROVIDED | PENDING_THRESHOLD | NORMAL | FLAGGED
