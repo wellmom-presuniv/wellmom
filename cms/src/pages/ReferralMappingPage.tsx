@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Pencil, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,28 +11,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { referralMappingApi } from "@/api/referralMapping";
 import { ReferralFormDialog } from "@/components/referral/ReferralFormDialog";
 import { RISK_LEVEL_CONFIG, RISK_LEVEL_ORDER } from "@/lib/riskLevel";
-import type { ReferralMapping, RiskLevel } from "@/types";
+import type { ReferralMapping } from "@/types";
 
 export default function ReferralMappingPage() {
   const queryClient = useQueryClient();
 
-  const [formOpen, setFormOpen] = useState(false);
+  // Hanya state edit — tidak ada add/delete
   const [selectedMapping, setSelectedMapping] =
-    useState<ReferralMapping | null>(null);
-  const [deleteTarget, setDeleteTarget] =
     useState<ReferralMapping | null>(null);
 
   const { data: mappings = [], isLoading } = useQuery({
@@ -40,72 +28,39 @@ export default function ReferralMappingPage() {
     queryFn: referralMappingApi.getAll,
   });
 
-  const createMutation = useMutation({
-    mutationFn: referralMappingApi.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["referral-mapping"] });
-      setFormOpen(false);
-    },
-  });
-
+  // -------------------------------------------------------
+  // Update by risk_level — bukan by id
+  // -------------------------------------------------------
   const updateMutation = useMutation({
     mutationFn: ({
-      id,
+      risk_level,
       payload,
     }: {
-      id: string;
+      risk_level: string;
       payload: Parameters<typeof referralMappingApi.update>[1];
-    }) => referralMappingApi.update(id, payload),
+    }) =>
+      referralMappingApi.update(
+        risk_level as "LOW" | "MEDIUM" | "HIGH",
+        payload
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["referral-mapping"] });
-      setFormOpen(false);
       setSelectedMapping(null);
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: referralMappingApi.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["referral-mapping"] });
-      setDeleteTarget(null);
-    },
-  });
-
-  function handleAddClick() {
-    setSelectedMapping(null);
-    setFormOpen(true);
-  }
-
-  function handleEditClick(mapping: ReferralMapping) {
-    setSelectedMapping(mapping);
-    setFormOpen(true);
-  }
-
-  function handleFormClose() {
-    setFormOpen(false);
-    setSelectedMapping(null);
-  }
-
   async function handleFormSubmit(
-    data: Parameters<typeof referralMappingApi.create>[0]
+    data: Parameters<typeof referralMappingApi.update>[1]
   ) {
-    if (selectedMapping) {
-      await updateMutation.mutateAsync({
-        id: selectedMapping.id,
-        payload: data,
-      });
-    } else {
-      await createMutation.mutateAsync(data);
-    }
+    if (!selectedMapping) return;
+    await updateMutation.mutateAsync({
+      risk_level: selectedMapping.risk_level,
+      payload: data,
+    });
   }
 
-  // -------------------------------------------------------
-  // Group data by risk_level sesuai urutan LOW → MEDIUM → HIGH
-  // Hasilnya: { LOW: [...], MEDIUM: [...], HIGH: [...] }
-  // -------------------------------------------------------
-  const groupedMappings = RISK_LEVEL_ORDER.reduce<
-    Record<RiskLevel, ReferralMapping[]>
-  >(
+  // Group by risk_level
+  const groupedMappings = RISK_LEVEL_ORDER.reduce<Record<string, ReferralMapping[]>>(
     (acc, level) => {
       acc[level] = mappings.filter((m) => m.risk_level === level);
       return acc;
@@ -113,41 +68,24 @@ export default function ReferralMappingPage() {
     { LOW: [], MEDIUM: [], HIGH: [] }
   );
 
-  const isEmpty = mappings.length === 0;
-
   return (
     <div className="p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-800">
-            Referral Mapping
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage referral mappings for risk categories to recommended health
-            facilities in the mobile application.
-          </p>
-        </div>
-        <Button onClick={handleAddClick}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Mapping
-        </Button>
+      {/* Header — tidak ada tombol Tambah */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-800">
+          Referral Mapping
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Manage referral recommendations per risk category. Three categories
+          are already available — click Edit to update their content.
+        </p>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center h-48">
           <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
         </div>
-      ) : isEmpty ? (
-        <div className="flex flex-col items-center justify-center h-48 border border-dashed border-slate-200 rounded-lg text-slate-400">
-          <p className="text-sm">No referral mappings available.</p>
-          <p className="text-sm">Click "Add Mapping" to get started.</p>
-        </div>
       ) : (
-        // -------------------------------------------------------
-        // Render tiga section terpisah per risk level
-        // Jauh lebih mudah dibaca daripada satu tabel flat
-        // -------------------------------------------------------
         <div className="space-y-6">
           {RISK_LEVEL_ORDER.map((level) => {
             const config = RISK_LEVEL_CONFIG[level];
@@ -155,50 +93,47 @@ export default function ReferralMappingPage() {
 
             return (
               <div key={level}>
-                {/* Section header per risk level */}
                 <div className="flex items-center gap-2 mb-2">
                   <Badge className={config.badgeClass}>
                     {config.label}
                   </Badge>
-                  <span className="text-xs text-slate-400">
-                    {items.length} mapping
-                  </span>
+                  {items.length === 0 && (
+                    <span className="text-xs text-slate-400">
+                      No data — needs to be filled in
+                    </span>
+                  )}
                 </div>
 
                 {items.length === 0 ? (
                   <div className="border border-dashed border-slate-200 rounded-lg p-4 text-center text-sm text-slate-400">
-                    No mappings available for this category.
+                    Referral mapping data for this category is not yet available
+                    from backend.
                   </div>
                 ) : (
                   <div className="border border-slate-200 rounded-lg overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Facility</TableHead>
+                          <TableHead className="w-40">Facility</TableHead>
                           <TableHead>Recommendation</TableHead>
-                          <TableHead className="w-32">
+                          <TableHead className="w-36">
                             Urgency Label
                           </TableHead>
-                          <TableHead className="w-24">Status</TableHead>
-                          <TableHead className="w-24 text-right">
-                            Actions
+                          <TableHead className="w-20 text-right">
+                            Action
                           </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {items.map((mapping) => (
                           <TableRow
-                            key={mapping.id}
+                            key={mapping.mapping_id}
                             className={config.rowClass}
                           >
                             <TableCell className="font-medium">
                               {mapping.facility_type}
                             </TableCell>
-                            <TableCell className="text-slate-600 text-sm max-w-xs">
-                              {/*
-                                Potong teks rekomendasi kalau terlalu panjang
-                                Chelsea bisa lihat full text saat edit
-                              */}
+                            <TableCell className="text-slate-600 text-sm">
                               <span
                                 className="line-clamp-2"
                                 title={mapping.recommendation}
@@ -209,40 +144,14 @@ export default function ReferralMappingPage() {
                             <TableCell className="text-slate-500 text-sm">
                               {mapping.urgency_label}
                             </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  mapping.is_active
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className={
-                                  mapping.is_active
-                                    ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-                                    : ""
-                                }
-                              >
-                                {mapping.is_active ? "Aktif" : "Nonaktif"}
-                              </Badge>
-                            </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleEditClick(mapping)}
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="text-rose-500 hover:text-rose-600 hover:bg-rose-50"
-                                  onClick={() => setDeleteTarget(mapping)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => setSelectedMapping(mapping)}
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -257,47 +166,12 @@ export default function ReferralMappingPage() {
       )}
 
       <ReferralFormDialog
-        open={formOpen}
-        onClose={handleFormClose}
+        open={!!selectedMapping}
+        onClose={() => setSelectedMapping(null)}
         onSubmit={handleFormSubmit}
         initialData={selectedMapping}
-        isSubmitting={
-          createMutation.isPending || updateMutation.isPending
-        }
+        isSubmitting={updateMutation.isPending}
       />
-
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this mapping?</AlertDialogTitle>
-            <AlertDialogDescription>
-              The referral mapping for{" "}
-              <strong>
-                {deleteTarget
-                  ? RISK_LEVEL_CONFIG[deleteTarget.risk_level].label
-                  : ""}
-              </strong>{" "}
-              to {deleteTarget?.facility_type} will be permanently deleted.
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-rose-500 hover:bg-rose-600"
-              onClick={() =>
-                deleteTarget &&
-                deleteMutation.mutate(deleteTarget.id)
-              }
-            >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
