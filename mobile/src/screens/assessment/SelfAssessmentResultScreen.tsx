@@ -33,16 +33,16 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
               color={risk.color}
             />
           </View>
-          <Text style={{ fontFamily: fonts.extrabold, fontSize: 22, color: risk.color, marginBottom: 4 }}>
-            {risk.label}
+          <Text
+            style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, textAlign: "center", lineHeight: 19 }}
+          >
+            {result.risk_category === "LOW"
+              ? "Kondisi Anda baik. Tetap jaga pola makan dan lakukan pemeriksaan kehamilan rutin."
+              : result.risk_category === "MEDIUM"
+              ? "Ada beberapa faktor yang perlu diperhatikan. Konsultasikan saat kunjungan ANC berikutnya."
+              : "Terdapat tanda yang memerlukan perhatian segera. Segera konsultasi ke tenaga kesehatan."}
           </Text>
-          {result.recommendation_text && (
-            <Text
-              style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, textAlign: "center", lineHeight: 19 }}
-            >
-              {result.recommendation_text}
-            </Text>
-          )}
+          
         </View>
 
         {/* Red flags yang trigger */}

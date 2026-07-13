@@ -1,64 +1,62 @@
 import { AssessmentQuestion, AssessmentResult } from "../../types";
 
-// Sumber: backend/database/seeds/assessment_questions.json (Arizal) — 8 pertanyaan asli,
-// BUKAN dummy karangan. order_index & is_red_flag persis sama seed yang sudah di-load ke DB.
+// Sumber: backend/database/seeds/assessment_questions.json (Arizal) — 8 pertanyaan asli.
+// TODO: pertanyaan ini akan berubah setelah PR #11 Arizal di-merge (Q2 digabung, Q5 jadi
+// non-red-flag, Q9 baru). Jangan update dulu sampai re-seed DB dan jawaban duration tracking
+// (otomatis vs manual) dikonfirmasi Arizal.
 export const MOCK_QUESTIONS: AssessmentQuestion[] = [
-  { id: "q1", question_text: "Mudah lelah berlebihan?", category: null, weight: 1, is_red_flag: false, is_active: true, order_index: 1 },
-  { id: "q2", question_text: "Pusing atau mata berkunang?", category: null, weight: 1, is_red_flag: false, is_active: true, order_index: 2 },
-  { id: "q3", question_text: "Mual muntah terus-menerus?", category: null, weight: 1, is_red_flag: false, is_active: true, order_index: 3 },
-  { id: "q4", question_text: "Tidak konsumsi tablet tambah darah?", category: null, weight: 1, is_red_flag: false, is_active: true, order_index: 4 },
-  { id: "q5", question_text: "Perdarahan atau flek?", category: null, weight: 0, is_red_flag: true, is_active: true, order_index: 5 },
-  { id: "q6", question_text: "Sakit kepala berat?", category: null, weight: 0, is_red_flag: true, is_active: true, order_index: 6 },
-  { id: "q7", question_text: "Bengkak pada wajah/tangan?", category: null, weight: 0, is_red_flag: true, is_active: true, order_index: 7 },
-  { id: "q8", question_text: "Gerakan janin berkurang (trimester lanjut)?", category: null, weight: 0, is_red_flag: true, is_active: true, order_index: 8 },
+  { question_id: "q1", question_text: "Mudah lelah berlebihan?", weight: 1, is_red_flag: false, is_active: true, order_index: 1 },
+  { question_id: "q2", question_text: "Pusing atau mata berkunang?", weight: 1, is_red_flag: false, is_active: true, order_index: 2 },
+  { question_id: "q3", question_text: "Mual muntah terus-menerus?", weight: 1, is_red_flag: false, is_active: true, order_index: 3 },
+  { question_id: "q4", question_text: "Tidak konsumsi tablet tambah darah?", weight: 1, is_red_flag: false, is_active: true, order_index: 4 },
+  { question_id: "q5", question_text: "Perdarahan atau flek?", weight: 0, is_red_flag: true, is_active: true, order_index: 5 },
+  { question_id: "q6", question_text: "Sakit kepala berat?", weight: 0, is_red_flag: true, is_active: true, order_index: 6 },
+  { question_id: "q7", question_text: "Bengkak pada wajah/tangan?", weight: 0, is_red_flag: true, is_active: true, order_index: 7 },
+  { question_id: "q8", question_text: "Gerakan janin berkurang (trimester lanjut)?", weight: 0, is_red_flag: true, is_active: true, order_index: 8 },
 ];
 
-/**
- * Simulasi scoring engine Arizal (engine.py) — dipakai SEMENTARA sampai
- * POST /assessment/submit beneran ada. Logic ini sengaja di-mirror persis
- * (red-flag check dulu baru score accumulation) biar pas swap ke API asli,
- * behavior UI ga berubah.
- */
 export function mockCalculateRisk(
   answers: Record<string, boolean>,
   systolicBp: number | null,
   diastolicBp: number | null
 ): AssessmentResult {
-  const triggeredRedFlags = MOCK_QUESTIONS.filter((q) => q.is_red_flag && answers[q.id]).map((q) => ({
-    question_id: q.id,
-    question_text: q.question_text,
-  }));
+  const triggeredRedFlags = MOCK_QUESTIONS
+    .filter((q) => q.is_red_flag && answers[q.question_id])
+    .map((q) => ({
+      question_id: q.question_id,
+      question_text: q.question_text,
+    }));
 
   const bpStatus =
     systolicBp == null || diastolicBp == null ? "NOT_PROVIDED" : "PENDING_THRESHOLD";
 
+  const today = new Date().toISOString().split("T")[0];
+
   if (triggeredRedFlags.length > 0) {
     return {
+      response_id: "mock-result",
+      date: today,
       risk_category: "HIGH",
-      total_score: 0,
+      red_flag_triggered: true,
+      total_score: null,
       bp_assessment_status: bpStatus,
       triggered_red_flags: triggeredRedFlags,
-      recommendation_text:
-        "Beberapa tanda yang Anda alami perlu perhatian segera. Lakukan konsultasi ke fasilitas kesehatan terdekat.",
     };
   }
 
-  const totalScore = MOCK_QUESTIONS.filter((q) => !q.is_red_flag && answers[q.id]).reduce(
-    (sum, q) => sum + q.weight,
-    0
-  );
+  const totalScore = MOCK_QUESTIONS
+    .filter((q) => !q.is_red_flag && answers[q.question_id])
+    .reduce((sum, q) => sum + q.weight, 0);
 
-  // Sesuai risk_thresholds.json: LOW 0-2, MEDIUM 3-4, HIGH 5-999
   const category = totalScore <= 2 ? "LOW" : totalScore <= 4 ? "MEDIUM" : "HIGH";
 
   return {
+    response_id: "mock-result",
+    date: today,
     risk_category: category,
+    red_flag_triggered: false,
     total_score: totalScore,
     bp_assessment_status: bpStatus,
     triggered_red_flags: [],
-    recommendation_text:
-      category === "LOW"
-        ? "Kondisi Anda baik. Tetap jaga pola makan dan lakukan pemeriksaan kehamilan rutin."
-        : "Tingkatkan asupan gizi dan konsultasikan kondisi Anda saat kunjungan ANC berikutnya.",
   };
 }

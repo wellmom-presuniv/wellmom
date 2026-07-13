@@ -4,13 +4,12 @@
 
 // ===== Self-Assessment =====
 export interface AssessmentQuestion {
-  id: string;
+  question_id: string;        
   question_text: string;
-  category: string | null; // nullable, isinya null untuk semua pertanyaan saat ini — confirmed ga dipakai scoring engine
-  weight: number;
+  order_index: number;
   is_red_flag: boolean;
+  weight: number;
   is_active: boolean;
-  order_index: number; // confirmed ditambahin ke model — urutan tampil ikut ini, BUKAN insertion order
 }
 
 export interface AssessmentAnswer {
@@ -44,11 +43,14 @@ export interface RiskThreshold {
 // assessment_service.py). Alek akan migrasi rename kolom DB biar konsisten — ga ngubah
 // shape ini lagi dari sisi FE.
 export interface AssessmentResult {
+  response_id: string;                    
+  date: string;                           
   risk_category: RiskCategory;
-  total_score: number;
+  red_flag_triggered: boolean;            
+  triggered_red_flags: TriggeredRedFlag[];  
+  total_score: number | null;             
   bp_assessment_status: BpAssessmentStatus;
-  triggered_red_flags: TriggeredRedFlag[] | null; // null/[] kalau ga ada yang trigger
-  recommendation_text: string | null;
+
 }
 
 // ===== Auth — sesuai schema asli backend (token.py / user.py) =====

@@ -50,12 +50,12 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
       <View className="flex-row px-5 mb-4" style={{ gap: 4 }}>
         {MOCK_QUESTIONS.map((q) => (
           <View
-            key={q.id}
+            key={q.question_id}
             style={{
               flex: 1,
               height: 4,
               borderRadius: 2,
-              backgroundColor: answers[q.id] !== undefined ? colors.primary : colors.surfaceContainer,
+              backgroundColor: answers[q.question_id] !== undefined ? colors.primary : colors.surfaceContainer,
             }}
           />
         ))}
@@ -64,7 +64,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {MOCK_QUESTIONS.map((q) => (
           <View
-            key={q.id}
+            key={q.question_id}
             className="flex-row items-center justify-between p-4 mb-3"
             style={{ backgroundColor: colors.surface, borderRadius: 18 }}
           >
@@ -73,38 +73,38 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             </Text>
             <View className="flex-row" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 999, padding: 3 }}>
               <TouchableOpacity
-                onPress={() => setAnswer(q.id, true)}
+                onPress={() => setAnswer(q.question_id, true)}
                 style={{
                   paddingHorizontal: 16,
                   paddingVertical: 6,
                   borderRadius: 999,
-                  backgroundColor: answers[q.id] === true ? colors.primary : "transparent",
+                  backgroundColor: answers[q.question_id] === true ? colors.primary : "transparent",
                 }}
               >
                 <Text
                   style={{
                     fontFamily: fonts.semibold,
                     fontSize: 12,
-                    color: answers[q.id] === true ? "#FFFFFF" : colors.textSecondary,
+                    color: answers[q.question_id] === true ? "#FFFFFF" : colors.textSecondary,
                   }}
                 >
                   Ya
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setAnswer(q.id, false)}
+                onPress={() => setAnswer(q.question_id, false)}
                 style={{
                   paddingHorizontal: 16,
                   paddingVertical: 6,
                   borderRadius: 999,
-                  backgroundColor: answers[q.id] === false ? colors.primary : "transparent",
+                  backgroundColor: answers[q.question_id] === false ? colors.primary : "transparent",
                 }}
               >
                 <Text
                   style={{
                     fontFamily: fonts.semibold,
                     fontSize: 12,
-                    color: answers[q.id] === false ? "#FFFFFF" : colors.textSecondary,
+                    color: answers[q.question_id] === false ? "#FFFFFF" : colors.textSecondary,
                   }}
                 >
                   Tidak
