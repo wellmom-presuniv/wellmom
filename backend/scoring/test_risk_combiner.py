@@ -111,6 +111,20 @@ def test_map_to_storage_category():
     assert map_to_storage_category(FinalRiskCategory.HIGH) == FinalRiskCategory.HIGH
     print("✅ test_map_to_storage_category passed")
 
+def test_map_to_storage_category_accepts_string():
+    """Verifikasi fungsi juga bisa terima string biasa (bukan cuma enum), 
+    dan tetap return FinalRiskCategory -- bukan string -- biar caller 
+    aman pakai .value tanpa perlu cek tipe dulu"""
+    from risk_combiner import map_to_storage_category
+    
+    result = map_to_storage_category("WARNING")
+    assert result == FinalRiskCategory.MEDIUM
+    assert isinstance(result, FinalRiskCategory)  # bukan string biasa
+    
+    result2 = map_to_storage_category("HIGH")
+    assert result2 == FinalRiskCategory.HIGH
+    assert isinstance(result2, FinalRiskCategory)
+    print("✅ test_map_to_storage_category_accepts_string passed")
 # ── Run all tests ──────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -122,4 +136,5 @@ if __name__ == "__main__":
     test_bp_category_informational_only()
     test_duration_high_beats_score_high_no_conflict()
     test_map_to_storage_category()
+    test_map_to_storage_category_accepts_string()
     print("\n🎉 Semua test passed!")

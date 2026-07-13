@@ -63,13 +63,27 @@ def _map_duration_category(duration_category_str: str) -> FinalRiskCategory:
     }
     return mapping[duration_category_str]
 
-def map_to_storage_category(category: str) -> str:
+def map_to_storage_category(category: FinalRiskCategory | str) -> FinalRiskCategory:
     """
-    Map FINAL kategori ke yang boleh disimpan di database:
-    WARNING -> MEDIUM (per-symptom WARNING tetap disimpan di triggered_symptoms)
+    Map kategori risk internal ke kategori yang aman disimpan ke DB.
+    
+    Untuk MVP (keputusan bareng Alek, 10 Juli 2026): WARNING belum jadi 
+    risk_level resmi di database/schema, jadi di-map ke MEDIUM saat 
+    disimpan. Detail durasi (status WARNING per-gejala) tetap ada di 
+    duration_triggered_symptoms, jadi FE tetap bisa jelasin alasan 
+    spesifik ke user meski risk_category yang tersimpan cuma MEDIUM.
+    
+    Menerima FinalRiskCategory atau string biasa (defensif untuk 
+    integrasi backend -- misal kalau dipanggil dengan string yang 
+    diambil dari DB/request body), tapi SELALU mengembalikan 
+    FinalRiskCategory enum, bukan string biasa -- supaya caller bisa 
+    aman pakai .value tanpa cek tipe dulu.
     """
-    if category == "WARNING":
-        return "MEDIUM"
+    if not isinstance(category, FinalRiskCategory):
+        category = FinalRiskCategory(category)
+    
+    if category == FinalRiskCategory.WARNING:
+        return FinalRiskCategory.MEDIUM
     return category
 
 def combine_final_risk(
