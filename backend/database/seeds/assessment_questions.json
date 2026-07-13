@@ -8,7 +8,7 @@
     },
     {
         "order_index": 2,
-        "question_text": "Pusing atau mata berkunang?",
+        "question_text": "Pusing atau Pandangan kabur?",
         "is_red_flag": false,
         "weight": 1,
         "is_active": true
@@ -30,8 +30,8 @@
     {
         "order_index": 5,
         "question_text": "Perdarahan atau flek?",
-        "is_red_flag": true,
-        "weight": 0,
+        "is_red_flag": false,
+        "weight": 1,
         "is_active": true
     },
     {
@@ -53,6 +53,13 @@
         "question_text": "Gerakan janin berkurang (trimester lanjut)?",
         "is_red_flag": true,
         "weight": 0,
+        "is_active": true
+    },
+    {
+        "order_index": 9,
+        "question_text": "Demam tinggi (≥38°C)?",
+        "is_red_flag": false,
+        "weight": 1,
         "is_active": true
     }
 ]
