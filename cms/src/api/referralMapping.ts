@@ -1,8 +1,8 @@
 import { apiClient } from "@/lib/axios";
 import type {
   ReferralMapping,
-  CreateReferralMappingPayload,
   UpdateReferralMappingPayload,
+  RiskLevel,
 } from "@/types";
 
 export const referralMappingApi = {
@@ -11,28 +11,14 @@ export const referralMappingApi = {
     return response.data;
   },
 
-  create: async (
-    payload: CreateReferralMappingPayload
-  ): Promise<ReferralMapping> => {
-    const response = await apiClient.post(
-      "/api/v1/admin/referral-mapping",
-      payload
-    );
-    return response.data;
-  },
-
   update: async (
-    id: string,
+    risk_level: RiskLevel,
     payload: UpdateReferralMappingPayload
   ): Promise<ReferralMapping> => {
     const response = await apiClient.put(
-      `/api/v1/admin/referral-mapping/${id}`,
+      `/api/v1/admin/referral-mapping/${risk_level}`,
       payload
     );
     return response.data;
-  },
-
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/v1/admin/referral-mapping/${id}`);
   },
 };
