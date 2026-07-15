@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AnswerItem(BaseModel):
@@ -20,14 +20,22 @@ class TriggeredFlag(BaseModel):
     question_text: str
 
 
+class DurationTriggeredSymptom(BaseModel):
+    symptom: str
+    days_active: int
+    status: str
+
+
 class AssessmentResultResponse(BaseModel):
     response_id: uuid.UUID
     date: str
-    risk_category: str              # LOW | MEDIUM | HIGH
+    risk_category: str
     red_flag_triggered: bool
     triggered_red_flags: list[TriggeredFlag]
-    total_score: Optional[int]      # None kalau red flag short-circuit
-    bp_assessment_status: str       # NOT_PROVIDED | PENDING_THRESHOLD | NORMAL | FLAGGED
+    duration_triggered_symptoms: list[DurationTriggeredSymptom] = Field(default_factory=list)
+    total_score: Optional[int]
+    bp_assessment_status: str
+    bp_category: Optional[str] = None
 
 class AssessmentHistoryItem(BaseModel):
     response_id: uuid.UUID
@@ -35,8 +43,10 @@ class AssessmentHistoryItem(BaseModel):
     risk_category: str
     red_flag_triggered: bool
     triggered_red_flags: list[TriggeredFlag]
+    duration_triggered_symptoms: list[DurationTriggeredSymptom] = Field(default_factory=list)
     total_score: Optional[int]
     bp_assessment_status: str
+    bp_category: Optional[str] = None
 
 class QuestionResponse(BaseModel):
     question_id: uuid.UUID

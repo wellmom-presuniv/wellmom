@@ -6,9 +6,10 @@ from sqlalchemy import select, func
 from app.models.assessment import (
     AssessmentQuestion, AssessmentResponse,
     AssessmentResponseItem, AssessmentResult,
+    SymptomOnsetTracking,
 )
 from app.models.risk_threshold import RiskThreshold
-
+from typing import Any
 
 async def get_active_questions(db: AsyncSession) -> list[AssessmentQuestion]:
     result = await db.execute(
@@ -99,17 +100,87 @@ async def create_result(
     risk_level: str,
     triggered_red_flags: list,
     bp_assessment_status: str,
+    duration_triggered_symptoms: list | None = None,
+    bp_category: str | None = None,
 ) -> AssessmentResult:
     result = AssessmentResult(
         response_id=response_id,
         total_score=total_score,
         risk_level=risk_level,
         triggered_red_flags=triggered_red_flags,
+        duration_triggered_symptoms=duration_triggered_symptoms,
         bp_assessment_status=bp_assessment_status,
+        bp_category=bp_category,
     )
     db.add(result)
     await db.flush()
     return result
+
+
+async def get_active_symptom_tracking(
+    db: AsyncSession,
+    pregnancy_profile_id: uuid.UUID,
+    symptom_type: str,
+) -> SymptomOnsetTracking | None:
+    result = await db.execute(
+        select(SymptomOnsetTracking)
+        .where(
+            SymptomOnsetTracking.pregnancy_profile_id == pregnancy_profile_id,
+            SymptomOnsetTracking.symptom_type == symptom_type,
+            SymptomOnsetTracking.resolved == False,
+        )
+        .order_by(SymptomOnsetTracking.last_reported_date.desc())
+    )
+    return result.scalars().first()
+
+
+async def save_symptom_tracking_record(
+    db: AsyncSession,
+    pregnancy_profile_id: uuid.UUID,
+    symptom_type: str,
+    existing_row: SymptomOnsetTracking | None,
+    updated_record: Any | None,
+) -> SymptomOnsetTracking | None:
+    if updated_record is None:
+        return None
+
+    if existing_row and updated_record.resolved:
+        existing_row.resolved = True
+        await db.flush()
+        return existing_row
+
+    if existing_row is None:
+        row = SymptomOnsetTracking(
+            pregnancy_profile_id=pregnancy_profile_id,
+            symptom_type=symptom_type,
+            onset_date=updated_record.onset_date,
+            last_reported_date=updated_record.last_reported_date,
+            resolved=updated_record.resolved,
+        )
+        db.add(row)
+        await db.flush()
+        return row
+
+    # Kalau onset berubah, berarti logic duration mendeteksi gap day.
+    # Record lama di-resolve, lalu buat record baru.
+    if updated_record.onset_date != existing_row.onset_date:
+        existing_row.resolved = True
+
+        row = SymptomOnsetTracking(
+            pregnancy_profile_id=pregnancy_profile_id,
+            symptom_type=symptom_type,
+            onset_date=updated_record.onset_date,
+            last_reported_date=updated_record.last_reported_date,
+            resolved=updated_record.resolved,
+        )
+        db.add(row)
+        await db.flush()
+        return row
+
+    existing_row.last_reported_date = updated_record.last_reported_date
+    existing_row.resolved = updated_record.resolved
+    await db.flush()
+    return existing_row
 
 
 async def get_assessment_history(
