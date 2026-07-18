@@ -1,0 +1,17 @@
+[
+    {
+        "min_score": 0,
+        "max_score": 2,
+        "category": "LOW"
+    },
+    {
+        "min_score": 3,
+        "max_score": 4,
+        "category": "MEDIUM"
+    },
+    {
+        "min_score": 5,
+        "max_score": 999,
+        "category": "HIGH"
+    }
+]

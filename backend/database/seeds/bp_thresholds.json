@@ -1,0 +1,52 @@
+[
+    {
+        "category": "NORMAL",
+        "metric": "systolic",
+        "max": 119
+    },
+    {
+        "category": "ELEVATED",
+        "metric": "systolic",
+        "min": 120,
+        "max": 129
+    },
+    {
+        "category": "STAGE_1",
+        "metric": "systolic",
+        "min": 130,
+        "max": 139
+    },
+    {
+        "category": "STAGE_2",
+        "metric": "systolic",
+        "min": 140,
+        "max": 180
+    },
+    {
+        "category": "CRISIS",
+        "metric": "systolic",
+        "min": 181
+    },
+    {
+        "category": "NORMAL",
+        "metric": "diastolic",
+        "max": 79
+    },
+    {
+        "category": "STAGE_1",
+        "metric": "diastolic",
+        "min": 80,
+        "max": 89
+    },
+    {
+        "category": "STAGE_2",
+        "metric": "diastolic",
+        "min": 90,
+        "max": 120
+    },
+    {
+        "category": "CRISIS",
+        "metric": "diastolic",
+        "min": 121
+    }
+]

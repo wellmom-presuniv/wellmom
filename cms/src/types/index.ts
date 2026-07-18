@@ -1,14 +1,15 @@
-
 // SHARED
-
 export type RiskCategory = "low" | "medium" | "high"; // for scoreCutoffs
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH"; // for RefferalMapping
 
 
 // ASSESSMENT QUESTIONS
+// Update 30 Jun 2026: 9 pertanyaan (bukan 8).
+// is_red_flag berlaku untuk 4 item (Q5 tidak lagi red-flag).
+// Struktur kolom tidak berubah — form tetap generic.
 
 export interface AssessmentQuestion {
-    id: string;
+    question_id: string;
     question_text: string;
     weight: number;
     is_red_flag: boolean;
@@ -16,7 +17,7 @@ export interface AssessmentQuestion {
     is_active: boolean;
     category: string | null;
 }
-export type CreateAssessmentQuestionPayload = Omit<AssessmentQuestion, "id">;
+export type CreateAssessmentQuestionPayload = Omit<AssessmentQuestion, "question_id">;
 export type UpdateAssessmentQuestionPayload = Partial<CreateAssessmentQuestionPayload>;
 
 
@@ -34,28 +35,22 @@ export interface ScoreCutoffs {
     high: ScoreBand;
 }
 
-
 // EDUCATION CONTENT
-// status adalah string literal, BUKAN boolean.
-
-export type EducationStatus = "published" | "draft";
 export type Trimester = 1 | 2 | 3;
 
 export interface EducationContent {
-    content_id: string;   // updated from id to content_id
-    title: string;
-    trimester: Trimester;
-    category: string;
-    body: string;
-    status: EducationStatus;
-    order_in_category: number;
+  content_id: string;
+  title: string;
+  trimester: Trimester | null;   // ← tambah | null (support general content)
+  category: string;
+  body: string;
+  is_published: boolean;         // ← ganti dari: status: EducationStatus
+  order_in_category: number;
 }
 export type CreateEducationContentPayload = Omit<EducationContent, "content_id">;
 export type UpdateEducationContentPayload = Partial<CreateEducationContentPayload>;
 
-
 // CHECKLIST ITEMS
-
 export interface ChecklistItem {
     item_id: string;    // updated from id to item_id
     label: string;
@@ -66,19 +61,16 @@ export interface ChecklistItem {
 export type CreateChecklistItemPayload = Omit<ChecklistItem, "item_id">;
 export type UpdateChecklistItemPayload = Partial<CreateChecklistItemPayload>;
 
-
 // REFERRAL MAPPING
-
 export interface ReferralMapping {
-    id: string;
+    mapping_id: string;
     risk_level: RiskLevel;    // changing from risk_category to risk_level   
-    facility_type: string;    // "Puskesmas" | "RSIA" | "RS Umum" | dst
+    facility_type: string;    // "Puskesmas" | "RSIA" | "RS Umum" | dst     
     recommendation: string;   // deskripsi tindakan
     urgency_label: string;    // "Segera" | "Dalam 24 jam" | "Saat ANC rutin"
     is_active: boolean;
 }
-export type CreateReferralMappingPayload = Omit<ReferralMapping, "id">;
-export type UpdateReferralMappingPayload = Partial<CreateReferralMappingPayload>;
+export type UpdateReferralMappingPayload = Pick<ReferralMapping,"facility_type" | "recommendation" | "urgency_label">;
 
 
 // BLOOD PRESSURE THRESHOLDS
