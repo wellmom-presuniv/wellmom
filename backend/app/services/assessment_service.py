@@ -65,8 +65,12 @@ def _resolve_bp_status(
 
     bp_category_value = bp_category.value
 
-    # BP tidak memengaruhi risk_category final.
-    # Status ini hanya summary lama untuk kompatibilitas FE.
+    # bp_assessment_status is kept as a legacy/backward-compatible summary field.
+    # It only tells whether BP was provided, normal, or non-normal.
+    # Detailed BP severity must be read from bp_category:
+    # NORMAL | ELEVATED | STAGE_1 | STAGE_2 | CRISIS
+    #
+    # BP is currently informational only and does not affect final risk_category.
     if bp_category_value == "NORMAL":
         return "NORMAL", bp_category_value
 
