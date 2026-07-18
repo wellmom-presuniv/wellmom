@@ -1,58 +1,65 @@
 [
-    {
-        "order_index": 1,
-        "question_text": "Mudah lelah berlebihan?",
-        "is_red_flag": false,
-        "weight": 1,
-        "is_active": true
-    },
-    {
-        "order_index": 2,
-        "question_text": "Pusing atau mata berkunang?",
-        "is_red_flag": false,
-        "weight": 1,
-        "is_active": true
-    },
-    {
-        "order_index": 3,
-        "question_text": "Mual muntah terus-menerus?",
-        "is_red_flag": false,
-        "weight": 1,
-        "is_active": true
-    },
-    {
-        "order_index": 4,
-        "question_text": "Tidak konsumsi tablet tambah darah?",
-        "is_red_flag": false,
-        "weight": 1,
-        "is_active": true
-    },
-    {
-        "order_index": 5,
-        "question_text": "Perdarahan atau flek?",
-        "is_red_flag": true,
-        "weight": 0,
-        "is_active": true
-    },
-    {
-        "order_index": 6,
-        "question_text": "Sakit kepala berat?",
-        "is_red_flag": true,
-        "weight": 0,
-        "is_active": true
-    },
-    {
-        "order_index": 7,
-        "question_text": "Bengkak pada wajah/tangan?",
-        "is_red_flag": true,
-        "weight": 0,
-        "is_active": true
-    },
-    {
-        "order_index": 8,
-        "question_text": "Gerakan janin berkurang (trimester lanjut)?",
-        "is_red_flag": true,
-        "weight": 0,
-        "is_active": true
-    }
+  {
+    "order_index": 1,
+    "question_text": "Mudah lelah berlebihan?",
+    "is_red_flag": false,
+    "weight": 1,
+    "is_active": true
+  },
+  {
+    "order_index": 2,
+    "question_text": "Pusing atau Pandangan kabur?",
+    "is_red_flag": false,
+    "weight": 1,
+    "is_active": true
+  },
+  {
+    "order_index": 3,
+    "question_text": "Mual muntah terus-menerus?",
+    "is_red_flag": false,
+    "weight": 1,
+    "is_active": true
+  },
+  {
+    "order_index": 4,
+    "question_text": "Tidak konsumsi tablet tambah darah?",
+    "is_red_flag": false,
+    "weight": 1,
+    "is_active": true
+  },
+  {
+    "order_index": 5,
+    "question_text": "Perdarahan atau flek?",
+    "is_red_flag": false,
+    "weight": 1,
+    "is_active": true
+  },
+  {
+    "order_index": 6,
+    "question_text": "Sakit kepala berat?",
+    "is_red_flag": true,
+    "weight": 0,
+    "is_active": true
+  },
+  {
+    "order_index": 7,
+    "question_text": "Bengkak pada wajah/tangan?",
+    "is_red_flag": true,
+    "weight": 0,
+    "is_active": true
+  },
+  {
+    "order_index": 8,
+    "question_text": "Gerakan janin berkurang (trimester lanjut)?",
+    "is_red_flag": true,
+    "weight": 0,
+    "is_active": true
+  },
+  {
+    "order_index": 9,
+    "question_text": "Demam tinggi (>=38°C)?",
+    "is_red_flag": false,
+    "weight": 1,
+    "is_active": true
+  }
 ]
