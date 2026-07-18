@@ -1,33 +1,87 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { MOCK_QUESTIONS, mockCalculateRisk } from "./mockAssessmentData";
+import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
+import { AssessmentQuestion } from "../../types";
 
 export default function SelfAssessmentFormScreen({ navigation }: any) {
+  const [questions, setQuestions] = useState<AssessmentQuestion[]>(MOCK_QUESTIONS);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [systolicBp, setSystolicBp] = useState("");
   const [diastolicBp, setDiastolicBp] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const answeredCount = Object.keys(answers).length;
-  const allAnswered = answeredCount === MOCK_QUESTIONS.length;
+  const allAnswered = answeredCount === questions.length;
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        // Cek dulu apakah sudah submit hari ini
+        const todayResult = await getTodayAssessment();
+        if (todayResult) {
+          // Udah submit hari ini — langsung ke hasil, skip form
+          navigation.replace("SelfAssessmentResult", { result: todayResult });
+          return;
+        }
+        // Belum submit — fetch pertanyaan dari API
+        const q = await getAssessmentQuestions();
+        setQuestions(q);
+      } catch (err) {
+        // Kalau API gagal, fallback ke MOCK_QUESTIONS yang udah ada
+        console.warn("Gagal fetch dari API, pakai mock data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    init();
+  }, []);
 
   const setAnswer = (id: string, value: boolean) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = () => {
-    // TODO: ganti jadi POST /assessment/submit begitu endpoint Alek ready.
-    // Payload yang dikirim nanti: { answers: [{question_id, answer}], systolic_bp, diastolic_bp }
-    const result = mockCalculateRisk(
-      answers,
-      systolicBp ? Number(systolicBp) : null,
-      diastolicBp ? Number(diastolicBp) : null
-    );
-    navigation.navigate("SelfAssessmentResult", { result });
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        answers: Object.entries(answers).map(([question_id, answer]) => ({ question_id, answer })),
+        systolic_bp: systolicBp ? Number(systolicBp) : null,
+        diastolic_bp: diastolicBp ? Number(diastolicBp) : null,
+      };
+      const result = await submitAssessment(payload);
+      navigation.replace("SelfAssessmentResult", { result });
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        // Sudah submit hari ini (race condition) — fetch result yang ada
+        const todayResult = await getTodayAssessment();
+        if (todayResult) navigation.replace("SelfAssessmentResult", { result: todayResult });
+      } else {
+        // Kalau gagal, fallback ke mock dulu biar UX ga rusak
+        const result = mockCalculateRisk(
+          answers,
+          systolicBp ? Number(systolicBp) : null,
+          diastolicBp ? Number(diastolicBp) : null
+        );
+        navigation.replace("SelfAssessmentResult", { result });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -48,7 +102,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
 
       {/* Progress dots */}
       <View className="flex-row px-5 mb-4" style={{ gap: 4 }}>
-        {MOCK_QUESTIONS.map((q) => (
+        {questions.map((q) => (
           <View
             key={q.question_id}
             style={{
@@ -62,7 +116,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
       </View>
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
-        {MOCK_QUESTIONS.map((q) => (
+        {questions.map((q) => (
           <View
             key={q.question_id}
             className="flex-row items-center justify-between p-4 mb-3"
@@ -158,7 +212,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
       </ScrollView>
 
       <View className="px-5 pb-4">
-        <TouchableOpacity onPress={handleSubmit} activeOpacity={0.85} disabled={!allAnswered}>
+        <TouchableOpacity onPress={handleSubmit} activeOpacity={0.85} disabled={!allAnswered || isSubmitting}>
           <View
             style={{
               backgroundColor: allAnswered ? colors.primary : colors.outlineVariant,
@@ -168,7 +222,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             }}
           >
             <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>
-              {allAnswered ? "Lihat Hasil" : `Jawab ${MOCK_QUESTIONS.length - answeredCount} pertanyaan lagi`}
+              {allAnswered ? "Lihat Hasil" : `Jawab ${questions.length - answeredCount} pertanyaan lagi`}
             </Text>
           </View>
         </TouchableOpacity>

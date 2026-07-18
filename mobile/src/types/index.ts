@@ -26,6 +26,7 @@ export interface AssessmentSubmitPayload {
 
 export type RiskCategory = "LOW" | "MEDIUM" | "HIGH";
 export type BpAssessmentStatus = "NOT_PROVIDED" | "PENDING_THRESHOLD" | "NORMAL" | "FLAGGED";
+export type BpCategory = "NORMAL" | "ELEVATED" | "STAGE_1" | "STAGE_2" | "CRISIS"; // ← tambah ini
 
 export interface TriggeredRedFlag {
   question_id: string;
@@ -50,7 +51,7 @@ export interface AssessmentResult {
   triggered_red_flags: TriggeredRedFlag[];  
   total_score: number | null;             
   bp_assessment_status: BpAssessmentStatus;
-
+  bp_category: BpCategory; // ← tambah ini
 }
 
 // ===== Auth — sesuai schema asli backend (token.py / user.py) =====
