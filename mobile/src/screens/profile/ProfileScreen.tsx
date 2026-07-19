@@ -1,14 +1,13 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useEffect, useState} from "react";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/useAuthStore";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
-
-// TODO: ganti ke data profil asli dari API Alek begitu endpoint profil ready.
-const DUMMY_USER = { name: "Siti Aminah", trimester: 2, week: 20 };
+import { getMyProfile } from "../../api/profileService";
+import { PregnancyProfile } from "../../types";
 
 const ACCOUNT_ITEMS = [
   { id: "edit", label: "Edit Profil", icon: "person-outline" as const, subtitle: undefined },
@@ -40,7 +39,17 @@ function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: s
 
 export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
-  const initial = DUMMY_USER.name.charAt(0).toUpperCase();
+  const userName = useAuthStore((s) => s.userName);
+  const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+
+  useEffect(() => {
+    getMyProfile()
+      .then(setProfile)
+      .catch((err) => console.warn("Gagal fetch profil:", err));
+  }, []);
+
+  const displayName = userName ?? "Ibu Sehat";
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -56,7 +65,7 @@ export default function ProfileScreen() {
             </View>
           </LinearGradient>
           <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.textPrimary, marginBottom: 8 }}>
-            {DUMMY_USER.name}
+            {displayName}
           </Text>
           <View
             className="flex-row items-center px-3 py-1.5"
@@ -64,7 +73,7 @@ export default function ProfileScreen() {
           >
             <Ionicons name="heart" size={13} color={colors.riskLow} />
             <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.riskLow }}>
-              Trimester {DUMMY_USER.trimester} · Minggu ke-{DUMMY_USER.week}
+              Trimester {profile?.trimester} · Minggu ke-{profile?.gestational_week}
             </Text>
           </View>
         </View>

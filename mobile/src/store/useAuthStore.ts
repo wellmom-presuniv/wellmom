@@ -4,6 +4,7 @@ import * as authService from "../api/authService";
 import { RegisterPayload } from "../types";
 
 interface AuthState {
+  userName: string | null;
   token: string | null;
   hasCompletedOnboarding: boolean;
   isLoading: boolean; // hydrate awal saat app dibuka
@@ -18,6 +19,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
+  userName: null,
   token: null,
   hasCompletedOnboarding: false,
   isLoading: true,
@@ -27,7 +29,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string, password: string) => {
     set({ isSubmitting: true, authError: null });
     try {
-      const { access_token } = await authService.login(email, password);
+      const { access_token, full_name } = await authService.login(email, password);
       await AsyncStorage.setItem("auth_token", access_token);
       
       // Cek profil setelah login — tentuin apakah perlu Onboarding atau langsung Home
@@ -40,7 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         hasProfile = false;
       }
 
-      set({ token: access_token, hasCompletedOnboarding: hasProfile, isSubmitting: false });
+      set({ token: access_token, userName: full_name ?? null, hasCompletedOnboarding: hasProfile, isSubmitting: false });
     } catch (err: any) {
       const message =
         err?.response?.status === 401
@@ -52,29 +54,29 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   register: async (payload: RegisterPayload) => {
-  set({ isSubmitting: true, authError: null });
-  try {
-    const { access_token } = await authService.register(payload);
-    await AsyncStorage.setItem("auth_token", access_token);
-    set({ token: access_token, isSubmitting: false });
-    // NOTE: backend SEKARANG auto-login setelah register (return token).
-    // RootNavigator otomatis switch ke ProfileSetup begitu token ke-set.
-  } catch (err: any) {
-    const status = err?.response?.status;
-    const message =
-      status === 409
-        ? "Email sudah terdaftar. Coba login langsung."
-        : status === 422
-        ? "Data yang dimasukkan tidak valid."
-        : "Gagal mendaftar. Cek koneksi internet kamu.";
-        set({ isSubmitting: false, authError: message });
-        throw err;
-      }
-},
+    set({ isSubmitting: true, authError: null });
+    try {
+      const { access_token, full_name } = await authService.register(payload);
+      await AsyncStorage.setItem("auth_token", access_token);
+      set({ token: access_token, userName: full_name ?? null, isSubmitting: false });
+      // NOTE: backend SEKARANG auto-login setelah register (return token).
+      // RootNavigator otomatis switch ke ProfileSetup begitu token ke-set.
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const message =
+        status === 409
+          ? "Email sudah terdaftar. Coba login langsung."
+          : status === 422
+          ? "Data yang dimasukkan tidak valid."
+          : "Gagal mendaftar. Cek koneksi internet kamu.";
+          set({ isSubmitting: false, authError: message });
+          throw err;
+        }
+  },
 
   logout: async () => {
     await AsyncStorage.removeItem("auth_token");
-    set({ token: null, hasCompletedOnboarding: false });
+    set({ token: null, hasCompletedOnboarding: false, userName: null });
   },
 
   completeOnboarding: () => set({ hasCompletedOnboarding: true }),

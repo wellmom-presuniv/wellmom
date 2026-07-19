@@ -67,7 +67,9 @@ export interface AuthResponse {
   access_token: string;
   token_type: string;
   user_id: string;
-  // TODO: field lain belum confirmed — Alek cuma bilang "dll", minta exact shape
+  full_name: string;
+  email: string;
+  role: string;
 }
 
 export interface RegisterPayload {
