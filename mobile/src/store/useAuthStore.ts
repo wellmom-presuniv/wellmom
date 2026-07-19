@@ -58,8 +58,17 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { access_token, full_name } = await authService.register(payload);
       await AsyncStorage.setItem("auth_token", access_token);
-      set({ token: access_token, userName: full_name ?? null, isSubmitting: false });
-      // NOTE: backend SEKARANG auto-login setelah register (return token).
+      
+      let hasProfile = false;
+      try {
+        const { getMyProfile } = await import("../api/profileService");
+        await getMyProfile();
+        hasProfile = true;
+      } catch {
+        hasProfile = false;
+      }
+   
+      set({ token: access_token, userName: full_name ?? null, hasCompletedOnboarding: hasProfile, isSubmitting: false });      // NOTE: backend SEKARANG auto-login setelah register (return token).
       // RootNavigator otomatis switch ke ProfileSetup begitu token ke-set.
     } catch (err: any) {
       const status = err?.response?.status;
@@ -92,7 +101,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     try {
       const { getMyProfile } = await import("../api/profileService");
-      const profile = await getMyProfile();
+      await getMyProfile();
       set({ token, hasCompletedOnboarding: true, isLoading: false });
     } catch (err: any) {
       set({ token, hasCompletedOnboarding: false, isLoading: false });
