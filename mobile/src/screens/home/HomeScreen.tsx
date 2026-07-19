@@ -8,8 +8,8 @@ import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import { useAuthStore } from "../../store/useAuthStore";
+import { getAssessmentHistory } from "../../api/assessmentService";
 
-const DUMMY_RISK_CATEGORY = "LOW" as const;
 
 function formatTanggalIndo(isoDate: string) {
   return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -26,6 +26,15 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
 
   export default function HomeScreen({ navigation }: any) {
     const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+    const [lastRisk, setLastRisk] = useState<"LOW" | "MEDIUM" | "HIGH" | null>(null);
+
+    useEffect(() => {
+      getAssessmentHistory(1, 0) // ambil 1 entry terbaru aja
+        .then((data) => {
+          if (data.length > 0) setLastRisk(data[0].risk_category);
+        })
+        .catch(() => {}); // silent fail, ga perlu tampil error
+    }, []);
     const [isLoading, setIsLoading] = useState(true);
     const userName = useAuthStore((s) => s.userName);
 
@@ -36,7 +45,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
         .finally(() => setIsLoading(false));
     }, []);
 
-    const risk = riskCategoryStyle[DUMMY_RISK_CATEGORY];
+    const risk = riskCategoryStyle[lastRisk || "LOW"];
 
     if (isLoading) {
       return (
@@ -105,7 +114,11 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
               <Ionicons name="checkmark-circle" size={18} color={risk.color} />
             </View>
             <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-              Terus jaga pola makan dan lakukan pemeriksaan kehamilan rutin.
+              {lastRisk === "HIGH"
+                ? "Segera konsultasikan kondisi Anda ke tenaga kesehatan."
+                : lastRisk === "MEDIUM"
+                ? "Ada beberapa hal yang perlu diperhatikan. Konsultasikan saat kunjungan ANC."
+                : "Terus jaga pola makan dan lakukan pemeriksaan kehamilan rutin."}
             </Text>
           </View>
           <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: risk.bg, alignItems: "center", justifyContent: "center" }}>
