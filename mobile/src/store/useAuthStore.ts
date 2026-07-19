@@ -31,6 +31,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { access_token, full_name } = await authService.login(email, password);
       await AsyncStorage.setItem("auth_token", access_token);
+      await AsyncStorage.setItem("user_name", full_name ?? "");
       
       // Cek profil setelah login — tentuin apakah perlu Onboarding atau langsung Home
       let hasProfile = false;
@@ -58,6 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { access_token, full_name } = await authService.register(payload);
       await AsyncStorage.setItem("auth_token", access_token);
+      await AsyncStorage.setItem("user_name", full_name ?? "");
       
       let hasProfile = false;
       try {
@@ -85,6 +87,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await AsyncStorage.removeItem("auth_token");
+    await AsyncStorage.removeItem("user_name");
     set({ token: null, hasCompletedOnboarding: false, userName: null });
   },
 
@@ -93,7 +96,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearError: () => set({ authError: null }),
 
   hydrate: async () => {
-    const token = await AsyncStorage.getItem("auth_token");
+    const [token, userName] = await Promise.all([
+      AsyncStorage.getItem("auth_token"),
+      AsyncStorage.getItem("user_name"),
+    ]);
+
     if (!token) {
       set({ token: null, isLoading: false });
       return;
@@ -102,9 +109,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { getMyProfile } = await import("../api/profileService");
       await getMyProfile();
-      set({ token, hasCompletedOnboarding: true, isLoading: false });
-    } catch (err: any) {
-      set({ token, hasCompletedOnboarding: false, isLoading: false });
+      set({ token, userName: userName || null, hasCompletedOnboarding: true, isLoading: false });
+    } catch {
+      set({ token, userName: userName || null, hasCompletedOnboarding: false, isLoading: false });
     }
   },
 }));
