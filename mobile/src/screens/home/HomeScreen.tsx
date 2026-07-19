@@ -7,6 +7,7 @@ import { colors, riskCategoryStyle } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const DUMMY_RISK_CATEGORY = "LOW" as const;
 
@@ -26,6 +27,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
   export default function HomeScreen({ navigation }: any) {
     const [profile, setProfile] = useState<PregnancyProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const userName = useAuthStore((s) => s.userName);
 
     useEffect(() => {
       getMyProfile()
@@ -60,9 +62,8 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
         <View>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>Hi, Ibu Sehat! 👋</Text>
-          <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.8 }}>
-            Selamat pagi, Bunda.
+          <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
+            Hi, {userName ?? "Bunda"}! 👋
           </Text>
         </View>
         <TouchableOpacity

@@ -18,7 +18,7 @@ async def create_profile(
     """
     Dipanggil sekali saat onboarding.
     Input: hpht (tanggal HPHT dalam format YYYY-MM-DD)
-    Output: profil lengkap + trimester + minggu + progress
+    Output: profil lengkap + trimester + minggu + 9progress
     """
     return await pregnancy_service.create_pregnancy_profile(
         db=db, user_id=user_id, hpht=payload.hpht
