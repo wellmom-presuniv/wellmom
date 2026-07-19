@@ -33,6 +33,9 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
               color={risk.color}
             />
           </View>
+          <Text style={{ fontFamily: fonts.extrabold, fontSize: 22, color: risk.color, marginBottom: 8 }}>
+            {result.risk_category === "LOW" ? "Risiko Rendah" : result.risk_category === "MEDIUM" ? "Risiko Sedang" : "Risiko Tinggi"}
+          </Text>
           <Text
             style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, textAlign: "center", lineHeight: 19 }}
           >
@@ -42,7 +45,6 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
               ? "Ada beberapa faktor yang perlu diperhatikan. Konsultasikan saat kunjungan ANC berikutnya."
               : "Terdapat tanda yang memerlukan perhatian segera. Segera konsultasi ke tenaga kesehatan."}
           </Text>
-          
         </View>
 
         {/* Red flags yang trigger */}
@@ -63,6 +65,58 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
                 </Text>
               </View>
             ))}
+          </View>
+          
+        )}
+        {result.duration_triggered_symptoms && result.duration_triggered_symptoms.length > 0 && (
+          <View className="mb-6">
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.textPrimary, marginBottom: 10 }}>
+              Gejala Berlangsung
+            </Text>
+            {result.duration_triggered_symptoms.map((symptom, idx) => {
+              const isWarning = symptom.status === "WARNING";
+              return (
+                <View
+                  key={idx}
+                  className="flex-row items-center p-3 mb-2"
+                  style={{ backgroundColor: isWarning ? colors.riskMediumBg : colors.riskHighBg, borderRadius: 14, gap: 8 }}
+                >
+                  <Ionicons name="time-outline" size={16} color={isWarning ? colors.riskMedium : colors.riskHigh} />
+                  <View className="flex-1">
+                    <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textPrimary }}>
+                      {symptom.symptom === "BLEEDING" ? "Perdarahan/Flek"
+                        : symptom.symptom === "BLURRED_VISION" ? "Pusing/Pandangan Kabur"
+                        : "Demam Tinggi"}
+                    </Text>
+                    <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary }}>
+                      {symptom.days_active} hari · {isWarning ? "Pantau terus" : "Segera periksa"}
+                    </Text>
+                  </View>
+                  <View style={{ backgroundColor: isWarning ? colors.riskMedium : colors.riskHigh, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
+                    <Text style={{ fontFamily: fonts.bold, fontSize: 10, color: "#FFFFFF" }}>
+                      {isWarning ? "WASPADA" : "BAHAYA"}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {result.bp_category && result.bp_category !== "NORMAL" && (
+          <View className="flex-row items-center p-4 mb-4" style={{ backgroundColor: colors.riskMediumBg, borderRadius: 16, gap: 10 }}>
+            <Ionicons name="heart-outline" size={18} color={colors.riskMedium} />
+            <View className="flex-1">
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.riskMedium }}>
+                Tekanan Darah
+              </Text>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
+                {result.bp_category === "ELEVATED" ? "Elevated — pantau secara rutin"
+                  : result.bp_category === "STAGE_1" ? "Hipertensi Tahap 1 — konsultasikan ke dokter"
+                  : result.bp_category === "STAGE_2" ? "Hipertensi Tahap 2 — segera ke dokter"
+                  : "Krisis Hipertensi — segera ke UGD"}
+              </Text>
+            </View>
           </View>
         )}
 
