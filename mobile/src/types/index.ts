@@ -39,10 +39,12 @@ export interface RiskThreshold {
   category: RiskCategory;
 }
 
-// CONFIRMED — sesuai app/schemas/assessment.py (AssessmentResultResponse), dikonfirmasi Alek.
-// Kolom DB masih "risk_level", tapi response JSON-nya "risk_category" (di-mapping di
-// assessment_service.py). Alek akan migrasi rename kolom DB biar konsisten — ga ngubah
-// shape ini lagi dari sisi FE.
+export interface DurationTriggeredSymptom {
+  symptom: string;
+  days_active: number;
+  status: string;
+}
+
 export interface AssessmentResult {
   response_id: string;                    
   date: string;                           
@@ -51,7 +53,8 @@ export interface AssessmentResult {
   triggered_red_flags: TriggeredRedFlag[];  
   total_score: number | null;             
   bp_assessment_status: BpAssessmentStatus;
-  bp_category: BpCategory; // ← tambah ini
+  bp_category: BpCategory; 
+  duration_triggered_symptoms: DurationTriggeredSymptom[];
 }
 
 // ===== Auth — sesuai schema asli backend (token.py / user.py) =====
