@@ -4,12 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
-import { MOCK_QUESTIONS, mockCalculateRisk } from "./mockAssessmentData";
 import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
 import { AssessmentQuestion } from "../../types";
 
 export default function SelfAssessmentFormScreen({ navigation }: any) {
-  const [questions, setQuestions] = useState<AssessmentQuestion[]>(MOCK_QUESTIONS);
+  const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [systolicBp, setSystolicBp] = useState("");
   const [diastolicBp, setDiastolicBp] = useState("");
@@ -34,7 +33,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
         setQuestions(q);
       } catch (err) {
         // Kalau API gagal, fallback ke MOCK_QUESTIONS yang udah ada
-        console.warn("Gagal fetch dari API, pakai mock data:", err);
+        console.warn("Gagal fetch pertanyaan dari API:", err);
       } finally {
         setIsLoading(false);
       }
@@ -62,13 +61,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
         const todayResult = await getTodayAssessment();
         if (todayResult) navigation.replace("SelfAssessmentResult", { result: todayResult });
       } else {
-        // Kalau gagal, fallback ke mock dulu biar UX ga rusak
-        const result = mockCalculateRisk(
-          answers,
-          systolicBp ? Number(systolicBp) : null,
-          diastolicBp ? Number(diastolicBp) : null
-        );
-        navigation.replace("SelfAssessmentResult", { result });
+        console.warn("Gagal submit assessment:", err);
       }
     } finally {
       setIsSubmitting(false);
