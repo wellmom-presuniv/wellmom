@@ -92,7 +92,7 @@ export const translations = {
     done: "{done}/{total} Selesai",
     noChecklist: "Belum ada item checklist.\nTim medis akan segera menambahkan.",
     days: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-    months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+    months: ["Jan", "Feb", "Mar", "Apr", "Mei", "Juni", "Juli", "Agus", "Sept", "Okt", "Nov", "Des"],
 
     // Education
     educationTitle: "Edukasi",
@@ -237,6 +237,8 @@ export const translations = {
       { q: "Apakah data saya aman?", a: "Data Anda disimpan secara terenkripsi dan hanya dapat diakses oleh Anda sendiri. Kami tidak membagikan data ke pihak ketiga." },
       { q: "Kapan harus segera ke fasilitas kesehatan?", a: "Segera ke fasilitas kesehatan jika mengalami: perdarahan, sakit kepala berat disertai pandangan kabur, bengkak tiba-tiba pada wajah/tangan, atau gerakan janin berkurang drastis." },
     ] as { q: string; a: string }[],
+
+    createAccount: "Buat Akun", createAccountSubtitle: "Mulai perjalanan kehamilan sehatmu bersama kami."
   },
 
   en: {
@@ -330,7 +332,7 @@ export const translations = {
     done: "{done}/{total} Done",
     noChecklist: "No checklist items yet.\nThe medical team will add them soon.",
     days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    months: ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"],
 
     // Education
     educationTitle: "Education",
@@ -489,6 +491,8 @@ export const translations = {
       { q: "Is my data safe?", a: "Your data is stored encrypted and can only be accessed by you. We do not share your data with third parties." },
       { q: "When should I go to a healthcare facility immediately?", a: "Go immediately if you experience: bleeding, severe headache with blurred vision, sudden swelling of face/hands, or significantly reduced fetal movement." },
     ] as { q: string; a: string }[],
+
+    createAccount: "Create Account", createAccountSubtitle: "Start your healthy pregnancy journey with us."
   },
 };
 

@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/useAuthStore";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState("");
@@ -15,7 +16,7 @@ export default function RegisterScreen({ navigation }: any) {
   const isSubmitting = useAuthStore((s) => s.isSubmitting);
   const authError = useAuthStore((s) => s.authError);
   const clearError = useAuthStore((s) => s.clearError);
-
+  const { t } = useTranslation();
  const handleRegister = async () => {
     try {
       await registerUser({ email, full_name: name, password });
@@ -28,34 +29,34 @@ export default function RegisterScreen({ navigation }: any) {
 
   return (
     <SafeAreaView className="flex-1 bg-background justify-center px-6">
-      <Text style={{ fontFamily: fonts.extrabold, fontSize: 26, color: colors.textPrimary }}>Buat Akun</Text>
+      <Text style={{ fontFamily: fonts.extrabold, fontSize: 26, color: colors.textPrimary }}>{t.createAccount}</Text>
       <Text style={{ fontFamily: fonts.regular, fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 24 }}>
-        Mulai perjalanan kehamilan sehatmu bersama kami.
+        {t.createAccountSubtitle}
       </Text>
       <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 24, shadowColor: colors.primary, shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 4 } }}>
-        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Nama</Text>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>{t.fullName}</Text>
         <TextInput
           className="bg-surface-container-low rounded-full px-4 py-3 mb-4"
           style={{ color: colors.textPrimary }}
-          placeholder="Masukkan nama Anda"
+          placeholder={t.namePlaceholder}
           value={name}
           onChangeText={(v) => { setName(v); clearError(); }}
         />
-        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Email</Text>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>{t.email}</Text>
         <TextInput
           className="bg-surface-container-low rounded-full px-4 py-3 mb-4"
           style={{ color: colors.textPrimary }}
-          placeholder="contoh@email.com"
+          placeholder={t.emailPlaceholder}
           autoCapitalize="none"
           value={email}
           onChangeText={(v) => { setEmail(v); clearError(); }}
         />
 
-        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Password</Text>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>{t.password}</Text>
         <TextInput
           className="bg-surface-container-low rounded-full px-4 py-3 mb-4"
           style={{ color: colors.textPrimary }}
-          placeholder="Buat kata sandi"
+          placeholder={t.passwordPlaceholder}
           secureTextEntry
           value={password}
           onChangeText={(v) => { setPassword(v); clearError(); }}
@@ -81,7 +82,7 @@ export default function RegisterScreen({ navigation }: any) {
             <ActivityIndicator color="#FFFFFF" />
           ) : (
             <>
-              <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF", marginRight: 6 }}>Daftar Sekarang</Text>
+              <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF", marginRight: 6 }}>{t.register}</Text>
               <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
             </>
           )}
@@ -90,13 +91,14 @@ export default function RegisterScreen({ navigation }: any) {
     </View>          
 
       <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, textAlign: "center", marginTop: 12 }}>
-        Dengan mendaftar, kamu menyetujui{" "}
-        <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>Syarat & Ketentuan</Text>
+        {t.terms}
+        <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>{t.termsLink}</Text>
       </Text>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text className="text-text-secondary text-center">
-          Sudah punya akun? <Text className="text-primary font-semibold">Masuk</Text>
+        <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center" }}>
+          {t.hasAccount}{" "}
+          <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>{t.login}</Text>
         </Text>
       </TouchableOpacity>
     </SafeAreaView>
