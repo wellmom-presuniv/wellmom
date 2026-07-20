@@ -167,6 +167,8 @@ export const translations = {
       8: "Gerakan janin berkurang (trimester lanjut)?",
       9: "Demam tinggi (≥38°C)?",
     } as Record<number, string>,
+
+    redFlags: {} as Record<string, string>,
   },
 
   en: {
@@ -335,6 +337,15 @@ export const translations = {
       8: "Reduced fetal movement (late trimester)?",
       9: "High fever (≥38°C)?",
     } as Record<number, string>,
+
+    redFlags: {
+      "Sakit kepala berat?": "Severe headache?",
+      "Bengkak pada wajah/tangan?": "Swelling of face/hands?",
+      "Gerakan janin berkurang (trimester lanjut)?": "Reduced fetal movement (late trimester)?",
+      "Perdarahan atau flek?": "Bleeding or spotting?",
+      "Pusing atau Pandangan kabur?": "Dizziness or blurred vision?",
+      "Demam tinggi (>=38°C)?": "High fever (≥38°C)?",
+    } as Record<string, string>,
   },
 };
 
