@@ -7,8 +7,9 @@ import { colors, riskCategoryStyle } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
+import { useAuthStore } from "../../store/useAuthStore";
+import { getAssessmentHistory } from "../../api/assessmentService";
 
-const DUMMY_RISK_CATEGORY = "LOW" as const;
 
 function formatTanggalIndo(isoDate: string) {
   return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -23,9 +24,19 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
   { label: "Profil", icon: "person", color: colors.textSecondary, bg: "rgba(139,112,121,0.1)" },
 ];
 
-  export default function HomeScreen() {
+  export default function HomeScreen({ navigation }: any) {
     const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+    const [lastRisk, setLastRisk] = useState<"LOW" | "MEDIUM" | "HIGH" | null>(null);
+
+    useEffect(() => {
+      getAssessmentHistory(1, 0) // ambil 1 entry terbaru aja
+        .then((data) => {
+          if (data.length > 0) setLastRisk(data[0].risk_category);
+        })
+        .catch(() => {}); // silent fail, ga perlu tampil error
+    }, []);
     const [isLoading, setIsLoading] = useState(true);
+    const userName = useAuthStore((s) => s.userName);
 
     useEffect(() => {
       getMyProfile()
@@ -34,7 +45,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
         .finally(() => setIsLoading(false));
     }, []);
 
-    const risk = riskCategoryStyle[DUMMY_RISK_CATEGORY];
+    const risk = riskCategoryStyle[lastRisk || "LOW"];
 
     if (isLoading) {
       return (
@@ -60,9 +71,8 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
         <View>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>Hi, Ibu Sehat! 👋</Text>
-          <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.8 }}>
-            Selamat pagi, Bunda.
+          <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
+            Hi, {userName ?? "Bunda"}! 👋
           </Text>
         </View>
         <TouchableOpacity
@@ -104,7 +114,11 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
               <Ionicons name="checkmark-circle" size={18} color={risk.color} />
             </View>
             <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-              Terus jaga pola makan dan lakukan pemeriksaan kehamilan rutin.
+              {lastRisk === "HIGH"
+                ? "Segera konsultasikan kondisi Anda ke tenaga kesehatan."
+                : lastRisk === "MEDIUM"
+                ? "Ada beberapa hal yang perlu diperhatikan. Konsultasikan saat kunjungan ANC."
+                : "Terus jaga pola makan dan lakukan pemeriksaan kehamilan rutin."}
             </Text>
           </View>
           <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: risk.bg, alignItems: "center", justifyContent: "center" }}>
@@ -123,6 +137,11 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
           {MENU_ITEMS.map((item) => (
             <TouchableOpacity
               key={item.label}
+              onPress={() => {
+                if (item.label === "Self-Assessment") navigation.navigate("SelfAssessmentForm");
+                // TODO: tambahin navigasi tile lain begitu screen-nya siap
+              }}
+              activeOpacity={0.7}
               className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3 border border-border"
             >
               <View

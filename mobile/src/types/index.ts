@@ -4,13 +4,12 @@
 
 // ===== Self-Assessment =====
 export interface AssessmentQuestion {
-  id: string;
+  question_id: string;        
   question_text: string;
-  category: string | null; // nullable, isinya null untuk semua pertanyaan saat ini — confirmed ga dipakai scoring engine
-  weight: number;
+  order_index: number;
   is_red_flag: boolean;
+  weight: number;
   is_active: boolean;
-  order_index: number; // confirmed ditambahin ke model — urutan tampil ikut ini, BUKAN insertion order
 }
 
 export interface AssessmentAnswer {
@@ -27,6 +26,7 @@ export interface AssessmentSubmitPayload {
 
 export type RiskCategory = "LOW" | "MEDIUM" | "HIGH";
 export type BpAssessmentStatus = "NOT_PROVIDED" | "PENDING_THRESHOLD" | "NORMAL" | "FLAGGED";
+export type BpCategory = "NORMAL" | "ELEVATED" | "STAGE_1" | "STAGE_2" | "CRISIS"; // ← tambah ini
 
 export interface TriggeredRedFlag {
   question_id: string;
@@ -39,16 +39,22 @@ export interface RiskThreshold {
   category: RiskCategory;
 }
 
-// CONFIRMED — sesuai app/schemas/assessment.py (AssessmentResultResponse), dikonfirmasi Alek.
-// Kolom DB masih "risk_level", tapi response JSON-nya "risk_category" (di-mapping di
-// assessment_service.py). Alek akan migrasi rename kolom DB biar konsisten — ga ngubah
-// shape ini lagi dari sisi FE.
+export interface DurationTriggeredSymptom {
+  symptom: string;
+  days_active: number;
+  status: string;
+}
+
 export interface AssessmentResult {
+  response_id: string;                    
+  date: string;                           
   risk_category: RiskCategory;
-  total_score: number;
+  red_flag_triggered: boolean;            
+  triggered_red_flags: TriggeredRedFlag[];  
+  total_score: number | null;             
   bp_assessment_status: BpAssessmentStatus;
-  triggered_red_flags: TriggeredRedFlag[] | null; // null/[] kalau ga ada yang trigger
-  recommendation_text: string | null;
+  bp_category: BpCategory; 
+  duration_triggered_symptoms: DurationTriggeredSymptom[];
 }
 
 // ===== Auth — sesuai schema asli backend (token.py / user.py) =====
@@ -61,7 +67,9 @@ export interface AuthResponse {
   access_token: string;
   token_type: string;
   user_id: string;
-  // TODO: field lain belum confirmed — Alek cuma bilang "dll", minta exact shape
+  full_name: string;
+  email: string;
+  role: string;
 }
 
 export interface RegisterPayload {
