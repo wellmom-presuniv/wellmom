@@ -4,34 +4,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
-
-const FAQ = [
-  { q: "Apa itu HPHT?", a: "HPHT adalah Hari Pertama Haid Terakhir — tanggal pertama menstruasi terakhir sebelum hamil. Digunakan untuk menghitung usia kehamilan dan perkiraan tanggal lahir." },
-  { q: "Apa yang dimaksud Red Flag?", a: "Red Flag adalah tanda bahaya kehamilan yang memerlukan perhatian segera, seperti perdarahan, sakit kepala berat, bengkak pada wajah/tangan, atau gerakan janin berkurang." },
-  { q: "Bagaimana cara mengisi self-assessment?", a: "Jawab 8 pertanyaan berdasarkan kondisi Anda hari ini dengan memilih 'Ya' atau 'Tidak'. Opsional: masukkan nilai tekanan darah jika tersedia." },
-  { q: "Apa arti kategori risiko?", a: "• Risiko Rendah (0–2 poin): Kondisi baik, tetap rutin ANC\n• Risiko Sedang (3–4 poin): Ada hal yang perlu diperhatikan\n• Risiko Tinggi (≥5 poin atau Red Flag): Segera konsultasi ke tenaga kesehatan" },
-  { q: "Apakah data saya aman?", a: "Data Anda disimpan secara terenkripsi dan hanya dapat diakses oleh Anda sendiri. Kami tidak membagikan data ke pihak ketiga." },
-  { q: "Kapan harus segera ke fasilitas kesehatan?", a: "Segera ke fasilitas kesehatan jika mengalami: perdarahan, sakit kepala berat disertai pandangan kabur, bengkak tiba-tiba pada wajah/tangan, atau gerakan janin berkurang drastis." },
-];
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function HelpScreen({ navigation }: any) {
   const [expanded, setExpanded] = useState<number | null>(null);
-
+  const { t } = useTranslation();
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center px-5 pt-2 pb-4">
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
           <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.textPrimary }}>Bantuan</Text>
+        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.textPrimary }}>{t.helpTitle}</Text>
       </View>
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary, marginBottom: 12 }}>
-          Pertanyaan Umum (FAQ)
+          {t.faqTitle}
         </Text>
 
-        {FAQ.map((item, idx) => (
+        {t.faq.map((item, idx) => (
           <TouchableOpacity
             key={idx}
             onPress={() => setExpanded(expanded === idx ? null : idx)}
@@ -55,10 +47,10 @@ export default function HelpScreen({ navigation }: any) {
 
         <View className="p-4 mb-6" style={{ backgroundColor: colors.primaryContainer, borderRadius: 16, opacity: 0.9 }}>
           <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.primary, marginBottom: 4 }}>
-            Masih ada pertanyaan?
+            {t.stillQuestion}
           </Text>
           <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary }}>
-            Hubungi tim WellMom melalui koordinator medis Anda atau melalui fasilitas kesehatan terdekat.
+            {t.stillQuestionBody}
           </Text>
         </View>
         <View style={{ height: 24 }} />

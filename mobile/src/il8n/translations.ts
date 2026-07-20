@@ -171,6 +171,72 @@ export const translations = {
     redFlags: {} as Record<string, string>,
 
     checklistItems: {} as Record<string, string>,
+
+    aboutSections: [
+      { title: "Apa itu WellMom?", body: "WellMom adalah aplikasi pendamping kesehatan ibu hamil yang membantu memantau kehamilan secara mandiri di antara kunjungan ANC (Antenatal Care)." },
+      { title: "Fitur Utama", body: "• Edukasi gizi berbasis trimester\n• Self-assessment risiko kehamilan harian\n• Checklist kepatuhan kesehatan\n• Panduan rujukan ke fasilitas kesehatan" },
+      { title: "Disclaimer Penting", body: "Aplikasi ini bersifat edukatif dan TIDAK menggantikan konsultasi medis. Seluruh konten telah divalidasi oleh dr. Nucky Indra Praja, Sp.OT, M.Kes." },
+      { title: "Dikembangkan oleh", body: "Mahasiswa Universitas Presiden\nFakultas Ilmu Komputer × Fakultas Kedokteran\n\nTim: Arka, Alek, Thoriq, Arizal\nLiaison Medis: Chelsea Venustine" },
+    ] as { title: string; body: string }[],
+
+    guideSections: [
+      {
+        id: "danger",
+        title: "Kapan Harus Segera ke Faskes?",
+        subtitle: "Tanda bahaya yang memerlukan penanganan segera",
+        items: [
+          "Perdarahan atau flek dari jalan lahir",
+          "Sakit kepala berat disertai pandangan kabur",
+          "Bengkak tiba-tiba pada wajah, tangan, atau kaki",
+          "Demam tinggi (≥38°C) yang tidak membaik",
+          "Gerakan janin berkurang drastis (trimester 3)",
+          "Nyeri perut hebat yang tidak mereda",
+        ],
+      },
+      {
+        id: "risk",
+        title: "Memahami Kategori Risiko",
+        subtitle: "Apa arti hasil self-assessment kamu",
+        items: [
+          "Risiko Rendah (0–2 poin): Kondisi baik. Tetap rutin ANC dan jaga pola makan.",
+          "Risiko Sedang (3–4 poin): Ada hal yang perlu diperhatikan. Konsultasikan saat kunjungan ANC.",
+          "Risiko Tinggi (≥5 poin): Segera konsultasi ke tenaga kesehatan.",
+          "Red Flag: Jawab 'Ya' pada tanda bahaya → langsung Risiko Tinggi tanpa melihat skor.",
+        ],
+      },
+      {
+        id: "howto",
+        title: "Cara Menggunakan WellMom",
+        subtitle: "Panduan singkat penggunaan aplikasi",
+        items: [
+          "Daftar akun dan masukkan HPHT saat onboarding.",
+          "Isi self-assessment setiap hari untuk memantau kondisi kehamilan.",
+          "Centang checklist harian untuk memastikan kebiasaan kesehatan terpenuhi.",
+          "Baca materi edukasi sesuai trimester kamu.",
+          "Cek riwayat assessment untuk melihat perkembangan kondisi dari waktu ke waktu.",
+        ],
+      },
+      {
+        id: "anc",
+        title: "Jadwal ANC yang Dianjurkan",
+        subtitle: "Frekuensi kunjungan antenatal care",
+        items: [
+          "Trimester 1 (0–13 minggu): Minimal 2 kali kunjungan",
+          "Trimester 2 (14–26 minggu): Minimal 1 kali kunjungan",
+          "Trimester 3 (27–40 minggu): Minimal 3 kali kunjungan",
+          "Total minimal 6 kali kunjungan selama kehamilan (standar Kemenkes RI)",
+        ],
+      },
+    ] as { id: string; title: string; subtitle: string; items: string[] }[],
+
+    faq: [
+      { q: "Apa itu HPHT?", a: "HPHT adalah Hari Pertama Haid Terakhir — tanggal pertama menstruasi terakhir sebelum hamil. Digunakan untuk menghitung usia kehamilan dan perkiraan tanggal lahir." },
+      { q: "Apa yang dimaksud Red Flag?", a: "Red Flag adalah tanda bahaya kehamilan yang memerlukan perhatian segera, seperti perdarahan, sakit kepala berat, bengkak pada wajah/tangan, atau gerakan janin berkurang." },
+      { q: "Bagaimana cara mengisi self-assessment?", a: "Jawab 8 pertanyaan berdasarkan kondisi Anda hari ini dengan memilih 'Ya' atau 'Tidak'. Opsional: masukkan nilai tekanan darah jika tersedia." },
+      { q: "Apa arti kategori risiko?", a: "• Risiko Rendah (0–2 poin): Kondisi baik, tetap rutin ANC\n• Risiko Sedang (3–4 poin): Ada hal yang perlu diperhatikan\n• Risiko Tinggi (≥5 poin atau Red Flag): Segera konsultasi ke tenaga kesehatan" },
+      { q: "Apakah data saya aman?", a: "Data Anda disimpan secara terenkripsi dan hanya dapat diakses oleh Anda sendiri. Kami tidak membagikan data ke pihak ketiga." },
+      { q: "Kapan harus segera ke fasilitas kesehatan?", a: "Segera ke fasilitas kesehatan jika mengalami: perdarahan, sakit kepala berat disertai pandangan kabur, bengkak tiba-tiba pada wajah/tangan, atau gerakan janin berkurang drastis." },
+    ] as { q: string; a: string }[],
   },
 
   en: {
@@ -357,6 +423,72 @@ export const translations = {
       "Konsumsi susu/kalsium": "Consume milk/calcium",
       "Istirahat cukup (7-8 jam)": "Get enough rest (7-8 hours)",
     } as Record<string, string>,
+
+    aboutSections: [
+      { title: "What is WellMom?", body: "WellMom is a maternal health companion app that helps pregnant women monitor their pregnancy independently between ANC visits." },
+      { title: "Key Features", body: "• Trimester-based nutrition education\n• Daily pregnancy risk self-assessment\n• Daily health habit checklist\n• Healthcare facility referral guidance" },
+      { title: "Important Disclaimer", body: "This app is educational and does NOT replace medical consultation. All content has been validated by dr. Nucky Indra Praja, Sp.OT, M.Kes." },
+      { title: "Developed by", body: "Students of President University\nFaculty of Computer Science × Faculty of Medicine\n\nTeam: Arka, Alek, Thoriq, Arizal\nMedical Liaison: Chelsea Venustine" },
+    ] as { title: string; body: string }[],
+
+    guideSections: [
+      {
+        id: "danger",
+        title: "When to Go to a Healthcare Facility Immediately?",
+        subtitle: "Danger signs requiring immediate care",
+        items: [
+          "Vaginal bleeding or spotting",
+          "Severe headache with blurred vision",
+          "Sudden swelling of face, hands, or feet",
+          "High fever (≥38°C) that doesn't improve",
+          "Significantly reduced fetal movement (3rd trimester)",
+          "Severe abdominal pain that doesn't subside",
+        ],
+      },
+      {
+        id: "risk",
+        title: "Understanding Risk Categories",
+        subtitle: "What your self-assessment result means",
+        items: [
+          "Low Risk (0–2 pts): Good condition. Keep routine ANC and maintain diet.",
+          "Medium Risk (3–4 pts): Some things to watch. Discuss at your next ANC visit.",
+          "High Risk (≥5 pts): Consult a healthcare professional immediately.",
+          "Red Flag: Answering 'Yes' to a danger sign → automatically High Risk.",
+        ],
+      },
+      {
+        id: "howto",
+        title: "How to Use WellMom",
+        subtitle: "Quick guide to using the app",
+        items: [
+          "Register and enter your LMP date during onboarding.",
+          "Complete the daily self-assessment to monitor your pregnancy.",
+          "Check off the daily checklist to ensure healthy habits.",
+          "Read educational content tailored to your trimester.",
+          "View assessment history to track your condition over time.",
+        ],
+      },
+      {
+        id: "anc",
+        title: "Recommended ANC Schedule",
+        subtitle: "Antenatal care visit frequency",
+        items: [
+          "1st Trimester (0–13 weeks): At least 2 visits",
+          "2nd Trimester (14–26 weeks): At least 1 visit",
+          "3rd Trimester (27–40 weeks): At least 3 visits",
+          "Total minimum 6 visits throughout pregnancy (Indonesian Ministry of Health standard)",
+        ],
+      },
+    ] as { id: string; title: string; subtitle: string; items: string[] }[],
+
+    faq: [
+      { q: "What is LMP (HPHT)?", a: "LMP stands for Last Menstrual Period — the first day of your last period before pregnancy. It is used to calculate gestational age and estimated due date." },
+      { q: "What is a Red Flag?", a: "A Red Flag is a pregnancy danger sign that requires immediate attention, such as bleeding, severe headache, sudden swelling of face/hands, or reduced fetal movement." },
+      { q: "How do I fill in the self-assessment?", a: "Answer 8 questions based on your condition today by selecting 'Yes' or 'No'. Optionally, enter your blood pressure value if available." },
+      { q: "What do the risk categories mean?", a: "• Low Risk (0–2 points): Good condition, keep your routine ANC\n• Medium Risk (3–4 points): Some things to watch\n• High Risk (≥5 points or Red Flag): Consult a healthcare professional immediately" },
+      { q: "Is my data safe?", a: "Your data is stored encrypted and can only be accessed by you. We do not share your data with third parties." },
+      { q: "When should I go to a healthcare facility immediately?", a: "Go immediately if you experience: bleeding, severe headache with blurred vision, sudden swelling of face/hands, or significantly reduced fetal movement." },
+    ] as { q: string; a: string }[],
   },
 };
 
