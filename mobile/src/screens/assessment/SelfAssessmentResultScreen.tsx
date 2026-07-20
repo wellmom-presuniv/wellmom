@@ -132,6 +132,16 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           </TouchableOpacity>
         ) : null}
 
+        <TouchableOpacity
+          onPress={() => navigation.getParent()?.getParent()?.navigate("Edukasi")}
+          activeOpacity={0.85}
+          style={{ marginBottom: 12 }}
+        >
+          <View style={{ backgroundColor: colors.secondary, borderRadius: 999, paddingVertical: 16, alignItems: "center" }}>
+            <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>Lihat Saran & Edukasi</Text>
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => navigation.popToTop()} activeOpacity={0.85} style={{ marginBottom: 24 }}>
           <View
             style={{
