@@ -10,6 +10,7 @@ import { PregnancyProfile } from "../../types";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getAssessmentHistory } from "../../api/assessmentService";
 import { useFocusEffect } from "@react-navigation/native";
+import { useLanguageStore } from "../../store/useLanguageStore";
 
 function formatTanggalIndo(isoDate: string) {
   return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -27,6 +28,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
   export default function HomeScreen({ navigation }: any) {
     const [profile, setProfile] = useState<PregnancyProfile | null>(null);
     const [lastRisk, setLastRisk] = useState<"LOW" | "MEDIUM" | "HIGH" | null>(null);
+    const { language, setLanguage } = useLanguageStore();
 
     useFocusEffect(
       useCallback(() => {
@@ -74,17 +76,30 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
       <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
-        <View>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
-            Hi, {userName ?? "Bunda"}! 👋
-          </Text>
+          <View>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
+              Hi, {userName ?? "Bunda"}! 👋
+            </Text>
+            <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.8 }}>
+              Selamat pagi, Bunda.
+            </Text>
+          </View>
+          <View className="flex-row" style={{ gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => setLanguage(language === "id" ? "en" : "id")}
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
+            >
+              <Text style={{ fontFamily: fonts.bold, fontSize: 11, color: colors.primary }}>
+                {language === "id" ? "ID" : "EN"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
+            >
+              <Ionicons name="notifications-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity
-          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
-        >
-          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
 
         {/* Trimester progress card */}
         <LinearGradient
@@ -145,11 +160,10 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
                 if (item.label === "Checklist") navigation.getParent()?.navigate("Checklist");
                 if (item.label === "Riwayat") navigation.getParent()?.navigate("Riwayat");
                 if (item.label === "Profil") navigation.getParent()?.navigate("Profil");
-                if (item.label === "Catatan Harian") navigation.navigate("SelfAssessmentForm"); // sementara
                 if (item.label === "Panduan") navigation.navigate("Guide");
-            }}
+              }}
               activeOpacity={0.7}
-              className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3 border border-border"
+              className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3"
             >
               <View
                 style={{ backgroundColor: item.bg }}
@@ -157,7 +171,9 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
               >
                 <Ionicons name={item.icon} size={20} color={item.color} />
               </View>
-              <Text className="text-text-primary text-xs text-center">{item.label}</Text>
+              <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.textPrimary, textAlign: "center" }}>
+                {item.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>

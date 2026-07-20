@@ -8,12 +8,7 @@ import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
-
-const ACCOUNT_ITEMS = [
-  { id: "edit", label: "Edit Profil", icon: "person-outline" as const, subtitle: undefined },
-  { id: "lang", label: "Bahasa", icon: "globe-outline" as const, subtitle: "Indonesia" },
-  { id: "notif", label: "Notifikasi", icon: "notifications-outline" as const, subtitle: undefined },
-];
+import { useLanguageStore } from "../../store/useLanguageStore";
 
 const SUPPORT_ITEMS = [
   { id: "about", label: "Tentang WellMom", icon: "information-circle-outline" as const, subtitle: undefined },
@@ -40,8 +35,15 @@ function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: s
 export default function ProfileScreen({navigation}: any) {
   const logout = useAuthStore((s) => s.logout);
   const userName = useAuthStore((s) => s.userName);
+  const { language, setLanguage } = useLanguageStore();
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [notifEnabled, setNotifEnabled] = useState(true);
+
+  const ACCOUNT_ITEMS = [
+    { id: "edit", label: "Edit Profil", icon: "person-outline" as const, subtitle: undefined },
+    { id: "lang", label: "Bahasa", icon: "globe-outline" as const, subtitle: language === "id" ? "Indonesia" : "English" },
+    { id: "notif", label: "Notifikasi", icon: "notifications-outline" as const, subtitle: undefined },
+  ];
 
   useEffect(() => {
     getMyProfile()
@@ -92,6 +94,7 @@ export default function ProfileScreen({navigation}: any) {
                   onPress={() => {
                     if (item.id === "edit") navigation.navigate("EditProfile");
                     if (item.id === "notif") setNotifEnabled(!notifEnabled);
+                    if (item.id === "lang") setLanguage(language === "id" ? "en" : "id");
                   }}
                 >
                   <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(177,14,107,0.1)", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
