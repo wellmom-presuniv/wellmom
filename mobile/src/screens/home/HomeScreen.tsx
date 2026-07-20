@@ -129,9 +129,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
         {/* Quick menu grid */}
         <View className="flex-row justify-between items-center mb-2">
           <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>Menu Cepat</Text>
-          <TouchableOpacity>
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.primary }}>Lihat Semua</Text>
-          </TouchableOpacity>
+         
         </View>
         <View className="flex-row flex-wrap justify-between mb-6">
           {MENU_ITEMS.map((item) => (
@@ -144,6 +142,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
                 if (item.label === "Riwayat") navigation.getParent()?.navigate("Riwayat");
                 if (item.label === "Profil") navigation.getParent()?.navigate("Profil");
                 if (item.label === "Catatan Harian") navigation.navigate("SelfAssessmentForm"); // sementara
+                if (item.label === "Panduan") navigation.navigate("Guide");
             }}
               activeOpacity={0.7}
               className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3 border border-border"
