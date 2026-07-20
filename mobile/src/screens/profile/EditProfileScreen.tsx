@@ -7,6 +7,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
+import apiClient from "../../api/client";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const MONTHS_ID = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -24,8 +26,8 @@ export default function EditProfileScreen({ navigation }: any) {
   const [year, setYear] = useState(today.getFullYear());
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
   const maxDay = daysInMonth(month, year);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Load HPHT yang udah ada dari backend
@@ -45,9 +47,7 @@ export default function EditProfileScreen({ navigation }: any) {
     try {
       const safeDay = Math.min(day, maxDay);
       const hpht = `${year}-${String(month + 1).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
-      // TODO: ganti ke PATCH /profile begitu Alek selesai endpoint-nya
-      // await apiClient.patch("/profile", { hpht });
-      console.log("HPHT baru:", hpht);
+      await apiClient.patch("/profile", { hpht });
       navigation.goBack();
     } catch (err) {
       console.warn("Gagal simpan profil:", err);
@@ -119,7 +119,7 @@ export default function EditProfileScreen({ navigation }: any) {
               onValueChange={setMonth}
               itemStyle={Platform.OS === "ios" ? { fontFamily: fonts.semibold, color: colors.primary } : undefined}
             >
-              {MONTHS_ID.map((m, i) => (
+              {t.months.map((m, i) => (
                 <Picker.Item key={m} label={m} value={i} />
               ))}
             </Picker>
@@ -140,7 +140,7 @@ export default function EditProfileScreen({ navigation }: any) {
               HPHT TERPILIH
             </Text>
             <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.primary, marginTop: 2 }}>
-              {Math.min(day, maxDay)} {MONTHS_ID[month]} {year}
+              {Math.min(day, maxDay)} {t.months[month]} {year}
             </Text>
           </View>
         </View>
@@ -168,9 +168,6 @@ export default function EditProfileScreen({ navigation }: any) {
             )}
           </LinearGradient>
         </TouchableOpacity>
-        <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, textAlign: "center", marginTop: 8 }}>
-          Perubahan akan aktif setelah endpoint backend tersedia
-        </Text>
       </View>
     </SafeAreaView>
   );
