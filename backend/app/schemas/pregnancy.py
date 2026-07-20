@@ -7,6 +7,10 @@ class CreateProfileRequest(BaseModel):
     hpht: date  # Hari Pertama Haid Terakhir
 
 
+class UpdateProfileRequest(BaseModel):
+    hpht: date
+
+
 class ProfileResponse(BaseModel):
     profile_id: uuid.UUID
     hpht: date

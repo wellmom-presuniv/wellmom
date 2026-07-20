@@ -30,3 +30,14 @@ class ToggleResponse(BaseModel):
     is_completed: bool
     log_id:       uuid.UUID
     date:         str
+
+class ChecklistHistoryItemStatus(BaseModel):
+    item_id: uuid.UUID
+    label: str
+    is_completed: bool
+
+
+class ChecklistHistoryDay(BaseModel):
+    date: str
+    items: list[ChecklistHistoryItemStatus]
+    summary: ChecklistSummary
