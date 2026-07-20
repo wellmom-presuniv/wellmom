@@ -35,6 +35,24 @@ async def create_profile(
     return profile
 
 
+async def update_active_profile_hpht(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    hpht: date,
+    hpl: date,
+) -> PregnancyProfile | None:
+    profile = await get_active_profile(db, user_id)
+    if not profile:
+        return None
+
+    profile.hpht = hpht
+    profile.hpl = hpl
+
+    db.add(profile)
+    await db.flush()
+    return profile
+
+
 async def deactivate_all_profiles(
     db: AsyncSession, user_id: uuid.UUID
 ) -> None:

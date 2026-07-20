@@ -89,3 +89,43 @@ async def get_my_profile(
         "is_active": profile.is_active,
         **stats,
     }
+
+
+async def update_pregnancy_profile(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    hpht: date,
+) -> dict:
+    today = date.today()
+
+    if hpht > today:
+        raise HTTPException(
+            status_code=422,
+            detail="HPHT tidak boleh di masa depan"
+        )
+
+    existing = await crud.pregnancy.get_active_profile(db, user_id)
+    if not existing:
+        raise HTTPException(
+            status_code=404,
+            detail="Profil kehamilan belum dibuat. Selesaikan onboarding terlebih dahulu."
+        )
+
+    hpl = hpht + timedelta(days=280)
+
+    profile = await crud.pregnancy.update_active_profile_hpht(
+        db=db,
+        user_id=user_id,
+        hpht=hpht,
+        hpl=hpl,
+    )
+
+    stats = _compute_stats(profile.hpht, profile.hpl, today)
+
+    return {
+        "profile_id": profile.profile_id,
+        "hpht": profile.hpht,
+        "hpl": profile.hpl,
+        "is_active": profile.is_active,
+        **stats,
+    }
