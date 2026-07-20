@@ -37,10 +37,11 @@ function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: s
   );
 }
 
-export default function ProfileScreen() {
+export default function ProfileScreen({navigation}: any) {
   const logout = useAuthStore((s) => s.logout);
   const userName = useAuthStore((s) => s.userName);
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+  const [notifEnabled, setNotifEnabled] = useState(true);
 
   useEffect(() => {
     getMyProfile()
@@ -85,7 +86,29 @@ export default function ProfileScreen() {
           <View style={{ backgroundColor: colors.surface, borderRadius: 20, marginBottom: 20 }}>
             {ACCOUNT_ITEMS.map((item, idx) => (
               <View key={item.id}>
-                <SettingsRow icon={item.icon} label={item.label} subtitle={item.subtitle} color={colors.primary} bg="rgba(177,14,107,0.1)" />
+                <TouchableOpacity
+                  className="flex-row items-center px-4 py-3"
+                  activeOpacity={0.6}
+                  onPress={() => {
+                    if (item.id === "edit") navigation.navigate("EditProfile");
+                    if (item.id === "notif") setNotifEnabled(!notifEnabled);
+                  }}
+                >
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(177,14,107,0.1)", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                    <Ionicons name={item.icon} size={18} color={colors.primary} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ fontFamily: fonts.medium, fontSize: 14, color: colors.textPrimary }}>{item.label}</Text>
+                    {item.subtitle && (
+                      <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 1 }}>{item.subtitle}</Text>
+                    )}
+                  </View>
+                  {item.id === "notif" ? (
+                    <Ionicons name={notifEnabled ? "toggle" : "toggle-outline"} size={28} color={notifEnabled ? colors.primary : colors.outlineVariant} />
+                  ) : (
+                    <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                  )}
+                </TouchableOpacity>
                 {idx < ACCOUNT_ITEMS.length - 1 && (
                   <View style={{ height: 1, backgroundColor: colors.outlineVariant, marginLeft: 64 }} />
                 )}
@@ -99,7 +122,22 @@ export default function ProfileScreen() {
           <View style={{ backgroundColor: colors.surface, borderRadius: 20, marginBottom: 32 }}>
             {SUPPORT_ITEMS.map((item, idx) => (
               <View key={item.id}>
-                <SettingsRow icon={item.icon} label={item.label} subtitle={item.subtitle} color={colors.secondary} bg="rgba(113,42,226,0.1)" />
+                <TouchableOpacity
+                  className="flex-row items-center px-4 py-3"
+                  activeOpacity={0.6}
+                  onPress={() => {
+                    if (item.id === "about") navigation.navigate("About");
+                    if (item.id === "help") navigation.navigate("Help");
+                  }}
+                >
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(113,42,226,0.1)", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                    <Ionicons name={item.icon} size={18} color={colors.secondary} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ fontFamily: fonts.medium, fontSize: 14, color: colors.textPrimary }}>{item.label}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
                 {idx < SUPPORT_ITEMS.length - 1 && (
                   <View style={{ height: 1, backgroundColor: colors.outlineVariant, marginLeft: 64 }} />
                 )}

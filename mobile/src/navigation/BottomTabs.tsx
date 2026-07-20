@@ -2,12 +2,11 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
-
 import HomeStack from "./HomeStack";
 import EducationStack from "./EducationStack";
 import ChecklistScreen from "../screens/checklist/ChecklistScreen";
 import HistoryScreen from "../screens/history/HistoryScreen";
-import ProfileScreen from "../screens/profile/ProfileScreen";
+import ProfileStack from "./ProfileStack";
 
 export type TabParamList = {
   Beranda: undefined;
@@ -44,7 +43,7 @@ export default function BottomTabs() {
       <Tab.Screen name="Edukasi" component={EducationStack} />
       <Tab.Screen name="Checklist" component={ChecklistScreen} />
       <Tab.Screen name="Riwayat" component={HistoryScreen} />
-      <Tab.Screen name="Profil" component={ProfileScreen} />
+      <Tab.Screen name="Profil" component={ProfileStack} />
     </Tab.Navigator>
   );
 }
