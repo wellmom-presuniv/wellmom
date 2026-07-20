@@ -6,8 +6,10 @@ import { colors, riskCategoryStyle, RiskCategory } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getAssessmentHistory } from "../../api/assessmentService";
 import { AssessmentResult } from "../../types";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function HistoryScreen() {
+  const { t, language } = useTranslation();
   const [tab, setTab] = useState<"assessment" | "checklist">("assessment");
   const [history, setHistory] = useState<AssessmentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +25,7 @@ export default function HistoryScreen() {
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="flex-row items-center justify-center px-5 pt-2 pb-4" style={{ position: "relative" }}>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>Riwayat</Text>
+        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>{t.historyTitle}</Text>
         <View style={{ position: "absolute", right: 20, top: 4 }}>
           <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
         </View>
@@ -46,7 +48,7 @@ export default function HistoryScreen() {
             }}
           >
             <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: tab === "assessment" ? "#FFFFFF" : colors.textSecondary }}>
-              Assessment
+              {t.tabAssessment}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -60,7 +62,7 @@ export default function HistoryScreen() {
             }}
           >
             <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: tab === "checklist" ? "#FFFFFF" : colors.textSecondary }}>
-              Checklist
+              {t.tabChecklist}
             </Text>
           </TouchableOpacity>
         </View>
@@ -73,7 +75,7 @@ export default function HistoryScreen() {
             <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 32 }} />
           ) : history.length === 0 ? (
             <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center", marginTop: 32 }}>
-              Belum ada riwayat assessment.
+              {t.noHistory}
             </Text>
           ) : (
             history.map((entry, idx) => {
@@ -93,22 +95,28 @@ export default function HistoryScreen() {
                       <View className="flex-row items-center px-2 py-1" style={{ backgroundColor: risk.bg, borderRadius: 999, gap: 4 }}>
                         <Ionicons name={entry.risk_category === "LOW" ? "checkmark-circle" : "information-circle"} size={13} color={risk.color} />
                         <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: risk.color }}>
-                          {entry.risk_category === "LOW" ? "Risiko Rendah" : entry.risk_category === "MEDIUM" ? "Risiko Sedang" : "Risiko Tinggi"}
+                          {entry.risk_category === "LOW" ? t.riskLow : entry.risk_category === "MEDIUM" ? t.riskMedium : t.riskHigh}
                         </Text>
                       </View>
                     </View>
                     {entry.red_flag_triggered && entry.triggered_red_flags.length > 0 && (
                       <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskHigh, marginBottom: 4 }}>
-                        ⚠️ {entry.triggered_red_flags.map(f => f.question_text).join(", ")}
+                        ⚠️ {entry.triggered_red_flags.map(f => t.redFlags[f.question_text] ?? f.question_text).join(", ")}
                       </Text>
                     )}
                     {entry.duration_triggered_symptoms && entry.duration_triggered_symptoms.length > 0 && (
                       <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.riskMedium, marginBottom: 4 }}>
-                        🕐 {entry.duration_triggered_symptoms.map(d => `${d.symptom} (${d.days_active} hari)`).join(", ")}
+                        🕐 {entry.duration_triggered_symptoms.map(d => {
+                          const label = d.symptom === "BLEEDING" ? t.symptomBleeding : d.symptom === "BLURRED_VISION" ? t.symptomBlurredVision : t.symptomFever;
+                          return `${label} (${d.days_active} ${language === "id" ? "hari" : "days"})`;
+                        }).join(", ")}
                       </Text>
                     )}
                     <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
-                      Skor: {entry.total_score ?? "—"} · Tensi: {entry.bp_category ?? "Tidak diisi"}
+                      {t.scoreLabel
+                        .replace("{score}", String(entry.total_score ?? "—"))
+                        .replace("{bp}", entry.bp_category ?? t.bpNotFilled)}
+
                     </Text>
                   </View>
                 </View>
@@ -119,7 +127,7 @@ export default function HistoryScreen() {
       ) : (
         <View>
           <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center", marginTop: 32 }}>
-            Belum ada riwayat checklist.
+            {t.noChecklistHistory}
           </Text>
         </View>
       )}
