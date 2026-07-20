@@ -4,8 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import apiClient from "../../api/client";
-
-const DAY_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+import { useTranslation } from "../../hooks/useTranslation";
 
 function getWeekDates(centerDate: Date) {
   // Senin sebagai awal minggu
@@ -20,6 +19,7 @@ function getWeekDates(centerDate: Date) {
 }
 
 export default function ChecklistScreen() {
+  const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
   const weekDates = useMemo(() => getWeekDates(today), [today]);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -59,8 +59,6 @@ export default function ChecklistScreen() {
     fetchChecklist();
   }, [fetchChecklist]);
   const toggleItem = async (itemId: string) => {
-    console.log("toggleItem called:", itemId, "isTodaySelected:", isTodaySelected, "dateKey:", dateKey);
-    // Update state lokal dulu (optimistic update)
     setCheckedByDate((prev) => ({
       ...prev,
       [dateKey]: { ...prev[dateKey], [itemId]: !prev[dateKey]?.[itemId] },
@@ -83,15 +81,17 @@ export default function ChecklistScreen() {
 
   const currentChecked = checkedByDate[dateKey] ?? {};
   const items = checklistData?.items ?? [];
-  const doneCount = checklistData?.summary.completed ?? Object.values(currentChecked).filter(Boolean).length;
-  const totalItems = checklistData?.summary.total ?? items.length;
+  const doneCount = items.length > 0 
+    ? Object.values(currentChecked).filter(Boolean).length 
+    : checklistData?.summary.completed ?? 0;
+  const totalItems = items.length > 0 ? items.length : checklistData?.summary.total ?? 0;
   const progress = totalItems > 0 ? doneCount / totalItems : 0;
   
   return (
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="flex-row items-center justify-center px-5 pt-2 pb-4" style={{ position: "relative" }}>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>Checklist Harian</Text>
+        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>{t.checklistTitle}</Text>
         <View style={{ position: "absolute", right: 20, top: 4 }}>
           <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
         </View>
@@ -115,7 +115,7 @@ export default function ChecklistScreen() {
                 }}
               >
                 <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: active ? "#FFFFFF" : colors.textSecondary }}>
-                  {DAY_LABELS[(d.getDay() + 6) % 7]}
+                  {t.days[(d.getDay() + 6) % 7]}
                 </Text>
                 <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: active ? "#FFFFFF" : colors.textPrimary, marginTop: 2 }}>
                   {d.getDate()}
@@ -132,7 +132,7 @@ export default function ChecklistScreen() {
           <View className="items-center py-8">
             <Ionicons name="checkbox-outline" size={40} color={colors.outlineVariant} />
             <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, marginTop: 12, textAlign: "center" }}>
-              Belum ada item checklist.{"\n"}Tim medis akan segera menambahkan.
+              {t.noChecklist}
             </Text>
           </View>
         ) : (
@@ -161,7 +161,7 @@ export default function ChecklistScreen() {
                   <Ionicons name="checkmark-done-outline" size={20} color={colors.primary} />
                 </View>
                 <Text style={{ fontFamily: fonts.medium, fontSize: 15, color: colors.textPrimary, flex: 1 }}>
-                  {item.label}
+                  {t.checklistItems[item.label] ?? item.label}
                 </Text>
                 <View
                   style={{
@@ -185,14 +185,14 @@ export default function ChecklistScreen() {
         {/* Consistency progress */}
         <View className="p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
           <View className="flex-row justify-between items-center mb-2">
-            <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary }}>{isTodaySelected ? "Konsistensi hari ini" : "Riwayat hari ini"}</Text>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary }}>{isTodaySelected ? t.consistency : t.historyLabel}</Text>
             <Ionicons name="star" size={18} color={progress === 1 ? "#F5B700" : colors.outlineVariant} />
           </View>
           <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.surfaceContainer, overflow: "hidden", marginBottom: 6 }}>
             <View style={{ height: "100%", width: `${progress * 100}%`, backgroundColor: colors.primary, borderRadius: 4 }} />
           </View>
           <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, textAlign: "right" }}>
-            {doneCount}/{totalItems} Selesai
+            {t.done.replace("{done}", String(doneCount)).replace("{total}", String(totalItems))}
           </Text>
         </View>
 

@@ -169,6 +169,8 @@ export const translations = {
     } as Record<number, string>,
 
     redFlags: {} as Record<string, string>,
+
+    checklistItems: {} as Record<string, string>,
   },
 
   en: {
@@ -345,6 +347,15 @@ export const translations = {
       "Perdarahan atau flek?": "Bleeding or spotting?",
       "Pusing atau Pandangan kabur?": "Dizziness or blurred vision?",
       "Demam tinggi (>=38°C)?": "High fever (≥38°C)?",
+    } as Record<string, string>,
+
+    checklistItems: {
+      "Minum tablet tambah darah": "Take iron supplement",
+      "Minum air minimal 8 gelas": "Drink at least 8 glasses of water",
+      "Makan makanan sumber protein": "Eat protein-rich foods",
+      "Makan sayur dan buah": "Eat vegetables and fruits",
+      "Konsumsi susu/kalsium": "Consume milk/calcium",
+      "Istirahat cukup (7-8 jam)": "Get enough rest (7-8 hours)",
     } as Record<string, string>,
   },
 };
