@@ -6,6 +6,7 @@ import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
 import { AssessmentQuestion } from "../../types";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function SelfAssessmentFormScreen({ navigation }: any) {
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
@@ -14,7 +15,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
   const [diastolicBp, setDiastolicBp] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { t } = useTranslation();
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
 
@@ -85,10 +86,10 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
         </TouchableOpacity>
         <View className="flex-1">
           <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.textPrimary }}>
-            Self-Assessment Risiko
+            {t.assessmentTitle}
           </Text>
           <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
-            Jawab pertanyaan berikut berdasarkan kondisi Anda hari ini
+            {t.assessmentSubtitle}
           </Text>
         </View>
       </View>
@@ -116,7 +117,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             style={{ backgroundColor: colors.surface, borderRadius: 18 }}
           >
             <Text style={{ fontFamily: fonts.medium, fontSize: 14, color: colors.textPrimary, flex: 1, marginRight: 12 }}>
-              {q.question_text}
+              {t.questions[q.order_index] ?? q.question_text}
             </Text>
             <View className="flex-row" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 999, padding: 3 }}>
               <TouchableOpacity
@@ -135,7 +136,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
                     color: answers[q.question_id] === true ? "#FFFFFF" : colors.textSecondary,
                   }}
                 >
-                  Ya
+                  {t.yes}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -154,7 +155,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
                     color: answers[q.question_id] === false ? "#FFFFFF" : colors.textSecondary,
                   }}
                 >
-                  Tidak
+                  {t.no}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -165,16 +166,16 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
         <View className="p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 18 }}>
           <View className="flex-row items-center mb-3" style={{ gap: 6 }}>
             <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.textPrimary }}>
-              Tensi Darah
+              {t.bloodPressure}
             </Text>
             <View style={{ backgroundColor: colors.surfaceContainer, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}>
-              <Text style={{ fontFamily: fonts.medium, fontSize: 10, color: colors.textSecondary }}>Opsional</Text>
+              <Text style={{ fontFamily: fonts.medium, fontSize: 10, color: colors.textSecondary }}>{t.optional}</Text>
             </View>
           </View>
           <View className="flex-row" style={{ gap: 12 }}>
             <View className="flex-1">
               <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginBottom: 4 }}>
-                Sistol
+                {t.systolic}
               </Text>
               <TextInput
                 className="bg-surface-container-low rounded-xl px-3 py-3"
@@ -188,7 +189,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             </View>
             <View className="flex-1">
               <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginBottom: 4 }}>
-                Diastol
+                {t.diastolic}
               </Text>
               <TextInput
                 className="bg-surface-container-low rounded-xl px-3 py-3"
@@ -215,7 +216,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             }}
           >
             <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>
-              {allAnswered ? "Lihat Hasil" : `Jawab ${questions.length - answeredCount} pertanyaan lagi`}
+              {allAnswered ? t.viewResult : t.answerMore.replace("{n}", String(questions.length - answeredCount))}
             </Text>
           </View>
         </TouchableOpacity>

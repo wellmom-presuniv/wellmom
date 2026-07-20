@@ -155,6 +155,18 @@ export const translations = {
     errorNetwork: "Gagal memuat data. Cek koneksi internet kamu.",
     back: "Kembali",
     contentNotReady: "Konten sedang disiapkan.",
+    
+    questions: {
+      1: "Mudah lelah berlebihan?",
+      2: "Pusing atau Pandangan kabur?",
+      3: "Mual muntah terus-menerus?",
+      4: "Tidak konsumsi tablet tambah darah?",
+      5: "Perdarahan atau flek?",
+      6: "Sakit kepala berat?",
+      7: "Bengkak pada wajah/tangan?",
+      8: "Gerakan janin berkurang (trimester lanjut)?",
+      9: "Demam tinggi (≥38°C)?",
+    } as Record<number, string>,
   },
 
   en: {
@@ -311,6 +323,18 @@ export const translations = {
     errorNetwork: "Failed to load data. Check your internet connection.",
     back: "Back",
     contentNotReady: "Content is being prepared.",
+
+    questions: {
+      1: "Excessive fatigue?",
+      2: "Dizziness or blurred vision?",
+      3: "Persistent nausea and vomiting?",
+      4: "Not taking iron supplements?",
+      5: "Bleeding or spotting?",
+      6: "Severe headache?",
+      7: "Swelling of face/hands?",
+      8: "Reduced fetal movement (late trimester)?",
+      9: "High fever (≥38°C)?",
+    } as Record<number, string>,
   },
 };
 
