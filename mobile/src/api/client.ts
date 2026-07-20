@@ -9,12 +9,16 @@ export const apiClient = axios.create({
   timeout: 10000,
 });
 
-apiClient.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem("auth_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error?.response?.status === 401) {
+      // Token expired saat app aktif — paksa logout ke Login
+      const { useAuthStore } = await import("../store/useAuthStore");
+      await useAuthStore.getState().logout();
+    }
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export default apiClient;
