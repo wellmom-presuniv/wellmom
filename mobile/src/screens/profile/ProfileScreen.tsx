@@ -9,11 +9,7 @@ import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import { useLanguageStore } from "../../store/useLanguageStore";
-
-const SUPPORT_ITEMS = [
-  { id: "about", label: "Tentang WellMom", icon: "information-circle-outline" as const, subtitle: undefined },
-  { id: "help", label: "Bantuan", icon: "help-circle-outline" as const, subtitle: undefined },
-];
+import { useTranslation } from "../../hooks/useTranslation";
 
 function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: string; subtitle?: string; color: string; bg: string }) {
   return (
@@ -34,16 +30,20 @@ function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: s
 
 export default function ProfileScreen({navigation}: any) {
   const logout = useAuthStore((s) => s.logout);
+  const { t } = useTranslation();
   const userName = useAuthStore((s) => s.userName);
   const { language, setLanguage } = useLanguageStore();
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [notifEnabled, setNotifEnabled] = useState(true);
-
   const ACCOUNT_ITEMS = [
-    { id: "edit", label: "Edit Profil", icon: "person-outline" as const, subtitle: undefined },
-    { id: "lang", label: "Bahasa", icon: "globe-outline" as const, subtitle: language === "id" ? "Indonesia" : "English" },
-    { id: "notif", label: "Notifikasi", icon: "notifications-outline" as const, subtitle: undefined },
+    { id: "edit", label: t.editProfile, icon: "person-outline" as const, subtitle: undefined },
+    { id: "lang", label: t.language, icon: "globe-outline" as const, subtitle: t.languageValue },
+    { id: "notif", label: t.notifications, icon: "notifications-outline" as const, subtitle: undefined },
   ];
+  const SUPPORT_ITEMS = [
+    { id: "about", label: t.aboutApp, icon: "information-circle-outline" as const },
+    { id: "help", label: t.help, icon: "help-circle-outline" as const },
+  ];  
 
   useEffect(() => {
     getMyProfile()
@@ -76,14 +76,16 @@ export default function ProfileScreen({navigation}: any) {
           >
             <Ionicons name="heart" size={13} color={colors.riskLow} />
             <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.riskLow }}>
-              Trimester {profile?.trimester} · Minggu ke-{profile?.gestational_week}
+              {t.trimesterBadge
+                .replace("{t}", String(profile?.trimester ?? "—"))
+                .replace("{w}", String(profile?.gestational_week ?? "—"))}
             </Text>
           </View>
         </View>
 
         <View className="px-5">
           <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, letterSpacing: 1, marginBottom: 8 }}>
-            AKUN & PREFERENSI
+            {t.accountSection}
           </Text>
           <View style={{ backgroundColor: colors.surface, borderRadius: 20, marginBottom: 20 }}>
             {ACCOUNT_ITEMS.map((item, idx) => (
@@ -120,7 +122,7 @@ export default function ProfileScreen({navigation}: any) {
           </View>
 
           <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, letterSpacing: 1, marginBottom: 8 }}>
-            DUKUNGAN
+            {t.supportSection}
           </Text>
           <View style={{ backgroundColor: colors.surface, borderRadius: 20, marginBottom: 32 }}>
             {SUPPORT_ITEMS.map((item, idx) => (
@@ -155,7 +157,7 @@ export default function ProfileScreen({navigation}: any) {
             style={{ borderWidth: 1.5, borderColor: colors.riskHigh, borderRadius: 999, gap: 8 }}
           >
             <Ionicons name="log-out-outline" size={18} color={colors.riskHigh} />
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.riskHigh }}>Keluar</Text>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.riskHigh }}>{t.logout}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
