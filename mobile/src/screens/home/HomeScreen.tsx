@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,7 +9,7 @@ import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getAssessmentHistory } from "../../api/assessmentService";
-
+import { useFocusEffect } from "@react-navigation/native";
 
 function formatTanggalIndo(isoDate: string) {
   return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -28,22 +28,26 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
     const [profile, setProfile] = useState<PregnancyProfile | null>(null);
     const [lastRisk, setLastRisk] = useState<"LOW" | "MEDIUM" | "HIGH" | null>(null);
 
-    useEffect(() => {
-      getAssessmentHistory(1, 0) // ambil 1 entry terbaru aja
-        .then((data) => {
-          if (data.length > 0) setLastRisk(data[0].risk_category);
-        })
-        .catch(() => {}); // silent fail, ga perlu tampil error
-    }, []);
+    useFocusEffect(
+      useCallback(() => {
+        getAssessmentHistory(1, 0)
+          .then((data) => {
+            if (data.length > 0) setLastRisk(data[0].risk_category);
+          })
+          .catch(() => {});
+      }, [])
+    );
     const [isLoading, setIsLoading] = useState(true);
     const userName = useAuthStore((s) => s.userName);
 
-    useEffect(() => {
-      getMyProfile()
-        .then(setProfile)
-        .catch((err) => console.warn("Gagal ambil profil:", err))
-        .finally(() => setIsLoading(false));
-    }, []);
+    useFocusEffect(
+      useCallback(() => {
+        getMyProfile()
+          .then(setProfile)
+          .catch((err) => console.warn("Gagal ambil profil:", err))
+          .finally(() => setIsLoading(false));
+      }, [])
+    );
 
     const risk = riskCategoryStyle[lastRisk || "LOW"];
 
