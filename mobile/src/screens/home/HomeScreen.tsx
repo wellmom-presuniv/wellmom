@@ -139,8 +139,12 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
               key={item.label}
               onPress={() => {
                 if (item.label === "Self-Assessment") navigation.navigate("SelfAssessmentForm");
-                // TODO: tambahin navigasi tile lain begitu screen-nya siap
-              }}
+                if (item.label === "Edukasi") navigation.getParent()?.navigate("Edukasi");
+                if (item.label === "Checklist") navigation.getParent()?.navigate("Checklist");
+                if (item.label === "Riwayat") navigation.getParent()?.navigate("Riwayat");
+                if (item.label === "Profil") navigation.getParent()?.navigate("Profil");
+                if (item.label === "Catatan Harian") navigation.navigate("SelfAssessmentForm"); // sementara
+            }}
               activeOpacity={0.7}
               className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3 border border-border"
             >
