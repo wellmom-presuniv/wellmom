@@ -1,9 +1,9 @@
 import { useLanguageStore } from "../store/useLanguageStore";
-import { translations, TranslationKey } from "../i18n/translations";
+import { translations, TranslationKey } from "../il8n/translations";
 
 export function useTranslation() {
   const language = useLanguageStore((s) => s.language);
-  const t = translations[language];
+  const t = translations[language as keyof typeof translations];
 
   // Helper buat replace placeholder {n}, {name}, dll
   const translate = (key: TranslationKey, params?: Record<string, string | number>): string => {
