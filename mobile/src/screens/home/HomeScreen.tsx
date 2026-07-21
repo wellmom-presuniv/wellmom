@@ -12,6 +12,7 @@ import { getAssessmentHistory } from "../../api/assessmentService";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLanguageStore } from "../../store/useLanguageStore";
 import { useTranslation } from "../../hooks/useTranslation";
+import AppHeader from "@/components/AppHeader";
 
 function formatTanggalIndo(isoDate: string) {
   return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -76,34 +77,17 @@ function formatTanggalIndo(isoDate: string) {
 
     return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="flex-row items-center justify-between mb-4">
-          <View>
+        <AppHeader title="WellMom" />
+          {/* <View className="px-5 mb-1">
             <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
-              {t.greeting.replace("{name}", userName ?? "Bunda")}! 👋
+              {t.greeting.replace("{name}", userName ?? "Bunda")}
             </Text>
             <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.8 }}>
               {t.goodMorning}
             </Text>
-          </View>
-          <View className="flex-row" style={{ gap: 8 }}>
-            <TouchableOpacity
-              onPress={() => setLanguage(language === "id" ? "en" : "id")}
-              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
-            >
-              <Text style={{ fontFamily: fonts.bold, fontSize: 11, color: colors.primary }}>
-                {language === "id" ? "ID" : "EN"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
-            >
-              <Ionicons name="notifications-outline" size={20} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
+          </View> */}
+      <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Trimester progress card */}
         <LinearGradient
           colors={[colors.primary, colors.secondary]}

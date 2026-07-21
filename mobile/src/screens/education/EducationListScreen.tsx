@@ -9,6 +9,7 @@ import {useTranslation} from "../../hooks/useTranslation";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
+import AppHeader from "../../components/AppHeader";
 
 interface EducationContent {
     content_id: string;
@@ -51,14 +52,9 @@ export default function EducationListScreen({ navigation }: any) {
   );
   return (
     <SafeAreaView className="flex-1 bg-background">
+      
+        <AppHeader title={t.educationTitle} />
       <ScrollView className="px-5 pt-2" showsVerticalScrollIndicator={false}>
-        <Text style={{ fontFamily: fonts.extrabold, fontSize: 28, color: colors.textPrimary, marginBottom: 2 }}>
-          {t.educationTitle}
-        </Text>
-        <Text style={{ fontFamily: fonts.regular, fontSize: 14, color: colors.textSecondary, marginBottom: 16 }}>
-          {t.educationSubtitle}
-        </Text>
-
         <View
           className="flex-row items-center px-4 mb-4"
           style={{ backgroundColor: colors.surface, borderRadius: 999, height: 48, borderWidth: 1, borderColor: colors.outlineVariant }}

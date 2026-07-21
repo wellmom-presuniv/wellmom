@@ -5,6 +5,7 @@ import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import apiClient from "../../api/client";
 import { useTranslation } from "../../hooks/useTranslation";
+import AppHeader from "@/components/AppHeader";
 
 function getWeekDates(centerDate: Date) {
   // Senin sebagai awal minggu
@@ -89,13 +90,7 @@ export default function ChecklistScreen() {
   
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="flex-row items-center justify-center px-5 pt-2 pb-4" style={{ position: "relative" }}>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>{t.checklistTitle}</Text>
-        <View style={{ position: "absolute", right: 20, top: 4 }}>
-          <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
-        </View>
-      </View>
+      <AppHeader title={t.historyTitle} />
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {/* Week strip */}
