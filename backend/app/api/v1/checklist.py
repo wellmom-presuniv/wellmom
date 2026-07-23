@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,12 +48,20 @@ async def get_checklist_history(
 @router.post("/checklist/{item_id}/log", response_model=ToggleResponse)
 async def toggle_checklist_item(
     item_id: uuid.UUID,
+    log_date: date | None = Query(default=None, alias="date"),
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """
-    Toggle satu item hari ini. Tidak butuh request body.
-    Belum ada log → buat baru (is_completed=True).
-    Sudah ada → balik nilai (True↔False).
+    Toggle satu item checklist pada tanggal tertentu.
+
+    Jika query param date tidak dikirim, otomatis memakai tanggal hari ini.
+    Contoh:
+    POST /checklist/{item_id}/log?date=2026-07-22
     """
-    return await checklist_service.toggle_item(db, user_id, item_id)
+    return await checklist_service.toggle_item(
+        db=db,
+        user_id=user_id,
+        item_id=item_id,
+        target_date=log_date,
+    )

@@ -46,37 +46,54 @@ async def toggle_item(
     db: AsyncSession,
     user_id: uuid.UUID,
     item_id: uuid.UUID,
+    target_date: date | None = None,
 ) -> dict:
-    # Validasi item ada dan aktif
     item = await crud.checklist.get_item_by_id(db, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item checklist tidak ditemukan")
-    if not item.is_active:
-        raise HTTPException(status_code=422, detail="Item ini sudah tidak aktif")
 
-    # Profil kehamilan aktif wajib ada
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Item checklist tidak ditemukan",
+        )
+
+    if not item.is_active:
+        raise HTTPException(
+            status_code=422,
+            detail="Item ini sudah tidak aktif",
+        )
+
     profile = await crud.pregnancy.get_active_profile(db, user_id)
     if not profile:
         raise HTTPException(
             status_code=404,
-            detail="Profil kehamilan belum dibuat. Selesaikan onboarding terlebih dahulu."
+            detail=(
+                "Profil kehamilan belum dibuat. "
+                "Selesaikan onboarding terlebih dahulu."
+            ),
         )
 
-    today = date.today()
-    log   = await crud.checklist.toggle_log(
+    selected_date = target_date or date.today()
+
+    if selected_date > date.today():
+        raise HTTPException(
+            status_code=422,
+            detail="Tanggal checklist tidak boleh di masa depan",
+        )
+
+    log = await crud.checklist.toggle_log(
         db=db,
         user_id=user_id,
         pregnancy_profile_id=profile.profile_id,
         item_id=item_id,
-        today=today,
+        today=selected_date,
     )
 
     return {
-        "item_id":      item_id,
-        "label":        item.label,
+        "item_id": item_id,
+        "label": item.label,
         "is_completed": log.is_completed,
-        "log_id":       log.log_id,
-        "date":         today.isoformat(),
+        "log_id": log.log_id,
+        "date": selected_date.isoformat(),
     }
 
 async def get_checklist_history(
