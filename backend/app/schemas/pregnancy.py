@@ -17,3 +17,6 @@ class ProfileResponse(BaseModel):
     is_active: bool
 
     model_config = {"from_attributes": True}
+
+class UpdateProfileRequest(BaseModel):
+    hpht: date

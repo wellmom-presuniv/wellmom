@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState, useCallback} from "react";
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,6 +10,7 @@ import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import { useLanguageStore } from "../../store/useLanguageStore";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useFocusEffect } from "@react-navigation/native";
 
 function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: string; subtitle?: string; color: string; bg: string }) {
   return (
@@ -45,11 +46,16 @@ export default function ProfileScreen({navigation}: any) {
     { id: "help", label: t.help, icon: "help-circle-outline" as const },
   ];  
 
-  useEffect(() => {
-    getMyProfile()
-      .then(setProfile)
-      .catch((err) => console.warn("Gagal fetch profil:", err));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getMyProfile()
+        .then((p) => {
+          console.log("✅ Profil:", p);
+          setProfile(p);
+        })
+        .catch((err) => console.warn("Gagal fetch profil:", err));
+    }, [])
+  );
 
   const displayName = userName ?? "Ibu Sehat";
   const initial = displayName.charAt(0).toUpperCase();
