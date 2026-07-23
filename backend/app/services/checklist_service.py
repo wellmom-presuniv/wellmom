@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -86,12 +86,12 @@ async def get_checklist_history(
     offset: int = 0,
 ) -> list[dict]:
     items = await crud.checklist.get_active_items(db)
-    dates = await crud.checklist.get_history_dates(
-        db=db,
-        user_id=user_id,
-        limit=limit,
-        offset=offset,
-    )
+
+    # Generate 7 hari terakhir selalu (bukan dari log)
+    today = date.today()
+    all_dates = [today - timedelta(days=i) for i in range(7)]
+    dates = all_dates[offset:offset + limit]
+
     logs = await crud.checklist.get_logs_by_dates(
         db=db,
         user_id=user_id,
@@ -107,30 +107,31 @@ async def get_checklist_history(
 
     for log_date in dates:
         result_items = []
-
         for item in items:
             log = logs_by_date_item.get((log_date, item.item_id))
-            result_items.append(
-                {
-                    "item_id": item.item_id,
-                    "label": item.label,
-                    "is_completed": log.is_completed if log else False,
-                }
-            )
+            # TAMBAH BARIS INI:
+            result_items.append({
+                "item_id": item.item_id,
+                "label": item.label,
+                "category": item.category,
+                "order_index": item.order_index,
+                "is_completed": log.is_completed if log else False,
+                "log_id": log.log_id if log else None,
+            })
 
         total = len(result_items)
         completed = sum(1 for item in result_items if item["is_completed"])
 
-        history.append(
-            {
-                "date": log_date.isoformat(),
-                "items": result_items,
-                "summary": {
-                    "total": total,
-                    "completed": completed,
-                    "label": f"{completed}/{total} selesai",
-                },
-            }
-        )
+        history.append({
+            "date": log_date.isoformat(),
+            "items": result_items,
+            "summary": {
+                "total": total,
+                "completed": completed,
+                "label": f"{completed}/{total} selesai",
+            },
+        })
+
+    return history
 
     return history

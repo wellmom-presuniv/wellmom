@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,37 +10,53 @@ import { useTranslation } from "../../hooks/useTranslation";
 import AppHeader from "@/components/AppHeader";
 import { useFocusEffect } from "@react-navigation/native";
 import apiClient from "../../api/client";
+import { useChecklistStore } from "../../store/useChecklistStore";
 
 export default function HistoryScreen() {
   const { t, language } = useTranslation();
   const [tab, setTab] = useState<"assessment" | "checklist">("assessment");
   const [history, setHistory] = useState<AssessmentResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [checklistHistory, setChecklistHistory] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const fetchData = useCallback(async (refreshing = false) => {
-    if (refreshing) setIsRefreshing(true);
-    else setIsLoading(true);
-    try {
-      const [assessmentData, checklistData] = await Promise.all([
-        getAssessmentHistory(),
-        apiClient.get("/checklist/history").then(r => r.data).catch(() => []),
-      ]);
-      setHistory(assessmentData);
-      setChecklistHistory(checklistData);
-    } catch (err) {
-      console.warn("Gagal fetch history:", err);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
-
+  const { checkedByDate, items: checklistItems, initialized: checklistInitialized } = useChecklistStore();
+  const checklistHistory = useMemo(() => {
+    const today = new Date();
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toLocaleDateString("sv-SE");
+      const dayChecked = checkedByDate[dateStr] ?? {};
+      const completedItems = checklistItems.filter(item => dayChecked[item.item_id]);
+      return {
+        date: dateStr,
+        items: checklistItems.map(item => ({
+          item_id: item.item_id,
+          label: item.label,
+          is_completed: !!dayChecked[item.item_id],
+        })),
+        summary: {
+          total: checklistItems.length,
+          completed: completedItems.length,
+          label: `${completedItems.length}/${checklistItems.length} selesai`,
+        },
+      };
+    });
+  }, [checkedByDate, checklistItems]);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    getAssessmentHistory()
+      .then(setHistory)
+      .catch(err => console.warn("Gagal fetch history:", err))
+      .finally(() => setIsRefreshing(false));
+  };
   useFocusEffect(
     useCallback(() => {
-      fetchData();
-    }, [fetchData])
+      setIsLoading(true);
+      getAssessmentHistory()
+        .then(setHistory)
+        .catch(err => console.warn("Gagal fetch history:", err))
+        .finally(() => setIsLoading(false));
+    }, [])
   );
 
   return (
@@ -68,7 +84,9 @@ export default function HistoryScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setTab("checklist")}
+            onPress={() => {
+              setTab("checklist");
+            }}
             style={{
               flex: 1,
               paddingVertical: 10,
@@ -90,7 +108,7 @@ export default function HistoryScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={() => fetchData(true)}
+            onRefresh={handleRefresh}
             colors={[colors.primary]}
             tintColor={colors.primary}
           />
