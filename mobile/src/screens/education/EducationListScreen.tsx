@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import AppHeader from "../../components/AppHeader";
+import { useFocusEffect } from "@react-navigation/native";
 
 interface EducationContent {
     content_id: string;
@@ -26,11 +27,22 @@ export default function EducationListScreen({ navigation }: any) {
   const [topics, setTopics] = useState<EducationContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
-  useEffect(() => {
-    getMyProfile()
-      .then(setProfile)
-      .catch(() => {});
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setIsLoading(true);
+      apiClient.get<EducationContent[]>("/content")
+        .then(({ data }) => setTopics(data))
+        .catch((err) => console.warn("Gagal fetch edukasi:", err))
+        .finally(() => setIsLoading(false));
+    }, [])
+  );
+  useFocusEffect(
+    useCallback(() => {
+      getMyProfile()
+        .then(setProfile)
+        .catch(() => {});
+    }, [])
+  );
   const categoryStyle: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }> = {
     nutrisi: { icon: "restaurant", color: "#D97706", bg: "rgba(217,119,6,0.12)" },
     tablet_tambah_darah: { icon: "medical", color: colors.primary, bg: "rgba(177,14,107,0.1)" },
@@ -39,14 +51,6 @@ export default function EducationListScreen({ navigation }: any) {
     persiapan_persalinan: { icon: "happy", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
   };
   const defaultStyle = { icon: "book" as const, color: colors.primary, bg: colors.primaryContainer };
-  useEffect(() => {
-    apiClient.get<EducationContent[]>("/content")
-      .then(({ data }) => {
-        setTopics(data);
-      })
-      .catch((err) => console.warn("Gagal fetch edukasi:", err))
-      .finally(() => setIsLoading(false));
-  }, []);
   const filtered = topics.filter(topic =>
     topic.title.toLowerCase().includes(search.toLowerCase())
   );
