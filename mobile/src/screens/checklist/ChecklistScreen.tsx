@@ -90,7 +90,7 @@ export default function ChecklistScreen() {
   
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <AppHeader title={t.historyTitle} />
+      <AppHeader title={t.checklistTitle} />
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {/* Week strip */}
