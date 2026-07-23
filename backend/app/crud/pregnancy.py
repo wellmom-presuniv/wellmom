@@ -62,3 +62,14 @@ async def deactivate_all_profiles(
         .where(PregnancyProfile.user_id == user_id)
         .values(is_active=False)
     )
+
+async def update_profile(
+    db: AsyncSession,
+    profile: PregnancyProfile,
+    hpht: date,
+    hpl: date,
+) -> PregnancyProfile:
+    profile.hpht = hpht
+    profile.hpl = hpl
+    await db.flush()
+    return profile

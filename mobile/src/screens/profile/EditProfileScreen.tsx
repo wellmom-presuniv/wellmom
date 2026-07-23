@@ -7,6 +7,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
+import apiClient from "../../api/client";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const MONTHS_ID = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -24,8 +26,8 @@ export default function EditProfileScreen({ navigation }: any) {
   const [year, setYear] = useState(today.getFullYear());
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
   const maxDay = daysInMonth(month, year);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Load HPHT yang udah ada dari backend
@@ -45,9 +47,7 @@ export default function EditProfileScreen({ navigation }: any) {
     try {
       const safeDay = Math.min(day, maxDay);
       const hpht = `${year}-${String(month + 1).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
-      // TODO: ganti ke PATCH /profile begitu Alek selesai endpoint-nya
-      // await apiClient.patch("/profile", { hpht });
-      console.log("HPHT baru:", hpht);
+      await apiClient.patch("/profile", { hpht });
       navigation.goBack();
     } catch (err) {
       console.warn("Gagal simpan profil:", err);
@@ -71,7 +71,7 @@ export default function EditProfileScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
           <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.textPrimary }}>Edit Profil</Text>
+        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.textPrimary }}>{t.editProfileTitle}</Text>
       </View>
 
       <View className="px-5 flex-1">
@@ -79,7 +79,7 @@ export default function EditProfileScreen({ navigation }: any) {
         <View className="flex-row items-center p-4 mb-6" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 16, gap: 10 }}>
           <Ionicons name="information-circle-outline" size={18} color={colors.textSecondary} />
           <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, flex: 1, lineHeight: 18 }}>
-            Perbarui HPHT jika Anda salah memasukkan tanggal sebelumnya. Perubahan akan mempengaruhi kalkulasi trimester dan usia kehamilan.
+            {t.editProfileInfo}
           </Text>
         </View>
 
@@ -96,10 +96,10 @@ export default function EditProfileScreen({ navigation }: any) {
           }}
         >
           <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary, marginBottom: 4 }}>
-            Hari Pertama Haid Terakhir (HPHT)
+            {t.hphtLabel}
           </Text>
           <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 12 }}>
-            Tanggal pertama menstruasi terakhir sebelum hamil
+            {t.hphtHint}
           </Text>
 
           <View className="flex-row">
@@ -119,7 +119,7 @@ export default function EditProfileScreen({ navigation }: any) {
               onValueChange={setMonth}
               itemStyle={Platform.OS === "ios" ? { fontFamily: fonts.semibold, color: colors.primary } : undefined}
             >
-              {MONTHS_ID.map((m, i) => (
+              {t.months.map((m, i) => (
                 <Picker.Item key={m} label={m} value={i} />
               ))}
             </Picker>
@@ -137,10 +137,10 @@ export default function EditProfileScreen({ navigation }: any) {
 
           <View className="items-center mt-2 pt-3" style={{ borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
             <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, letterSpacing: 1 }}>
-              HPHT TERPILIH
+              {t.hphtSelected}
             </Text>
             <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.primary, marginTop: 2 }}>
-              {Math.min(day, maxDay)} {MONTHS_ID[month]} {year}
+              {Math.min(day, maxDay)} {t.months[month]} {year}
             </Text>
           </View>
         </View>
@@ -164,13 +164,10 @@ export default function EditProfileScreen({ navigation }: any) {
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF" }}>Simpan Perubahan</Text>
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF" }}>{t.saveChanges}</Text>
             )}
           </LinearGradient>
         </TouchableOpacity>
-        <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, textAlign: "center", marginTop: 8 }}>
-          Perubahan akan aktif setelah endpoint backend tersedia
-        </Text>
       </View>
     </SafeAreaView>
   );

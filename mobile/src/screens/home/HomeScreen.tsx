@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,41 +9,51 @@ import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getAssessmentHistory } from "../../api/assessmentService";
-
+import { useFocusEffect } from "@react-navigation/native";
+import { useLanguageStore } from "../../store/useLanguageStore";
+import { useTranslation } from "../../hooks/useTranslation";
+import AppHeader from "@/components/AppHeader";
 
 function formatTanggalIndo(isoDate: string) {
   return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 }
 
-const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }[] = [
-  { label: "Edukasi", icon: "book", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
-  { label: "Checklist", icon: "checkbox", color: colors.riskLow, bg: colors.riskLowBg },
-  { label: "Self-Assessment", icon: "pulse", color: colors.riskHigh, bg: colors.riskHighBg },
-  { label: "Catatan Harian", icon: "journal-outline", color: colors.primary, bg: "rgba(177,14,107,0.1)" },
-  { label: "Panduan", icon: "medkit-outline", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
-  { label: "Profil", icon: "person", color: colors.textSecondary, bg: "rgba(139,112,121,0.1)" },
-];
 
   export default function HomeScreen({ navigation }: any) {
     const [profile, setProfile] = useState<PregnancyProfile | null>(null);
     const [lastRisk, setLastRisk] = useState<"LOW" | "MEDIUM" | "HIGH" | null>(null);
+    const { language, setLanguage } = useLanguageStore();
+    const { t } = useTranslation();
 
-    useEffect(() => {
-      getAssessmentHistory(1, 0) // ambil 1 entry terbaru aja
-        .then((data) => {
-          if (data.length > 0) setLastRisk(data[0].risk_category);
-        })
-        .catch(() => {}); // silent fail, ga perlu tampil error
-    }, []);
+    const MENU_ITEMS: { id: string; label: string; icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }[] = [
+      { id: "education", label: t.menuEducation, icon: "book", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
+      { id: "checklist", label: t.menuChecklist, icon: "checkbox", color: colors.riskLow, bg: colors.riskLowBg },
+      { id: "assessment", label: t.menuAssessment, icon: "pulse", color: colors.riskHigh, bg: colors.riskHighBg },
+      { id: "diary", label: t.menuDiary, icon: "journal-outline", color: colors.primary, bg: "rgba(177,14,107,0.1)" },
+      { id: "guide", label: t.menuGuide, icon: "medkit-outline", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
+      { id: "profile", label: t.menuProfile, icon: "person", color: colors.textSecondary, bg: "rgba(139,112,121,0.1)" },
+    ];
+
+    useFocusEffect(
+      useCallback(() => {
+        getAssessmentHistory(1, 0)
+          .then((data) => {
+            if (data.length > 0) setLastRisk(data[0].risk_category);
+          })
+          .catch(() => {});
+      }, [])
+    );
     const [isLoading, setIsLoading] = useState(true);
     const userName = useAuthStore((s) => s.userName);
 
-    useEffect(() => {
-      getMyProfile()
-        .then(setProfile)
-        .catch((err) => console.warn("Gagal ambil profil:", err))
-        .finally(() => setIsLoading(false));
-    }, []);
+    useFocusEffect(
+      useCallback(() => {
+        getMyProfile()
+          .then(setProfile)
+          .catch((err) => console.warn("Gagal ambil profil:", err))
+          .finally(() => setIsLoading(false));
+      }, [])
+    );
 
     const risk = riskCategoryStyle[lastRisk || "LOW"];
 
@@ -67,21 +77,17 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
 
     return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="flex-row items-center justify-between mb-4">
-        <View>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
-            Hi, {userName ?? "Bunda"}! 👋
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
-        >
-          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
-
+        <AppHeader title="WellMom" />
+          {/* <View className="px-5 mb-1">
+            <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
+              {t.greeting.replace("{name}", userName ?? "Bunda")}
+            </Text>
+            <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, opacity: 0.8 }}>
+              {t.goodMorning}
+            </Text>
+          </View> */}
+      <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Trimester progress card */}
         <LinearGradient
           colors={[colors.primary, colors.secondary]}
@@ -89,8 +95,8 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: 16, padding: 16, marginBottom: 16 }}
         >
-          <Text className="text-white font-bold text-lg">Trimester {profile.trimester}</Text>
-          <Text className="text-white/90 text-sm mb-2">Minggu ke-{profile.gestational_week}</Text>
+          <Text className="text-white font-bold text-lg">{t.trimester.replace("{n}", String(profile.trimester))}</Text>
+          <Text className="text-white/90 text-sm mb-2">{t.week.replace("{n}", String(profile.gestational_week))}</Text>
           <View className="h-2 bg-white/30 rounded-full overflow-hidden mb-1">
             <View
               className="h-2 bg-white rounded-full"
@@ -98,7 +104,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
             />
           </View>
           <Text className="text-white/90 text-xs">
-            {Math.round(profile.progress_pct)}% · Perkiraan HPL: {formatTanggalIndo(profile.hpl)}
+            {Math.round(profile.progress_pct)}% · {t.hplLabel.replace("{date}", formatTanggalIndo(profile.hpl))}
           </Text>
         </LinearGradient>
 
@@ -108,17 +114,15 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
           style={{ borderLeftWidth: 4, borderLeftColor: risk.color }}
         >
           <View className="flex-1">
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.textSecondary }}>Risiko Saat Ini</Text>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.textSecondary }}>{t.currentRisk}</Text>
             <View className="flex-row items-center" style={{ gap: 6 }}>
-              <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: risk.color }}>{risk.label}</Text>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: risk.color }}>
+                {lastRisk === "HIGH" ? t.riskHigh : lastRisk === "MEDIUM" ? t.riskMedium : t.riskLow}
+              </Text>
               <Ionicons name="checkmark-circle" size={18} color={risk.color} />
             </View>
             <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-              {lastRisk === "HIGH"
-                ? "Segera konsultasikan kondisi Anda ke tenaga kesehatan."
-                : lastRisk === "MEDIUM"
-                ? "Ada beberapa hal yang perlu diperhatikan. Konsultasikan saat kunjungan ANC."
-                : "Terus jaga pola makan dan lakukan pemeriksaan kehamilan rutin."}
+              {lastRisk === "HIGH" ? t.riskHighDesc : lastRisk === "MEDIUM" ? t.riskMediumDesc : t.riskLowDesc}
             </Text>
           </View>
           <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: risk.bg, alignItems: "center", justifyContent: "center" }}>
@@ -128,21 +132,23 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
 
         {/* Quick menu grid */}
         <View className="flex-row justify-between items-center mb-2">
-          <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>Menu Cepat</Text>
-          <TouchableOpacity>
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: colors.primary }}>Lihat Semua</Text>
-          </TouchableOpacity>
+          <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>{t.quickMenu}</Text>
+         
         </View>
         <View className="flex-row flex-wrap justify-between mb-6">
           {MENU_ITEMS.map((item) => (
             <TouchableOpacity
               key={item.label}
               onPress={() => {
-                if (item.label === "Self-Assessment") navigation.navigate("SelfAssessmentForm");
-                // TODO: tambahin navigasi tile lain begitu screen-nya siap
+                if (item.id === "assessment") navigation.navigate("SelfAssessmentForm");
+                if (item.id === "education") navigation.getParent()?.navigate("Edukasi");
+                if (item.id === "checklist") navigation.getParent()?.navigate("Checklist");
+                if (item.id === "profile") navigation.getParent()?.navigate("Profil");
+                if (item.id === "diary") navigation.navigate("SelfAssessmentForm");
+                if (item.id === "guide") navigation.navigate("Guide");
               }}
               activeOpacity={0.7}
-              className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3 border border-border"
+              className="w-[31%] bg-surface rounded-2xl py-4 items-center mb-3"
             >
               <View
                 style={{ backgroundColor: item.bg }}
@@ -150,7 +156,9 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
               >
                 <Ionicons name={item.icon} size={20} color={item.color} />
               </View>
-              <Text className="text-text-primary text-xs text-center">{item.label}</Text>
+              <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.textPrimary, textAlign: "center" }}>
+                {item.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -160,9 +168,9 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; color: 
         >
           <Ionicons name="bulb" size={22} color={colors.primary} />
           <View className="flex-1">
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.primary, marginBottom: 2 }}>Tips Hari Ini</Text>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.primary, marginBottom: 2 }}>{t.tipsTitle}</Text>
             <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              Bunda, jangan lupa minum setidaknya 8 gelas air hari ini untuk menjaga hidrasi ketuban yang optimal.
+              {t.tipsBody}
             </Text>
           </View>
         </View>

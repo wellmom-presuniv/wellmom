@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/useAuthStore";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ export default function LoginScreen({ navigation }: any) {
   const isSubmitting = useAuthStore((s) => s.isSubmitting);
   const authError = useAuthStore((s) => s.authError);
   const clearError = useAuthStore((s) => s.clearError);
-
+  const { t } = useTranslation();
   const handleLogin = async () => {
     try {
     await login(email, password);
@@ -35,7 +36,7 @@ export default function LoginScreen({ navigation }: any) {
         </LinearGradient>
         <Text style={{ fontFamily: fonts.extrabold, fontSize: 28, color: colors.primary }}>WellMom</Text>
         <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>
-          Healthy Mom, Healthy Baby 💗
+          {t.tagline}
         </Text>
       </View>
 
@@ -50,20 +51,20 @@ export default function LoginScreen({ navigation }: any) {
           shadowOffset: { width: 0, height: 4 },
         }}
       >
-        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Email</Text>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>{t.email}</Text>
         <View className="flex-row items-center bg-surface-container-low rounded-full px-4 mb-4">
           <Ionicons name="mail-outline" size={18} color={colors.textSecondary} />
           <TextInput
             className="flex-1 py-3 px-3"
             style={{ color: colors.textPrimary }}
-            placeholder="nama@email.com"
+            placeholder={t.emailPlaceholder}
             value={email}
             onChangeText={(v) => { setEmail(v); clearError(); }}
             autoCapitalize="none"
           />
         </View>
 
-        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>Password</Text>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>{t.password}</Text>
         <View className="flex-row items-center bg-surface-container-low rounded-full px-4 mb-6">
           <Ionicons name="lock-closed-outline" size={18} color={colors.textSecondary} />
           <TextInput
@@ -85,14 +86,14 @@ export default function LoginScreen({ navigation }: any) {
             colors={[colors.primary, colors.secondary]}
             style={{ borderRadius: 999, paddingVertical: 16, alignItems: "center", opacity: isSubmitting ? 0.7 : 1 }}
           >
-            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>Masuk</Text>}
+            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>{t.login}</Text>}
           </LinearGradient>
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
         <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center", marginTop: 24 }}>
-          Belum punya akun? <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>Daftar</Text>
+          {t.noAccount} <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>{t.register}</Text>
         </Text>
       </TouchableOpacity>
     </SafeAreaView>

@@ -110,8 +110,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { getMyProfile } = await import("../api/profileService");
       await getMyProfile();
       set({ token, userName: userName || null, hasCompletedOnboarding: true, isLoading: false });
-    } catch {
-      set({ token, userName: userName || null, hasCompletedOnboarding: false, isLoading: false });
+    } catch (err: any) {
+      // SEBELUM: set token expired ke store → bypass login
+      // SESUDAH: kalau 401, hapus token → paksa login ulang
+      if (err?.response?.status === 401) {
+        await AsyncStorage.removeItem("auth_token");
+        await AsyncStorage.removeItem("user_name");
+        set({ token: null, userName: null, hasCompletedOnboarding: false, isLoading: false });
+      } else {
+        // Error lain (network, dll) — tetap masuk tapi ke ProfileSetup
+        set({ token, userName: userName || null, hasCompletedOnboarding: false, isLoading: false });
+      }
     }
   },
 }));

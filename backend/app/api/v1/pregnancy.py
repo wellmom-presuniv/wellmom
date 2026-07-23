@@ -56,3 +56,19 @@ async def get_my_profile(
     Trimester, minggu, dan progress dihitung otomatis dari hpht.
     """
     return await pregnancy_service.get_my_profile(db=db, user_id=user_id)
+
+from app.schemas.pregnancy import CreateProfileRequest, ProfileResponse, UpdateProfileRequest
+
+@router.patch("/profile", response_model=ProfileResponse)
+async def update_profile(
+    payload: UpdateProfileRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """
+    Update HPHT profil kehamilan yang sudah ada.
+    Backend otomatis hitung ulang HPL, trimester, minggu, dan progress.
+    """
+    return await pregnancy_service.update_pregnancy_profile(
+        db=db, user_id=user_id, hpht=payload.hpht
+    )

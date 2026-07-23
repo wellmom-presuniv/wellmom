@@ -17,11 +17,7 @@ import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { PregnancyProfile } from "../../types";
 import { submitProfile, getMyProfile } from "../../api/profileService";
-
-const MONTHS_ID = [
-  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-  "Jul", "Agt", "Sep", "Okt", "Nov", "Des",
-];
+import { useTranslation } from "../../hooks/useTranslation";
 
 function daysInMonth(month: number, year: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -43,6 +39,7 @@ function daysInMonth(month: number, year: number) {
 // }
 
 export default function ProfileSetupScreen() {
+  const { t } = useTranslation();
   const today = new Date();
   const [day, setDay] = useState(today.getDate());
   const [month, setMonth] = useState(today.getMonth());
@@ -53,7 +50,7 @@ export default function ProfileSetupScreen() {
 
   const maxDay = daysInMonth(month, year);
   const selectedDate = useMemo(() => new Date(year, month, Math.min(day, maxDay)), [day, month, year, maxDay]);
-  const formattedDate = `${Math.min(day, maxDay)} ${MONTHS_ID[month]} ${year}`;
+  const formattedDate = `${Math.min(day, maxDay)} ${t.months[month]} ${year}`;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submittedProfile, setSubmittedProfile] = useState<PregnancyProfile | null>(null);
@@ -156,7 +153,7 @@ export default function ProfileSetupScreen() {
           <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => completeOnboarding()}>
-          <Text style={{ fontFamily: fonts.semibold, color: colors.primary, fontSize: 14 }}>Lewati</Text>
+          <Text style={{ fontFamily: fonts.semibold, color: colors.primary, fontSize: 14 }}>{t.skip}</Text>
         </TouchableOpacity>
       </View>
 
@@ -196,9 +193,9 @@ export default function ProfileSetupScreen() {
 
         {/* Heading */}
         <View className="items-center mb-6">
-          <Text style={{ fontFamily: fonts.bold, fontSize: 24, color: colors.textPrimary }}>Lengkapi Profil</Text>
+          <Text style={{ fontFamily: fonts.bold, fontSize: 24, color: colors.textPrimary }}>{t.completeProfile}</Text>
           <Text style={{ fontFamily: fonts.regular, fontSize: 14, color: colors.textSecondary, textAlign: "center", marginTop: 8 }}>
-            Masukkan Hari Pertama Haid Terakhir (HPHT) Anda untuk menghitung usia kehamilan dan mendapatkan panduan yang personal.
+            {t.hphtDesc}
           </Text>
         </View>
 
@@ -218,7 +215,7 @@ export default function ProfileSetupScreen() {
           }}
         >
           <View className="flex-row justify-between items-center mb-4">
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>Pilih Tanggal HPHT</Text>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.textPrimary }}>{t.pickHpht}</Text>
             <Ionicons name="calendar" size={20} color={colors.primary} />
           </View>
 
@@ -235,13 +232,13 @@ export default function ProfileSetupScreen() {
               ))}
             </Picker>
             <Picker
-              style={{ width: 100 }}
+              style={{ width: 110 }}
               mode="dropdown"
               selectedValue={month}
               onValueChange={setMonth}
               itemStyle={Platform.OS === "ios" ? { fontFamily: fonts.semibold, color: colors.primary } : undefined}
             >
-              {MONTHS_ID.map((m, i) => (
+              {t.months.map((m, i) => (
                 <Picker.Item key={m} label={m} value={i} />
               ))}
             </Picker>
@@ -260,20 +257,13 @@ export default function ProfileSetupScreen() {
 
           <View className="items-center mt-2 pt-3" style={{ borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
             <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, letterSpacing: 1 }}>
-              HPHT TERPILIH
+              {t.hphtSelected}
             </Text>
             <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.primary, marginTop: 2 }}>
               {formattedDate}
             </Text>
           </View>
         </View>
-
-        {/* <Text
-          style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, textAlign: "center", marginTop: 16 }}
-        >
-          Belum tahu HPHT Anda?{" "}
-          <Text style={{ fontFamily: fonts.bold, color: colors.secondary }}>Hitung di sini</Text>
-        </Text> */}
       </View>
 
       {/* Celebration overlay — pakai Reanimated langsung, bukan Moti */}
@@ -305,7 +295,7 @@ export default function ProfileSetupScreen() {
           </Animated.View>
         </View>
         <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>
-          Kamu di Trimester {submittedProfile?.trimester}, Minggu ke-{submittedProfile?.gestational_week}! 🎉
+          {t.trimester.replace("{n}", String(submittedProfile?.trimester ?? ""))} , {t.week.replace("{n}", String(submittedProfile?.gestational_week ?? ""))}! 🎉
         </Text>
       </Animated.View>
 
@@ -339,7 +329,7 @@ export default function ProfileSetupScreen() {
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
-                <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF", marginRight: 8 }}>Lanjutkan</Text>
+                <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF", marginRight: 8 }}>{t.continueBtn}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               </>
             )}

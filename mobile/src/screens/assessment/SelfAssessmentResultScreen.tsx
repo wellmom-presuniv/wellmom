@@ -5,11 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, riskCategoryStyle } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { AssessmentResult } from "../../types";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function SelfAssessmentResultScreen({ route, navigation }: any) {
   const result: AssessmentResult = route.params.result;
   const risk = riskCategoryStyle[result.risk_category];
   const isHigh = result.risk_category === "HIGH";
+  const { t, language } = useTranslation();
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -34,16 +36,12 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
             />
           </View>
           <Text style={{ fontFamily: fonts.extrabold, fontSize: 22, color: risk.color, marginBottom: 8 }}>
-            {result.risk_category === "LOW" ? "Risiko Rendah" : result.risk_category === "MEDIUM" ? "Risiko Sedang" : "Risiko Tinggi"}
+            {result.risk_category === "LOW" ? t.riskLow : result.risk_category === "MEDIUM" ? t.riskMedium : t.riskHigh}
           </Text>
           <Text
             style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, textAlign: "center", lineHeight: 19 }}
           >
-            {result.risk_category === "LOW"
-              ? "Kondisi Anda baik. Tetap jaga pola makan dan lakukan pemeriksaan kehamilan rutin."
-              : result.risk_category === "MEDIUM"
-              ? "Ada beberapa faktor yang perlu diperhatikan. Konsultasikan saat kunjungan ANC berikutnya."
-              : "Terdapat tanda yang memerlukan perhatian segera. Segera konsultasi ke tenaga kesehatan."}
+            {result.risk_category === "LOW" ? t.riskLowResult : result.risk_category === "MEDIUM" ? t.riskMediumResult : t.riskHighResult}
           </Text>
         </View>
 
@@ -51,7 +49,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
         {result.triggered_red_flags && result.triggered_red_flags.length > 0 && (
           <View className="mb-6">
             <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.textPrimary, marginBottom: 10 }}>
-              Yang perlu diperhatikan
+              {t.needsAttention}
             </Text>
             {result.triggered_red_flags.map((flag) => (
               <View
@@ -61,7 +59,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
               >
                 <Ionicons name="alert-circle" size={16} color={colors.riskHigh} />
                 <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textPrimary, flex: 1 }}>
-                  {flag.question_text}
+                  {t.redFlags[flag.question_text] ?? flag.question_text}
                 </Text>
               </View>
             ))}
@@ -71,7 +69,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
         {result.duration_triggered_symptoms && result.duration_triggered_symptoms.length > 0 && (
           <View className="mb-6">
             <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.textPrimary, marginBottom: 10 }}>
-              Gejala Berlangsung
+              {t.ongoingSymptoms}
             </Text>
             {result.duration_triggered_symptoms.map((symptom, idx) => {
               const isWarning = symptom.status === "WARNING";
@@ -84,17 +82,15 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
                   <Ionicons name="time-outline" size={16} color={isWarning ? colors.riskMedium : colors.riskHigh} />
                   <View className="flex-1">
                     <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textPrimary }}>
-                      {symptom.symptom === "BLEEDING" ? "Perdarahan/Flek"
-                        : symptom.symptom === "BLURRED_VISION" ? "Pusing/Pandangan Kabur"
-                        : "Demam Tinggi"}
+                      {symptom.symptom === "BLEEDING" ? t.symptomBleeding : symptom.symptom === "BLURRED_VISION" ? t.symptomBlurredVision : t.symptomFever}
                     </Text>
                     <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary }}>
-                      {symptom.days_active} hari · {isWarning ? "Pantau terus" : "Segera periksa"}
+                      {symptom.days_active} {language === "id" ? "hari" : "days"} · {isWarning ? t.monitorOn : t.checkNow}
                     </Text>
                   </View>
                   <View style={{ backgroundColor: isWarning ? colors.riskMedium : colors.riskHigh, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
                     <Text style={{ fontFamily: fonts.bold, fontSize: 10, color: "#FFFFFF" }}>
-                      {isWarning ? "WASPADA" : "BAHAYA"}
+                      {isWarning ? t.caution : t.danger}
                     </Text>
                   </View>
                 </View>
@@ -108,13 +104,10 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
             <Ionicons name="heart-outline" size={18} color={colors.riskMedium} />
             <View className="flex-1">
               <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.riskMedium }}>
-                Tekanan Darah
+                {t.bloodPressureLabel}
               </Text>
               <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
-                {result.bp_category === "ELEVATED" ? "Elevated — pantau secara rutin"
-                  : result.bp_category === "STAGE_1" ? "Hipertensi Tahap 1 — konsultasikan ke dokter"
-                  : result.bp_category === "STAGE_2" ? "Hipertensi Tahap 2 — segera ke dokter"
-                  : "Krisis Hipertensi — segera ke UGD"}
+                {result.bp_category === "ELEVATED" ? t.bpElevated : result.bp_category === "STAGE_1" ? t.bpStage1 : result.bp_category === "STAGE_2" ? t.bpStage2 : t.bpCrisis}
               </Text>
             </View>
           </View>
@@ -123,7 +116,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
         {/* Skor (kalau ga red-flag) */}
         {!isHigh || result.triggered_red_flags?.length === 0 ? (
           <View className="flex-row items-center justify-between p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>
-            <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>Total Skor</Text>
+            <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.totalScore}</Text>
             <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.textPrimary }}>
               {result.total_score}
             </Text>
@@ -134,10 +127,20 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
         {isHigh ? (
           <TouchableOpacity activeOpacity={0.85} style={{ marginBottom: 12 }}>
             <View style={{ backgroundColor: colors.riskHigh, borderRadius: 999, paddingVertical: 16, alignItems: "center" }}>
-              <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>Segera ke Fasilitas Kesehatan</Text>
+              <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>{t.goToFaskes}</Text>
             </View>
           </TouchableOpacity>
         ) : null}
+
+        {/* <TouchableOpacity
+          onPress={() => navigation.getParent()?.getParent()?.navigate("Edukasi")}
+          activeOpacity={0.85}
+          style={{ marginBottom: 12 }}
+        >
+          <View style={{ backgroundColor: colors.secondary, borderRadius: 999, paddingVertical: 16, alignItems: "center" }}>
+            <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>Lihat Saran & Edukasi</Text>
+          </View>
+        </TouchableOpacity> */}
 
         <TouchableOpacity onPress={() => navigation.popToTop()} activeOpacity={0.85} style={{ marginBottom: 24 }}>
           <View
@@ -149,7 +152,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
               alignItems: "center",
             }}
           >
-            <Text style={{ fontFamily: fonts.semibold, color: colors.primary }}>Kembali ke Beranda</Text>
+            <Text style={{ fontFamily: fonts.semibold, color: colors.primary }}>{t.backHome}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>
