@@ -78,3 +78,59 @@ async def toggle_item(
         "log_id":       log.log_id,
         "date":         today.isoformat(),
     }
+
+async def get_checklist_history(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    limit: int = 30,
+    offset: int = 0,
+) -> list[dict]:
+    items = await crud.checklist.get_active_items(db)
+    dates = await crud.checklist.get_history_dates(
+        db=db,
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+    )
+    logs = await crud.checklist.get_logs_by_dates(
+        db=db,
+        user_id=user_id,
+        dates=dates,
+    )
+
+    logs_by_date_item = {
+        (log.log_date, log.item_id): log
+        for log in logs
+    }
+
+    history = []
+
+    for log_date in dates:
+        result_items = []
+
+        for item in items:
+            log = logs_by_date_item.get((log_date, item.item_id))
+            result_items.append(
+                {
+                    "item_id": item.item_id,
+                    "label": item.label,
+                    "is_completed": log.is_completed if log else False,
+                }
+            )
+
+        total = len(result_items)
+        completed = sum(1 for item in result_items if item["is_completed"])
+
+        history.append(
+            {
+                "date": log_date.isoformat(),
+                "items": result_items,
+                "summary": {
+                    "total": total,
+                    "completed": completed,
+                    "label": f"{completed}/{total} selesai",
+                },
+            }
+        )
+
+    return history
