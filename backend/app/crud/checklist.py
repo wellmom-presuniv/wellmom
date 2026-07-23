@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.models.checklist import ChecklistItem, ChecklistLog
 
@@ -76,3 +76,37 @@ async def toggle_log(
     db.add(new_log)
     await db.flush()
     return new_log
+
+async def get_history_dates(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    limit: int = 30,
+    offset: int = 0,
+) -> list[date]:
+    result = await db.execute(
+        select(ChecklistLog.log_date)
+        .where(ChecklistLog.user_id == user_id)
+        .group_by(ChecklistLog.log_date)
+        .order_by(ChecklistLog.log_date.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return list(result.scalars().all())
+
+
+async def get_logs_by_dates(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    dates: list[date],
+) -> list[ChecklistLog]:
+    if not dates:
+        return []
+
+    result = await db.execute(
+        select(ChecklistLog)
+        .where(
+            ChecklistLog.user_id == user_id,
+            ChecklistLog.log_date.in_(dates),
+        )
+    )
+    return list(result.scalars().all())
