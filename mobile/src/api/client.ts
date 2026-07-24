@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosRequestHeaders } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // TODO: ganti ke base URL backend Alek (staging/production) begitu ready.
@@ -14,7 +14,8 @@ apiClient.interceptors.request.use(async (config) => {
   console.log("🔑 Token di request interceptor:", token ? token.substring(0, 30) + "..." : "NULL");
   console.log("📍 URL:", config.url);
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers = config.headers ?? ({} as AxiosRequestHeaders);
+    (config.headers as AxiosRequestHeaders).Authorization = `Bearer ${token}`;
   }
   return config;
 });

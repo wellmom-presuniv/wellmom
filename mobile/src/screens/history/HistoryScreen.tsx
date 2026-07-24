@@ -1,63 +1,42 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, riskCategoryStyle, RiskCategory } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getAssessmentHistory } from "../../api/assessmentService";
-import { AssessmentResult } from "../../types";
+import { getChecklistHistory } from "../../api/checklistService";
+import type { AssessmentResult, ChecklistHistoryDay } from "../../types";
 import { useTranslation } from "../../hooks/useTranslation";
 import AppHeader from "@/components/AppHeader";
-import { useFocusEffect } from "@react-navigation/native";
-import apiClient from "../../api/client";
-import { useChecklistStore } from "../../store/useChecklistStore";
 
 export default function HistoryScreen() {
   const { t, language } = useTranslation();
   const [tab, setTab] = useState<"assessment" | "checklist">("assessment");
   const [history, setHistory] = useState<AssessmentResult[]>([]);
+  const [checklistHistory, setChecklistHistory] = useState<ChecklistHistoryDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const { checkedByDate, items: checklistItems, initialized: checklistInitialized } = useChecklistStore();
-  const checklistHistory = useMemo(() => {
-    const today = new Date();
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const dateStr = d.toLocaleDateString("sv-SE");
-      const dayChecked = checkedByDate[dateStr] ?? {};
-      const completedItems = checklistItems.filter(item => dayChecked[item.item_id]);
-      return {
-        date: dateStr,
-        items: checklistItems.map(item => ({
-          item_id: item.item_id,
-          label: item.label,
-          is_completed: !!dayChecked[item.item_id],
-        })),
-        summary: {
-          total: checklistItems.length,
-          completed: completedItems.length,
-          label: `${completedItems.length}/${checklistItems.length} selesai`,
-        },
-      };
-    });
-  }, [checkedByDate, checklistItems]);
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
     getAssessmentHistory()
       .then(setHistory)
-      .catch(err => console.warn("Gagal fetch history:", err))
-      .finally(() => setIsRefreshing(false));
-  };
-  useFocusEffect(
-    useCallback(() => {
-      setIsLoading(true);
-      getAssessmentHistory()
-        .then(setHistory)
-        .catch(err => console.warn("Gagal fetch history:", err))
-        .finally(() => setIsLoading(false));
-    }, [])
-  );
+      .catch((err) => console.warn("Gagal fetch history:", err))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (tab !== "checklist" || !isFocused) {
+      return;
+    }
+
+    setIsLoading(true);
+    getChecklistHistory()
+      .then(setChecklistHistory)
+      .catch((err) => console.warn("Gagal fetch checklist history:", err))
+      .finally(() => setIsLoading(false));
+  }, [tab, isFocused]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -84,9 +63,7 @@ export default function HistoryScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => {
-              setTab("checklist");
-            }}
+            onPress={() => setTab("checklist")}
             style={{
               flex: 1,
               paddingVertical: 10,
@@ -102,18 +79,7 @@ export default function HistoryScreen() {
         </View>
       </View>
 
-      <ScrollView
-        className="px-5"
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-      >
+      <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
               {tab === "assessment" ? (
         <View>
           {isLoading ? (
@@ -153,7 +119,7 @@ export default function HistoryScreen() {
                       <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.riskMedium, marginBottom: 4 }}>
                         🕐 {entry.duration_triggered_symptoms.map(d => {
                           const label = d.symptom === "BLEEDING" ? t.symptomBleeding : d.symptom === "BLURRED_VISION" ? t.symptomBlurredVision : t.symptomFever;
-                          return `${label} (${d.days_active} ${language === "id" ? "hari" : "days"})`;
+                          return `${label} (${d.days_active} ${t.daysLabel})`;
                         }).join(", ")}
                       </Text>
                     )}
@@ -178,30 +144,51 @@ export default function HistoryScreen() {
               {t.noChecklistHistory}
             </Text>
           ) : (
-            checklistHistory.map((day: any, idx: number) => (
-              <View key={day.date} className="flex-row" style={{ marginBottom: idx === checklistHistory.length - 1 ? 0 : 4 }}>
-                <View style={{ width: 24, alignItems: "center" }}>
-                  <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: idx === 0 ? colors.primary : colors.primaryContainer, opacity: idx === 0 ? 1 : 0.4, marginTop: 6 }} />
-                  {idx < checklistHistory.length - 1 && <View style={{ width: 2, flex: 1, backgroundColor: colors.outlineVariant, marginVertical: 2 }} />}
-                </View>
-                <View className="flex-1 p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 18, marginLeft: 8 }}>
-                  <View className="flex-row justify-between items-center mb-2">
-                    <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>{day.date}</Text>
-                    <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.primary }}>
-                      {day.summary?.label ?? `${day.summary?.completed}/${day.summary?.total}`}
+            checklistHistory.map((entry, idx) => {
+              const isLast = idx === checklistHistory.length - 1;
+              return (
+                <View key={entry.date} className="flex-row" style={{ marginBottom: isLast ? 0 : 4 }}>
+                  <View style={{ width: 24, alignItems: "center" }}>
+                    <View
+                      style={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: 7,
+                        backgroundColor: idx === 0 ? colors.primary : colors.primaryContainer,
+                        opacity: idx === 0 ? 1 : 0.4,
+                        marginTop: 6,
+                      }}
+                    />
+                    {!isLast && <View style={{ width: 2, flex: 1, backgroundColor: colors.outlineVariant, marginVertical: 2 }} />}
+                  </View>
+                  <View className="flex-1 p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 18, marginLeft: 8 }}>
+                    <View className="flex-row justify-between items-center mb-2">
+                      <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
+                        {entry.date}
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: colors.primaryContainer,
+                          borderRadius: 999,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          flexDirection: "row",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Ionicons name="checkmark-circle" size={13} color={colors.background} />
+                        <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.background, marginLeft: 4 }}>
+                          {t.done.replace("{done}", String(entry.summary.completed)).replace("{total}", String(entry.summary.total))}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
+                      {t.done.replace("{done}", String(entry.summary.completed)).replace("{total}", String(entry.summary.total))}
                     </Text>
                   </View>
-                  {day.items?.filter((i: any) => i.is_completed).map((item: any) => (
-                    <View key={item.item_id} className="flex-row items-center mb-1" style={{ gap: 6 }}>
-                      <Ionicons name="checkmark-circle" size={13} color={colors.riskLow} />
-                      <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
-                        {t.checklistItems[item.label] ?? item.label}
-                      </Text>
-                    </View>
-                  ))}
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
       )}

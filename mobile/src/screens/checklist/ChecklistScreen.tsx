@@ -1,16 +1,22 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { useTranslation } from "../../hooks/useTranslation";
 import AppHeader from "@/components/AppHeader";
-import { useChecklistStore } from "../../store/useChecklistStore";
+import {
+  getChecklistForDate,
+  submitChecklist,
+} from "../../api/checklistService";
+import type {
+  TodayChecklistResponse,
+} from "../../types";
 
 function getWeekDates(centerDate: Date) {
-  const dayIndex = (centerDate.getDay() + 6) % 7;
+  // Senin sebagai awal minggu
+  const dayIndex = (centerDate.getDay() + 6) % 7; // 0=Senin
   const monday = new Date(centerDate);
   monday.setDate(centerDate.getDate() - dayIndex);
   return Array.from({ length: 7 }, (_, i) => {
@@ -20,57 +26,104 @@ function getWeekDates(centerDate: Date) {
   });
 }
 
-// Pakai sv-SE locale untuk format YYYY-MM-DD yang konsisten dengan timezone lokal
-function toLocalDateKey(d: Date): string {
-  return d.toLocaleDateString("sv-SE");
-}
-
 export default function ChecklistScreen() {
   const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
-  const todayKey = useMemo(() => toLocalDateKey(today), [today]);
   const weekDates = useMemo(() => getWeekDates(today), [today]);
   const [selectedDate, setSelectedDate] = useState(today);
+  const [checklistData, setChecklistData] = useState<TodayChecklistResponse | null>(null);
+  const [draftState, setDraftState] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { items, checkedByDate, initialized, isLoading, load, toggle } = useChecklistStore();
+  const isSameDay = (a: Date, b: Date) =>
+    a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+  const dateKey = selectedDate.toISOString().split("T")[0];
+  const isTodaySelected = isSameDay(selectedDate, today);
 
-  // Load hanya sekali — store handle deduplication
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load])
-  );
+  const getCheckedState = useCallback((data: TodayChecklistResponse | null) => {
+    if (!data) return {};
+    return data.items.reduce<Record<string, boolean>>((acc, item) => {
+      acc[item.item_id] = item.is_completed;
+      return acc;
+    }, {});
+  }, []);
 
-  const dateKey = toLocalDateKey(selectedDate);
-  const isTodaySelected = dateKey === todayKey;
-  const currentChecked = checkedByDate[dateKey] ?? {};
+  const fetchChecklist = useCallback(async () => {
+    setIsLoading(true);
+    setSubmitError(null);
+
+    try {
+      const data = await getChecklistForDate(dateKey);
+      setChecklistData(data);
+      setDraftState(getCheckedState(data));
+    } catch (err) {
+      console.warn("Gagal fetch checklist:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [dateKey, getCheckedState]);
+
+  useEffect(() => {
+    fetchChecklist();
+  }, [fetchChecklist]);
+
+  const toggleItem = useCallback((itemId: string) => {
+    setDraftState((previous) => ({
+      ...previous,
+      [itemId]: !previous[itemId],
+    }));
+  }, []);
+
+  const handleSubmitChecklist = async () => {
+    if (!checklistData) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const submittedItems = checklistData.items.map((item) => ({
+        item_id: item.item_id,
+        is_completed: !!draftState[item.item_id],
+      }));
+
+      const savedChecklist = await submitChecklist(dateKey, { items: submittedItems });
+      setChecklistData(savedChecklist);
+      setDraftState(getCheckedState(savedChecklist));
+    } catch (err) {
+      console.warn("Gagal submit checklist:", err);
+      setSubmitError(t.errorNetwork);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const currentChecked = draftState;
+  const items = checklistData?.items ?? [];
   const doneCount = Object.values(currentChecked).filter(Boolean).length;
-  const totalItems = items.length;
+  const totalItems = items.length > 0 ? items.length : checklistData?.summary.total ?? 0;
   const progress = totalItems > 0 ? doneCount / totalItems : 0;
-
+  
   return (
     <SafeAreaView className="flex-1 bg-background">
       <AppHeader title={t.checklistTitle} />
-      <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
 
+      <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {/* Week strip */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, marginBottom: 20 }}>
           {weekDates.map((d) => {
-            const dKey = toLocalDateKey(d);
-            const active = dKey === dateKey;
-            const future = dKey > todayKey;
+            const active = isSameDay(d, selectedDate);
             return (
               <TouchableOpacity
                 key={d.toISOString()}
-                onPress={() => !future && setSelectedDate(d)}
-                activeOpacity={future ? 1 : 0.7}
+                onPress={() => setSelectedDate(d)}
                 style={{
                   width: 56,
                   paddingVertical: 10,
                   borderRadius: 16,
                   alignItems: "center",
                   backgroundColor: active ? colors.primary : colors.surface,
-                  opacity: future ? 0.4 : 1,
                 }}
               >
                 <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: active ? "#FFFFFF" : colors.textSecondary }}>
@@ -84,8 +137,8 @@ export default function ChecklistScreen() {
           })}
         </ScrollView>
 
-        {/* Items */}
-        {isLoading && !initialized ? (
+        {/* Checklist items */}
+        {isLoading ? (
           <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
         ) : items.length === 0 ? (
           <View className="items-center py-8">
@@ -100,18 +153,39 @@ export default function ChecklistScreen() {
             return (
               <TouchableOpacity
                 key={item.item_id}
-                onPress={() => toggle(item.item_id, dateKey, todayKey)}
+                onPress={() => toggleItem(item.item_id)}
                 className="flex-row items-center mb-3 p-4"
                 style={{ backgroundColor: colors.surface, borderRadius: 20 }}
                 activeOpacity={0.7}
               >
-                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(177,14,107,0.1)", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: "rgba(177,14,107,0.1)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 12,
+                  }}
+                >
                   <Ionicons name="checkmark-done-outline" size={20} color={colors.primary} />
                 </View>
                 <Text style={{ fontFamily: fonts.medium, fontSize: 15, color: colors.textPrimary, flex: 1 }}>
                   {t.checklistItems[item.label] ?? item.label}
                 </Text>
-                <View style={{ width: 26, height: 26, borderRadius: 13, borderWidth: isChecked ? 0 : 1.5, borderColor: colors.outlineVariant, backgroundColor: isChecked ? colors.primary : "transparent", alignItems: "center", justifyContent: "center" }}>
+                <View
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 13,
+                    borderWidth: isChecked ? 0 : 1.5,
+                    borderColor: colors.outlineVariant,
+                    backgroundColor: isChecked ? colors.primary : "transparent",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   {isChecked && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
                 </View>
               </TouchableOpacity>
@@ -119,12 +193,30 @@ export default function ChecklistScreen() {
           })
         )}
 
-        {/* Progress */}
+        {!isLoading && items.length > 0 && (
+          <TouchableOpacity
+            onPress={handleSubmitChecklist}
+            className="items-center justify-center rounded-2xl py-4 mb-4"
+            style={{ backgroundColor: colors.primary, opacity: isSubmitting ? 0.7 : 1 }}
+            activeOpacity={0.8}
+            disabled={isSubmitting}
+          >
+            <Text style={{ fontFamily: fonts.bold, color: "#FFFFFF", fontSize: 16 }}>
+              {isSubmitting ? "Sedang menyimpan..." : t.submitChecklist}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {submitError ? (
+          <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: "#D32F2F", marginBottom: 12 }}>
+            {submitError}
+          </Text>
+        ) : null}
+
+        {/* Consistency progress */}
         <View className="p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
           <View className="flex-row justify-between items-center mb-2">
-            <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary }}>
-              {isTodaySelected ? t.consistency : t.historyLabel}
-            </Text>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary }}>{isTodaySelected ? t.consistency : t.historyLabel}</Text>
             <Ionicons name="star" size={18} color={progress === 1 ? "#F5B700" : colors.outlineVariant} />
           </View>
           <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.surfaceContainer, overflow: "hidden", marginBottom: 6 }}>

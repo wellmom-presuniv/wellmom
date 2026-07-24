@@ -77,8 +77,38 @@ async def toggle_log(
     await db.flush()
     return new_log
 
-async def get_history_dates(
+
+async def set_log_status(
     db: AsyncSession,
+    user_id: uuid.UUID,
+    pregnancy_profile_id: uuid.UUID,
+    item_id: uuid.UUID,
+    target_date: date,
+    is_completed: bool,
+) -> ChecklistLog | None:
+    existing = await get_log(db, user_id, item_id, target_date)
+    if existing:
+        existing.is_completed = is_completed
+        db.add(existing)
+        await db.flush()
+        return existing
+
+    if not is_completed:
+        return None
+
+    new_log = ChecklistLog(
+        user_id=user_id,
+        pregnancy_profile_id=pregnancy_profile_id,
+        item_id=item_id,
+        log_date=target_date,
+        is_completed=is_completed,
+    )
+    db.add(new_log)
+    await db.flush()
+    return new_log
+
+
+async def get_history_dates(    db: AsyncSession,
     user_id: uuid.UUID,
     limit: int = 30,
     offset: int = 0,
@@ -92,6 +122,20 @@ async def get_history_dates(
         .limit(limit)
     )
     return list(result.scalars().all())
+
+
+async def get_logs_by_date(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    target_date: date,
+) -> list[ChecklistLog]:
+    result = await db.execute(
+        select(ChecklistLog).where(
+            ChecklistLog.user_id == user_id,
+            ChecklistLog.log_date == target_date,
+        )
+    )
+    return result.scalars().all()
 
 
 async def get_logs_by_dates(

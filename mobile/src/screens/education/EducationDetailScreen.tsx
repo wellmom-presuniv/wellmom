@@ -25,7 +25,8 @@ export default function EducationDetailScreen({ route, navigation }: any) {
   }
 
   // Parse body — render per paragraf/section berdasarkan newline
-  const paragraphs = body.split("\n").filter((line: string) => line.trim() !== "");
+  const bodyToRender = t.educationBodies[title] ?? body;
+  const paragraphs = bodyToRender.split("\n").filter((line: string) => line.trim() !== "");
 
   return (
     <SafeAreaView className="flex-1 bg-background">
