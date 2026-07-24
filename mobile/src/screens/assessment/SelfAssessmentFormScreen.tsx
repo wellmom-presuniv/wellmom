@@ -2,12 +2,35 @@ import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import Animated, {
+  FadeInRight,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
 import { AssessmentQuestion } from "../../types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useFocusEffect } from "@react-navigation/native";
+import AnimatedPressable from "@/components/AnimatedPressable";
+
+function ProgressDot({ answered }: { answered: boolean }) {
+  const fill = useSharedValue(answered ? 1 : 0);
+
+  useEffect(() => {
+    fill.value = withTiming(answered ? 1 : 0, { duration: 250 });
+  }, [answered]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(fill.value, [0, 1], [colors.surfaceContainer, colors.primary]),
+  }));
+
+  return <Animated.View style={[{ flex: 1, height: 4, borderRadius: 2 }, animatedStyle]} />;
+}
 
 export default function SelfAssessmentFormScreen({ navigation }: any) {
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
@@ -45,6 +68,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
   );
 
   const setAnswer = (id: string, value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
@@ -99,22 +123,15 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
       {/* Progress dots */}
       <View className="flex-row px-5 mb-4" style={{ gap: 4 }}>
         {questions.map((q) => (
-          <View
-            key={q.question_id}
-            style={{
-              flex: 1,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: answers[q.question_id] !== undefined ? colors.primary : colors.surfaceContainer,
-            }}
-          />
+          <ProgressDot key={q.question_id} answered={answers[q.question_id] !== undefined} />
         ))}
       </View>
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
-        {questions.map((q) => (
-          <View
+        {questions.map((q, idx) => (
+          <Animated.View
             key={q.question_id}
+            entering={FadeInRight.delay(idx * 40).duration(300)}
             className="flex-row items-center justify-between p-4 mb-3"
             style={{ backgroundColor: colors.surface, borderRadius: 18 }}
           >
@@ -122,7 +139,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
               {t.questions[q.order_index] ?? q.question_text}
             </Text>
             <View className="flex-row" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 999, padding: 3 }}>
-              <TouchableOpacity
+              <AnimatedPressable
                 onPress={() => setAnswer(q.question_id, true)}
                 style={{
                   paddingHorizontal: 16,
@@ -140,8 +157,8 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
                 >
                   {t.yes}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </AnimatedPressable>
+              <AnimatedPressable
                 onPress={() => setAnswer(q.question_id, false)}
                 style={{
                   paddingHorizontal: 16,
@@ -159,9 +176,9 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
                 >
                   {t.no}
                 </Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
-          </View>
+          </Animated.View>
         ))}
 
         {/* Tensi darah - opsional */}
@@ -208,7 +225,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
       </ScrollView>
 
       <View className="px-5 pb-4">
-        <TouchableOpacity onPress={handleSubmit} activeOpacity={0.85} disabled={!allAnswered || isSubmitting}>
+        <AnimatedPressable haptic onPress={handleSubmit} disabled={!allAnswered || isSubmitting}>
           <View
             style={{
               backgroundColor: allAnswered ? colors.primary : colors.outlineVariant,
@@ -221,7 +238,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
               {allAnswered ? t.viewResult : t.answerMore.replace("{n}", String(questions.length - answeredCount))}
             </Text>
           </View>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </SafeAreaView>
   );

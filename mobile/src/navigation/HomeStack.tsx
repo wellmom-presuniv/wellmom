@@ -21,7 +21,11 @@ export default function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="SelfAssessmentForm" component={SelfAssessmentFormScreen} />
-      <Stack.Screen name="SelfAssessmentResult" component={SelfAssessmentResultScreen} />
+      <Stack.Screen
+        name="SelfAssessmentResult"
+        component={SelfAssessmentResultScreen}
+        options={{ animation: "fade_from_bottom" }}
+      />
       <Stack.Screen name="Guide" component={GuideScreen} />
       <Stack.Screen name="Monitoring" component={MonitoringScreen} />
     </Stack.Navigator>

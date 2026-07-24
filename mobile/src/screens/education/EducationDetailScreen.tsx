@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, { FadeIn, FadeInUp } from "react-native-reanimated";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -32,9 +33,12 @@ export default function EducationDetailScreen({ route, navigation }: any) {
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Banner header */}
-        <View style={{ height: 180, backgroundColor: colors.primaryContainer, alignItems: "center", justifyContent: "center" }}>
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          style={{ height: 180, backgroundColor: colors.primaryContainer, alignItems: "center", justifyContent: "center" }}
+        >
           <Ionicons name="book" size={56} color="#FFFFFF" />
-        </View>
+        </Animated.View>
 
         {/* Back button */}
         <TouchableOpacity
@@ -54,7 +58,8 @@ export default function EducationDetailScreen({ route, navigation }: any) {
           <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
         </TouchableOpacity>
 
-        <View
+        <Animated.View
+          entering={FadeInUp.delay(80).duration(350)}
           className="px-5 pt-5"
           style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, marginTop: -24 }}
         >
@@ -127,7 +132,7 @@ export default function EducationDetailScreen({ route, navigation }: any) {
           })}
 
           <View style={{ height: 32 }} />
-        </View>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );

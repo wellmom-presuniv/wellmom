@@ -90,13 +90,10 @@ export default function RegisterScreen({ navigation }: any) {
       </TouchableOpacity>
     </View>          
 
-      <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, textAlign: "center", marginTop: 12 }}>
-        {t.terms}
-        <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>{t.termsLink}</Text>
-      </Text>
+    
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center" }}>
+        <Text style={{ marginTop:20, fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center" }}>
           {t.hasAccount}{" "}
           <Text style={{ fontFamily: fonts.bold, color: colors.primary }}>{t.login}</Text>
         </Text>

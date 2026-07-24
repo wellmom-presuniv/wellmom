@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { useTranslation } from "../../hooks/useTranslation";
 import AppHeader from "../../components/AppHeader";
+import AnimatedPressable from "@/components/AnimatedPressable";
 
 type MonitoringTab = "janin" | "bayi";
 type BayiIndicator = "WEIGHT" | "LENGTH" | "HEAD_CIRCUMFERENCE";
@@ -102,28 +104,30 @@ export default function MonitoringScreen() {
       {/* Tab selector */}
       <View className="px-5 mb-4">
         <View className="flex-row p-1" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 999 }}>
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             onPress={() => setTab("janin")}
             style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: "center", backgroundColor: tab === "janin" ? colors.primary : "transparent" }}
           >
             <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: tab === "janin" ? "#FFFFFF" : colors.textSecondary }}>
               {t.monitoringJanin}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </AnimatedPressable>
+          <AnimatedPressable
+            haptic
             onPress={() => setTab("bayi")}
             style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: "center", backgroundColor: tab === "bayi" ? colors.primary : "transparent" }}
           >
             <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: tab === "bayi" ? "#FFFFFF" : colors.textSecondary }}>
               {t.monitoringBayi}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </View>
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {tab === "janin" ? (
-          <View>
+          <Animated.View key="janin" entering={FadeIn.duration(220)}>
             {/* Info lingkar kepala statis */}
             <View className="flex-row items-center p-4 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 16, gap: 10 }}>
               <Ionicons name="information-circle" size={20} color={colors. background} />
@@ -161,7 +165,7 @@ export default function MonitoringScreen() {
                 <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>kg</Text>
               </View>
 
-              <TouchableOpacity onPress={handleCheckFetal} disabled={!fetalWeight || isCheckingFetal} activeOpacity={0.85}>
+              <AnimatedPressable haptic onPress={handleCheckFetal} disabled={!fetalWeight || isCheckingFetal}>
                 <LinearGradient
                   colors={[colors.primary, colors.secondary]}
                   start={{ x: 0, y: 0 }}
@@ -173,7 +177,7 @@ export default function MonitoringScreen() {
                     : <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>{t.checkNowBtn}</Text>
                   }
                 </LinearGradient>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
 
             {/* Hasil */}
@@ -193,9 +197,9 @@ export default function MonitoringScreen() {
                 </View>
               );
             })()}
-          </View>
+          </Animated.View>
         ) : (
-          <View>
+          <Animated.View key="bayi" entering={FadeIn.duration(220)}>
             <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
               <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary, marginBottom: 16 }}>
                 {t.babyData}
@@ -232,7 +236,7 @@ export default function MonitoringScreen() {
                   value={ageMonths}
                   onChangeText={setAgeMonths}
                 />
-                <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.months}</Text>
+                <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.monthsUnit}</Text>
               </View>
 
               {/* Indicator */}
@@ -271,7 +275,7 @@ export default function MonitoringScreen() {
                 </Text>
               </View>
 
-              <TouchableOpacity onPress={handleCheckGrowth} disabled={!value || !ageMonths || isCheckingGrowth} activeOpacity={0.85}>
+              <AnimatedPressable haptic onPress={handleCheckGrowth} disabled={!value || !ageMonths || isCheckingGrowth}>
                 <LinearGradient
                   colors={[colors.primary, colors.secondary]}
                   start={{ x: 0, y: 0 }}
@@ -283,7 +287,7 @@ export default function MonitoringScreen() {
                     : <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>{t.evaluateGrowth}</Text>
                   }
                 </LinearGradient>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
 
             {/* Hasil growth */}
@@ -316,7 +320,7 @@ export default function MonitoringScreen() {
                 </View>
               );
             })()}
-          </View>
+          </Animated.View>
         )}
         <View style={{ height: 24 }} />
       </ScrollView>

@@ -4,16 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getMyProfile } from "../../api/profileService";
 import apiClient from "../../api/client";
 import { useTranslation } from "../../hooks/useTranslation";
-
-const MONTHS_ID = [
-  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-  "Jul", "Agt", "Sep", "Okt", "Nov", "Des",
-];
+import AnimatedPressable from "@/components/AnimatedPressable";
 
 function daysInMonth(month: number, year: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -66,43 +63,112 @@ export default function EditProfileScreen({ navigation }: any) {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      {/* Atmospheric blob decoration — konsisten dengan ProfileSetupScreen */}
+      <View
+        style={{
+          position: "absolute",
+          top: -70,
+          right: -70,
+          width: 220,
+          height: 220,
+          borderRadius: 110,
+          backgroundColor: colors.secondaryContainer,
+          opacity: 0.1,
+        }}
+      />
+      <View
+        style={{
+          position: "absolute",
+          top: 240,
+          left: -90,
+          width: 240,
+          height: 240,
+          borderRadius: 120,
+          backgroundColor: colors.primaryContainer,
+          opacity: 0.08,
+        }}
+      />
+
       {/* Header */}
-      <View className="flex-row items-center px-5 pt-2 pb-4">
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
-          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
+      <Animated.View entering={FadeInDown.duration(300)} className="flex-row items-center px-5 pt-2 pb-4">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: colors.surface,
+            alignItems: "center",
+            justifyContent: "center",
+            marginRight: 12,
+            shadowColor: colors.textPrimary,
+            shadowOpacity: 0.06,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 1,
+          }}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.textPrimary }}>{t.editProfileTitle}</Text>
-      </View>
+      </Animated.View>
 
       <View className="px-5 flex-1">
         {/* Info card */}
-        <View className="flex-row items-center p-4 mb-6" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 16, gap: 10 }}>
-          <Ionicons name="information-circle-outline" size={18} color={colors.textSecondary} />
+        <Animated.View
+          entering={FadeInUp.delay(60).duration(300)}
+          className="flex-row items-center p-4 mb-6"
+          style={{ backgroundColor: colors.surfaceContainer, borderRadius: 16, gap: 10 }}
+        >
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: colors.surface,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="information-circle" size={18} color={colors.primary} />
+          </View>
           <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, flex: 1, lineHeight: 18 }}>
             {t.editProfileInfo}
           </Text>
-        </View>
+        </Animated.View>
 
-        {/* HPHT picker */}
-        <View
+        {/* HPHT picker — glass card, konsisten dengan onboarding */}
+        <Animated.View
+          entering={FadeInUp.delay(120).duration(320)}
           style={{
-            backgroundColor: colors.surface,
+            backgroundColor: "rgba(255,255,255,0.8)",
             borderRadius: 24,
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.5)",
             padding: 20,
             shadowColor: colors.primary,
-            shadowOpacity: 0.08,
-            shadowRadius: 16,
-            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 20,
+            shadowOffset: { width: 0, height: 8 },
+            elevation: 4,
           }}
         >
-          <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary, marginBottom: 4 }}>
-            {t.hphtLabel}
-          </Text>
-          <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 12 }}>
+          <View className="flex-row items-center mb-1" style={{ gap: 10 }}>
+            <LinearGradient
+              colors={[colors.primary, colors.secondary]}
+              style={{ width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" }}
+            >
+              <Ionicons name="calendar" size={16} color="#FFFFFF" />
+            </LinearGradient>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary }}>
+              {t.hphtLabel}
+            </Text>
+          </View>
+          <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 12, marginLeft: 44 }}>
             {t.hphtHint}
           </Text>
 
-          <View className="flex-row">
+          <View className="flex-row justify-center">
             <Picker
               style={{  width: 90 }}
               selectedValue={day}
@@ -135,20 +201,35 @@ export default function EditProfileScreen({ navigation }: any) {
             </Picker>
           </View>
 
-          <View className="items-center mt-2 pt-3" style={{ borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
-            <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, letterSpacing: 1 }}>
+          <View className="items-center mt-2 pt-4" style={{ borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 10, color: colors.textSecondary, letterSpacing: 1, marginBottom: 8 }}>
               {t.hphtSelected}
             </Text>
-            <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.primary, marginTop: 2 }}>
-              {Math.min(day, maxDay)} {t.months[month]} {year}
-            </Text>
+            <LinearGradient
+              colors={[colors.primary, colors.secondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: 999,
+                paddingHorizontal: 18,
+                paddingVertical: 10,
+                gap: 8,
+              }}
+            >
+              <Ionicons name="calendar-outline" size={16} color="#FFFFFF" />
+              <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: "#FFFFFF" }}>
+                {Math.min(day, maxDay)} {t.months[month]} {year}
+              </Text>
+            </LinearGradient>
           </View>
-        </View>
+        </Animated.View>
       </View>
 
       {/* Tombol simpan */}
-      <View className="px-5 pb-4">
-        <TouchableOpacity onPress={handleSave} activeOpacity={0.85} disabled={isSaving}>
+      <Animated.View entering={FadeInUp.delay(180).duration(320)} className="px-5 pb-4">
+        <AnimatedPressable haptic onPress={handleSave} disabled={isSaving}>
           <LinearGradient
             colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }}
@@ -158,6 +239,11 @@ export default function EditProfileScreen({ navigation }: any) {
               borderRadius: 28,
               alignItems: "center",
               justifyContent: "center",
+              shadowColor: colors.primary,
+              shadowOpacity: 0.25,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 4,
               opacity: isSaving ? 0.7 : 1,
             }}
           >
@@ -167,8 +253,8 @@ export default function EditProfileScreen({ navigation }: any) {
               <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: "#FFFFFF" }}>{t.saveChanges}</Text>
             )}
           </LinearGradient>
-        </TouchableOpacity>
-      </View>
+        </AnimatedPressable>
+      </Animated.View>
     </SafeAreaView>
   );
 }
