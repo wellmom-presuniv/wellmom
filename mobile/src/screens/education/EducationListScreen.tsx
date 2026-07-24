@@ -115,7 +115,9 @@ export default function EducationListScreen({ navigation }: any) {
                   <Ionicons name={style.icon} size={22} color={style.color} />
                 </View>
                 <View className="flex-1">
-                  <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary }}>{topic.title}</Text>
+                  <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary }}>
+                    {t.educationTitles[topic.title] ?? topic.title}
+                  </Text>
                   {topic.trimester && (
                     <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
                       {t.filterTrimester.replace("{n}", String(topic.trimester))}

@@ -241,6 +241,8 @@ export const translations = {
     createAccount: "Buat Akun", createAccountSubtitle: "Mulai perjalanan kehamilan sehatmu bersama kami.",
 
     educationBanner: "Menampilkan konten untuk {trimester} · {week}",
+
+    educationTitles: {} as Record<string, string>,
   },
 
   en: {
@@ -497,6 +499,19 @@ export const translations = {
     createAccount: "Create Account", createAccountSubtitle: "Start your healthy pregnancy journey with us.",
 
     educationBanner: "Showing content for {trimester} · {week}",
+
+    educationTitles: {
+      "Gizi Seimbang Ibu Hamil": "Balanced Nutrition for Pregnant Women",
+      "Nutrisi Penting Trimester 1": "Essential Nutrition - 1st Trimester",
+      "Nutrisi Penting Trimester 2": "Essential Nutrition - 2nd Trimester",
+      "Nutrisi Penting Trimester 3": "Essential Nutrition - 3rd Trimester",
+      "Tablet Tambah Darah untuk Ibu Hamil": "Iron Supplement for Pregnant Women",
+      "Mengatasi Mual di Trimester Pertama": "Managing Morning Sickness",
+      "Makanan yang Perlu Dihindari Ibu Hamil": "Foods to Avoid During Pregnancy",
+      "Persiapan Menjelang Persalinan": "Preparing for Childbirth",
+      "Persiapan Nutrisi untuk Menyusui": "Nutrition for Breastfeeding",
+      "Mengenali Tanda Bahaya Kehamilan": "Recognizing Pregnancy Danger Signs",
+    } as Record<string, string>,
   },
 };
 

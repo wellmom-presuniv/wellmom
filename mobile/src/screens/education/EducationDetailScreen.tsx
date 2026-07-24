@@ -59,7 +59,7 @@ export default function EducationDetailScreen({ route, navigation }: any) {
         >
           {/* Title */}
           <Text style={{ fontFamily: fonts.extrabold, fontSize: 22, color: colors.textPrimary, marginBottom: 16 }}>
-            {title}
+            {t.educationTitles[title] ?? title}
           </Text>
 
           {/* Body — render per baris */}
