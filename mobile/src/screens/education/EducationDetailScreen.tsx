@@ -25,7 +25,8 @@ export default function EducationDetailScreen({ route, navigation }: any) {
   }
 
   // Parse body — render per paragraf/section berdasarkan newline
-  const paragraphs = body.split("\n").filter((line: string) => line.trim() !== "");
+  const bodyToRender = t.educationBodies[title] ?? body;
+  const paragraphs = bodyToRender.split("\n").filter((line: string) => line.trim() !== "");
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -59,7 +60,7 @@ export default function EducationDetailScreen({ route, navigation }: any) {
         >
           {/* Title */}
           <Text style={{ fontFamily: fonts.extrabold, fontSize: 22, color: colors.textPrimary, marginBottom: 16 }}>
-            {title}
+            {t.educationTitles[title] ?? title}
           </Text>
 
           {/* Body — render per baris */}

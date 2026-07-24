@@ -123,8 +123,48 @@ export interface ChecklistItem {
   label: string;
 }
 
+export interface ChecklistItemStatus {
+  item_id: string;
+  label: string;
+  category: string | null;
+  order_index?: number | null;
+  is_completed: boolean;
+  log_id?: string | null;
+}
+
+export interface ChecklistSummary {
+  total: number;
+  completed: number;
+  label: string;
+}
+
+export interface TodayChecklistResponse {
+  date: string;
+  items: ChecklistItemStatus[];
+  summary: ChecklistSummary;
+}
+
+export interface ChecklistHistoryDay {
+  date: string;
+  items: {
+    item_id: string;
+    label: string;
+    is_completed: boolean;
+  }[];
+  summary: ChecklistSummary;
+}
+
 export interface ChecklistLogEntry {
   item_id: string;
   date: string;
   is_done: boolean;
+}
+
+export interface ChecklistSubmitItem {
+  item_id: string;
+  is_completed: boolean;
+}
+
+export interface ChecklistSubmitPayload {
+  items: ChecklistSubmitItem[];
 }

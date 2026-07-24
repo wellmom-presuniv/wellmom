@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Language } from "../i18n/translations";
+import { Language } from "../il8n/translations";
 
 interface LanguageState {
   language: Language;

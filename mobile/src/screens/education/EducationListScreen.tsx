@@ -27,6 +27,7 @@ export default function EducationListScreen({ navigation }: any) {
   const [topics, setTopics] = useState<EducationContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+  const notificationMessage = profile ? t.notificationEducationProfile : t.notificationEducation;
   useFocusEffect(
     useCallback(() => {
       setIsLoading(true);
@@ -56,8 +57,7 @@ export default function EducationListScreen({ navigation }: any) {
   );
   return (
     <SafeAreaView className="flex-1 bg-background">
-      
-        <AppHeader title={t.educationTitle} />
+      <AppHeader title={t.educationTitle} notificationMessage={notificationMessage} />
       <ScrollView className="px-5 pt-2" showsVerticalScrollIndicator={false}>
         <View
           className="flex-row items-center px-4 mb-4"
@@ -77,9 +77,9 @@ export default function EducationListScreen({ navigation }: any) {
           <View className="flex-row items-center p-3 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 12, gap: 8 }}>
             <Ionicons name="information-circle" size={16} color={colors.background} />
             <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.background }}>
-              {t.language === "id"
-                ? `Menampilkan konten untuk Trimester ${profile.trimester} · Minggu ke-${profile.gestational_week}`
-                : `Showing content for Trimester ${profile.trimester} · Week ${profile.gestational_week}`}
+              {t.educationBanner
+                .replace("{trimester}", t.trimester.replace("{n}", String(profile.trimester)))
+                .replace("{week}", t.week.replace("{n}", String(profile.gestational_week)))}
             </Text>
           </View>
         )}
@@ -115,7 +115,9 @@ export default function EducationListScreen({ navigation }: any) {
                   <Ionicons name={style.icon} size={22} color={style.color} />
                 </View>
                 <View className="flex-1">
-                  <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary }}>{topic.title}</Text>
+                  <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary }}>
+                    {t.educationTitles[topic.title] ?? topic.title}
+                  </Text>
                   {topic.trimester && (
                     <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
                       {t.filterTrimester.replace("{n}", String(topic.trimester))}

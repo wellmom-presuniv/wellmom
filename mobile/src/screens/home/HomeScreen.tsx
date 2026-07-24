@@ -45,6 +45,13 @@ function formatTanggalIndo(isoDate: string) {
     );
     const [isLoading, setIsLoading] = useState(true);
     const userName = useAuthStore((s) => s.userName);
+    const notificationMessage = lastRisk === "HIGH"
+      ? t.notificationHighRisk
+      : lastRisk === "MEDIUM"
+      ? t.notificationMediumRisk
+      : lastRisk === "LOW"
+      ? t.notificationLowRisk
+      : t.notificationDefault;
 
     useFocusEffect(
       useCallback(() => {
@@ -78,7 +85,7 @@ function formatTanggalIndo(isoDate: string) {
     return (
     <SafeAreaView className="flex-1 bg-background">
         {/* Header */}
-        <AppHeader title="WellMom" />
+        <AppHeader title="WellMom" notificationMessage={notificationMessage} />
           {/* <View className="px-5 mb-1">
             <Text style={{ fontFamily: fonts.bold, fontSize: 20, color: colors.primary }}>
               {t.greeting.replace("{name}", userName ?? "Bunda")}

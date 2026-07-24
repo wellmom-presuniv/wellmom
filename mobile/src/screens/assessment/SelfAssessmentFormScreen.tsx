@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,7 @@ import { fonts } from "../../theme/fonts";
 import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
 import { AssessmentQuestion } from "../../types";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function SelfAssessmentFormScreen({ navigation }: any) {
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
@@ -19,28 +20,29 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        // Cek dulu apakah sudah submit hari ini
-        const todayResult = await getTodayAssessment();
-        if (todayResult) {
-          // Udah submit hari ini — langsung ke hasil, skip form
-          navigation.replace("SelfAssessmentResult", { result: todayResult });
-          return;
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      const init = async () => {
+        try {
+          const todayResult = await getTodayAssessment();
+          if (cancelled) return;
+          if (todayResult) {
+            navigation.replace("SelfAssessmentResult", { result: todayResult });
+            return;
+          }
+          const q = await getAssessmentQuestions();
+          if (!cancelled) setQuestions(q);
+        } catch (err) {
+          console.warn("Gagal fetch pertanyaan dari API:", err);
+        } finally {
+          if (!cancelled) setIsLoading(false);
         }
-        // Belum submit — fetch pertanyaan dari API
-        const q = await getAssessmentQuestions();
-        setQuestions(q);
-      } catch (err) {
-        // Kalau API gagal, fallback ke MOCK_QUESTIONS yang udah ada
-        console.warn("Gagal fetch pertanyaan dari API:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    init();
-  }, []);
+      };
+      init();
+      return () => { cancelled = true; };
+    }, [])
+  );
 
   const setAnswer = (id: string, value: boolean) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));

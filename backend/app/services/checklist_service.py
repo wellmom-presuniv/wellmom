@@ -9,11 +9,15 @@ from app import crud
 async def get_today_checklist(
     db: AsyncSession, user_id: uuid.UUID
 ) -> dict:
-    today = date.today()
-    items = await crud.checklist.get_active_items(db)
-    logs  = await crud.checklist.get_today_logs(db, user_id, today)
+    return await get_checklist_for_date(db, user_id, date.today())
 
-    # O(n) lookup — hindari nested loop
+
+async def get_checklist_for_date(
+    db: AsyncSession, user_id: uuid.UUID, selected_date: date
+) -> dict:
+    items = await crud.checklist.get_active_items(db)
+    logs = await crud.checklist.get_logs_by_date(db, user_id, selected_date)
+
     log_map = {log.item_id: log for log in logs}
 
     result_items = []
@@ -32,7 +36,7 @@ async def get_today_checklist(
     completed = sum(1 for i in result_items if i["is_completed"])
 
     return {
-        "date":  today.isoformat(),
+        "date":  selected_date.isoformat(),
         "items": result_items,
         "summary": {
             "total":     total,
@@ -78,6 +82,42 @@ async def toggle_item(
         "log_id":       log.log_id,
         "date":         today.isoformat(),
     }
+
+
+async def submit_checklist_for_date(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    selected_date: date,
+    submitted_items: list[dict],
+) -> dict:
+    items = await crud.checklist.get_active_items(db)
+    item_map = {item.item_id: item for item in items}
+
+    profile = await crud.pregnancy.get_active_profile(db, user_id)
+    if not profile:
+        raise HTTPException(
+            status_code=404,
+            detail="Profil kehamilan belum dibuat. Selesaikan onboarding terlebih dahulu."
+        )
+
+    for submitted_item in submitted_items:
+        item = item_map.get(submitted_item["item_id"])
+        if not item:
+            raise HTTPException(status_code=404, detail="Item checklist tidak ditemukan")
+        if not item.is_active:
+            raise HTTPException(status_code=422, detail="Item ini sudah tidak aktif")
+
+        await crud.checklist.set_log_status(
+            db=db,
+            user_id=user_id,
+            pregnancy_profile_id=profile.profile_id,
+            item_id=submitted_item["item_id"],
+            target_date=selected_date,
+            is_completed=submitted_item["is_completed"],
+        )
+
+    return await get_checklist_for_date(db, user_id, selected_date)
+
 
 async def get_checklist_history(
     db: AsyncSession,
