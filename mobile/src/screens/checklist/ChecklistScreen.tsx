@@ -112,10 +112,15 @@ export default function ChecklistScreen() {
   const doneCount = Object.values(currentChecked).filter(Boolean).length;
   const totalItems = items.length > 0 ? items.length : currentChecklistData?.summary.total ?? 0;
   const progress = totalItems > 0 ? doneCount / totalItems : 0;
-  
+  const notificationMessage = isTodaySelected
+    ? progress === 1
+      ? t.notificationChecklistDone
+      : t.notificationChecklistPending
+    : t.notificationChecklistSelectDate;
+
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <AppHeader title={t.checklistTitle} />
+      <AppHeader title={t.checklistTitle} notificationMessage={notificationMessage} />
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {/* Week strip */}

@@ -27,6 +27,7 @@ export default function EducationListScreen({ navigation }: any) {
   const [topics, setTopics] = useState<EducationContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+  const notificationMessage = profile ? t.notificationEducationProfile : t.notificationEducation;
   useFocusEffect(
     useCallback(() => {
       setIsLoading(true);
@@ -56,8 +57,7 @@ export default function EducationListScreen({ navigation }: any) {
   );
   return (
     <SafeAreaView className="flex-1 bg-background">
-      
-        <AppHeader title={t.educationTitle} />
+      <AppHeader title={t.educationTitle} notificationMessage={notificationMessage} />
       <ScrollView className="px-5 pt-2" showsVerticalScrollIndicator={false}>
         <View
           className="flex-row items-center px-4 mb-4"

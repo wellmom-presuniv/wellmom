@@ -18,6 +18,7 @@ export default function HistoryScreen() {
   const [checklistHistory, setChecklistHistory] = useState<ChecklistHistoryDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const isFocused = useIsFocused();
+  const notificationMessage = tab === "checklist" ? t.notificationHistoryChecklist : t.notificationHistoryAssessment;
 
   useEffect(() => {
     if (!isFocused) return;
@@ -38,8 +39,7 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <AppHeader title={t.historyTitle} />
-
+      <AppHeader title={t.historyTitle} notificationMessage={notificationMessage} />
       <View className="px-5">
         {/* Segmented control */}
         <View

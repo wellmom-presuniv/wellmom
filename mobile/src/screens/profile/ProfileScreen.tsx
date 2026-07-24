@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback} from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import {Alert, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +11,8 @@ import { PregnancyProfile } from "../../types";
 import { useLanguageStore } from "../../store/useLanguageStore";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useFocusEffect } from "@react-navigation/native";
-
+import { useNotificationStore } from "../../store/useNotificationStore"
+import { ensureNotificationPermissions } from "../../services/notificationService";
 function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: string; subtitle?: string; color: string; bg: string }) {
   return (
     <TouchableOpacity className="flex-row items-center px-4 py-3" activeOpacity={0.6}>
@@ -35,16 +36,34 @@ export default function ProfileScreen({navigation}: any) {
   const userName = useAuthStore((s) => s.userName);
   const { language, setLanguage } = useLanguageStore();
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
-  const [notifEnabled, setNotifEnabled] = useState(true);
+  const notifEnabled = useNotificationStore((s) => s.notificationsEnabled);
+  const setNotifEnabled = useNotificationStore((s) => s.setNotificationsEnabled);
   const ACCOUNT_ITEMS = [
     { id: "edit", label: t.editProfile, icon: "person-outline" as const, subtitle: undefined },
     { id: "lang", label: t.language, icon: "globe-outline" as const, subtitle: t.languageValue },
-    { id: "notif", label: t.notifications, icon: "notifications-outline" as const, subtitle: undefined },
+    {
+      id: "notif",
+      label: t.notifications,
+      icon: "notifications-outline" as const,
+      subtitle: notifEnabled ? t.notificationsOn : t.notificationsOff,
+    },
   ];
   const SUPPORT_ITEMS = [
     { id: "about", label: t.aboutApp, icon: "information-circle-outline" as const },
     { id: "help", label: t.help, icon: "help-circle-outline" as const },
   ];  
+
+  const handleToggleNotificationSetting = async () => {
+   if (!notifEnabled) {
+     const granted = await ensureNotificationPermissions();
+     if (!granted) {
+       Alert.alert(t.notificationsDeniedTitle, t.notificationsDeniedBody);
+       await setNotifEnabled(false);
+       return;
+     }
+   }
+   await setNotifEnabled(!notifEnabled);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -101,7 +120,7 @@ export default function ProfileScreen({navigation}: any) {
                   activeOpacity={0.6}
                   onPress={() => {
                     if (item.id === "edit") navigation.navigate("EditProfile");
-                    if (item.id === "notif") setNotifEnabled(!notifEnabled);
+                    if (item.id === "notif") handleToggleNotificationSetting();
                     if (item.id === "lang") setLanguage(language === "id" ? "en" : "id");
                   }}
                 >

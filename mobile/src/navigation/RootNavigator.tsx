@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ActivityIndicator, View } from "react-native";
 import { useAuthStore } from "../store/useAuthStore";
+import { useNotificationStore } from "../store/useNotificationStore";
 import { colors } from "../theme/colors";
 import LoginScreen from "../screens/auth/LoginScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
@@ -15,10 +16,12 @@ const Stack = createNativeStackNavigator();
 export default function RootNavigator() {
   const { token, hasCompletedOnboarding, isLoading, hydrate } = useAuthStore();
   const { hydrate: hydrateLanguage } = useLanguageStore();
+  const { hydrate: hydrateNotifications } = useNotificationStore();
 
   useEffect(() => {
     hydrate();
     hydrateLanguage();
+    hydrateNotifications();
   }, []);
 
   if (isLoading) {
