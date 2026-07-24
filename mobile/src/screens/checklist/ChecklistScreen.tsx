@@ -31,7 +31,7 @@ export default function ChecklistScreen() {
   const today = useMemo(() => new Date(), []);
   const weekDates = useMemo(() => getWeekDates(today), [today]);
   const [selectedDate, setSelectedDate] = useState(today);
-  const [checklistData, setChecklistData] = useState<TodayChecklistResponse | null>(null);
+  const [checklistCache, setChecklistCache] = useState<Record<string, TodayChecklistResponse>>({});
   const [draftState, setDraftState] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,6 +41,7 @@ export default function ChecklistScreen() {
     a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
   const dateKey = selectedDate.toISOString().split("T")[0];
   const isTodaySelected = isSameDay(selectedDate, today);
+  const currentChecklistData = checklistCache[dateKey] ?? null;
 
   const getCheckedState = useCallback((data: TodayChecklistResponse | null) => {
     if (!data) return {};
@@ -51,19 +52,26 @@ export default function ChecklistScreen() {
   }, []);
 
   const fetchChecklist = useCallback(async () => {
-    setIsLoading(true);
     setSubmitError(null);
+
+    if (currentChecklistData) {
+      setDraftState(getCheckedState(currentChecklistData));
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const data = await getChecklistForDate(dateKey);
-      setChecklistData(data);
+      setChecklistCache((previous) => ({ ...previous, [dateKey]: data }));
       setDraftState(getCheckedState(data));
     } catch (err) {
       console.warn("Gagal fetch checklist:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [dateKey, getCheckedState]);
+  }, [currentChecklistData, dateKey, getCheckedState]);
 
   useEffect(() => {
     fetchChecklist();
@@ -77,19 +85,19 @@ export default function ChecklistScreen() {
   }, []);
 
   const handleSubmitChecklist = async () => {
-    if (!checklistData) return;
+    if (!currentChecklistData) return;
 
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      const submittedItems = checklistData.items.map((item) => ({
+      const submittedItems = currentChecklistData.items.map((item) => ({
         item_id: item.item_id,
         is_completed: !!draftState[item.item_id],
       }));
 
       const savedChecklist = await submitChecklist(dateKey, { items: submittedItems });
-      setChecklistData(savedChecklist);
+      setChecklistCache((previous) => ({ ...previous, [dateKey]: savedChecklist }));
       setDraftState(getCheckedState(savedChecklist));
     } catch (err) {
       console.warn("Gagal submit checklist:", err);
@@ -100,9 +108,9 @@ export default function ChecklistScreen() {
   };
 
   const currentChecked = draftState;
-  const items = checklistData?.items ?? [];
+  const items = currentChecklistData?.items ?? [];
   const doneCount = Object.values(currentChecked).filter(Boolean).length;
-  const totalItems = items.length > 0 ? items.length : checklistData?.summary.total ?? 0;
+  const totalItems = items.length > 0 ? items.length : currentChecklistData?.summary.total ?? 0;
   const progress = totalItems > 0 ? doneCount / totalItems : 0;
   
   return (
@@ -138,7 +146,7 @@ export default function ChecklistScreen() {
         </ScrollView>
 
         {/* Checklist items */}
-        {isLoading ? (
+        {isLoading && !currentChecklistData ? (
           <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
         ) : items.length === 0 ? (
           <View className="items-center py-8">
@@ -202,7 +210,7 @@ export default function ChecklistScreen() {
             disabled={isSubmitting}
           >
             <Text style={{ fontFamily: fonts.bold, color: "#FFFFFF", fontSize: 16 }}>
-              {isSubmitting ? "Sedang menyimpan..." : t.submitChecklist}
+              {isSubmitting ? t.savingChecklist : t.submitChecklist}
             </Text>
           </TouchableOpacity>
         )}

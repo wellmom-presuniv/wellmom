@@ -90,6 +90,7 @@ export const translations = {
     consistency: "Konsistensi hari ini",
     historyLabel: "Riwayat hari ini",
     submitChecklist: "Simpan Checklist",
+    savingChecklist: "Sedang menyimpan...",
     done: "{done}/{total} Selesai",
     noChecklist: "Belum ada item checklist.\nTim medis akan segera menambahkan.",
     days: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
@@ -154,6 +155,7 @@ export const translations = {
 
     // Common
     loading: "Memuat...",
+    updating: "Memperbarui...",
     errorNetwork: "Gagal memuat data. Cek koneksi internet kamu.",
     back: "Kembali",
     contentNotReady: "Konten sedang disiapkan.",
@@ -338,6 +340,7 @@ export const translations = {
     consistency: "Today's consistency",
     historyLabel: "Today's history",
     submitChecklist: "Save Checklist",
+    savingChecklist: "Saving...",
     done: "{done}/{total} Done",
     noChecklist: "No checklist items yet.\nThe medical team will add them soon.",
     days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -402,6 +405,7 @@ export const translations = {
 
     // Common
     loading: "Loading...",
+    updating: "Updating...",
     errorNetwork: "Failed to load data. Check your internet connection.",
     back: "Back",
     contentNotReady: "Content is being prepared.",

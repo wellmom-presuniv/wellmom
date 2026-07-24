@@ -20,22 +20,20 @@ export default function HistoryScreen() {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    getAssessmentHistory()
-      .then(setHistory)
-      .catch((err) => console.warn("Gagal fetch history:", err))
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  useEffect(() => {
-    if (tab !== "checklist" || !isFocused) {
-      return;
-    }
+    if (!isFocused) return;
 
     setIsLoading(true);
-    getChecklistHistory()
-      .then(setChecklistHistory)
-      .catch((err) => console.warn("Gagal fetch checklist history:", err))
-      .finally(() => setIsLoading(false));
+    if (tab === "assessment") {
+      getAssessmentHistory()
+        .then(setHistory)
+        .catch((err) => console.warn("Gagal fetch history:", err))
+        .finally(() => setIsLoading(false));
+    } else {
+      getChecklistHistory()
+        .then(setChecklistHistory)
+        .catch((err) => console.warn("Gagal fetch checklist history:", err))
+        .finally(() => setIsLoading(false));
+    }
   }, [tab, isFocused]);
 
   return (
