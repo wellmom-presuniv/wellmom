@@ -29,7 +29,7 @@ function formatTanggalIndo(isoDate: string) {
       { id: "education", label: t.menuEducation, icon: "book", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
       { id: "checklist", label: t.menuChecklist, icon: "checkbox", color: colors.riskLow, bg: colors.riskLowBg },
       { id: "assessment", label: t.menuAssessment, icon: "pulse", color: colors.riskHigh, bg: colors.riskHighBg },
-      { id: "diary", label: t.menuDiary, icon: "journal-outline", color: colors.primary, bg: "rgba(177,14,107,0.1)" },
+      { id: "monitoring", label: t.menuMonitoring, icon: "camera" as const, color: colors.primary, bg: "rgba(177,14,107,0.1)" },
       { id: "guide", label: t.menuGuide, icon: "medkit-outline", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
       { id: "profile", label: t.menuProfile, icon: "person", color: colors.textSecondary, bg: "rgba(139,112,121,0.1)" },
     ];
@@ -151,7 +151,7 @@ function formatTanggalIndo(isoDate: string) {
                 if (item.id === "education") navigation.getParent()?.navigate("Edukasi");
                 if (item.id === "checklist") navigation.getParent()?.navigate("Checklist");
                 if (item.id === "profile") navigation.getParent()?.navigate("Profil");
-                if (item.id === "diary") navigation.navigate("SelfAssessmentForm");
+                if (item.id === "monitoring") navigation.navigate("Monitoring");
                 if (item.id === "guide") navigation.navigate("Guide");
               }}
               activeOpacity={0.7}
