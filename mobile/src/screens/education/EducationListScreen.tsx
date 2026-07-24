@@ -77,9 +77,9 @@ export default function EducationListScreen({ navigation }: any) {
           <View className="flex-row items-center p-3 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 12, gap: 8 }}>
             <Ionicons name="information-circle" size={16} color={colors.background} />
             <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.background }}>
-              {t.language === "id"
-                ? `Menampilkan konten untuk Trimester ${profile.trimester} · Minggu ke-${profile.gestational_week}`
-                : `Showing content for Trimester ${profile.trimester} · Week ${profile.gestational_week}`}
+              {t.educationBanner
+                .replace("{trimester}", t.trimester.replace("{n}", String(profile.trimester)))
+                .replace("{week}", t.week.replace("{n}", String(profile.gestational_week)))}
             </Text>
           </View>
         )}

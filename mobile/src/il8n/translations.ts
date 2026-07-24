@@ -238,7 +238,9 @@ export const translations = {
       { q: "Kapan harus segera ke fasilitas kesehatan?", a: "Segera ke fasilitas kesehatan jika mengalami: perdarahan, sakit kepala berat disertai pandangan kabur, bengkak tiba-tiba pada wajah/tangan, atau gerakan janin berkurang drastis." },
     ] as { q: string; a: string }[],
 
-    createAccount: "Buat Akun", createAccountSubtitle: "Mulai perjalanan kehamilan sehatmu bersama kami."
+    createAccount: "Buat Akun", createAccountSubtitle: "Mulai perjalanan kehamilan sehatmu bersama kami.",
+
+    educationBanner: "Menampilkan konten untuk {trimester} · {week}",
   },
 
   en: {
@@ -492,7 +494,9 @@ export const translations = {
       { q: "When should I go to a healthcare facility immediately?", a: "Go immediately if you experience: bleeding, severe headache with blurred vision, sudden swelling of face/hands, or significantly reduced fetal movement." },
     ] as { q: string; a: string }[],
 
-    createAccount: "Create Account", createAccountSubtitle: "Start your healthy pregnancy journey with us."
+    createAccount: "Create Account", createAccountSubtitle: "Start your healthy pregnancy journey with us.",
+
+    educationBanner: "Showing content for {trimester} · {week}",
   },
 };
 
