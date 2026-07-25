@@ -303,6 +303,25 @@ export const translations = {
     belowNormalMsg: "Berat janin di bawah normal. Konsultasikan ke dokter.",
     aboveNormalMsg: "Berat janin di atas normal. Konsultasikan ke dokter.",
     normalMsg: "Berat janin dalam rentang normal (2,5–4 kg).",
+
+    // Monitoring — lingkar kepala & data ibu
+    headCircInput: "Lingkar Kepala (cm)",
+    headCircPlaceholder: "Contoh: 34.5",
+    headCircSave: "Simpan Pengukuran",
+    headCircHistory: "Riwayat Lingkar Kepala",
+    maternalTitle: "BB & TB Ibu Hamil",
+    maternalDesc: "Catatan berat dan tinggi badan ibu selama kehamilan (tanpa evaluasi risiko)",
+    maternalWeight: "Berat Badan Ibu (kg)",
+    maternalWeightPlaceholder: "Contoh: 65.5",
+    maternalHeight: "Tinggi Badan Ibu (cm)",
+    maternalHeightPlaceholder: "Contoh: 160",
+    maternalSave: "Simpan Data",
+    maternalHistory: "Riwayat BB & TB",
+    maternalTrackingNote: "Tinggi badan biasanya tidak berubah, otomatis terisi dari data sebelumnya",
+    fetalWeightHistory: "Riwayat Berat Janin",
+    growthHistory: "Riwayat Pertumbuhan",
+    historyEmpty: "Belum ada data",
+    lastRecords: "3 catatan terakhir",
   },
 
   en: {
@@ -963,6 +982,25 @@ export const translations = {
     belowNormalMsg: "Fetal weight is below normal. Please consult your doctor.",
     aboveNormalMsg: "Fetal weight is above normal. Please consult your doctor.",
     normalMsg: "Fetal weight is within normal range (2.5–4 kg).",
+
+    // Monitoring — head circumference & maternal data
+    headCircInput: "Head Circumference (cm)",
+    headCircPlaceholder: "Example: 34.5",
+    headCircSave: "Save Measurement",
+    headCircHistory: "Head Circumference History",
+    maternalTitle: "Maternal Weight & Height",
+    maternalDesc: "Track your weight and height during pregnancy (no risk evaluation)",
+    maternalWeight: "Maternal Weight (kg)",
+    maternalWeightPlaceholder: "Example: 65.5",
+    maternalHeight: "Maternal Height (cm)",
+    maternalHeightPlaceholder: "Example: 160",
+    maternalSave: "Save Data",
+    maternalHistory: "Weight & Height History",
+    maternalTrackingNote: "Height usually stays the same — auto-filled from your last entry",
+    fetalWeightHistory: "Fetal Weight History",
+    growthHistory: "Growth History",
+    historyEmpty: "No data yet",
+    lastRecords: "Last 3 records",
   },
 };
 
