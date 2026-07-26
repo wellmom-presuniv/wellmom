@@ -178,7 +178,7 @@ async def log_maternal_measurement(
 ) -> dict:
     measurement_date = _resolve_measurement_date(payload.measurement_date)
 
-    profile = await _require_trimester_three_profile(
+    profile, _ = await _require_pregnancy_profile(
         db=db,
         user_id=user_id,
         measurement_date=measurement_date,
