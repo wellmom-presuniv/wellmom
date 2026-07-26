@@ -19,7 +19,7 @@ async def seed_assessment_questions(session):
         print("⚠️  assessment_questions sudah ada data, skip seeding.")
         return
 
-    with open(SEEDS_DIR / "assessment_questions.json") as f:
+    with open(SEEDS_DIR / "assessment_questions.json", encoding="utf-8") as f:
         data = json.load(f)
 
     for item in data:
@@ -34,7 +34,7 @@ async def seed_risk_thresholds(session):
         print("⚠️  risk_thresholds sudah ada data, skip seeding.")
         return
 
-    with open(SEEDS_DIR / "risk_thresholds.json") as f:
+    with open(SEEDS_DIR / "risk_thresholds.json", encoding="utf-8") as f:
         data = json.load(f)
 
     for item in data:
