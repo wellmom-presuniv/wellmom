@@ -18,6 +18,8 @@ from scoring.duration_logic import (
 )
 from scoring.risk_combiner import combine_final_risk
 
+from app.crud import assessment as assessment_crud
+
 
 BP_THRESHOLDS_PATH = Path(__file__).resolve().parents[2] / "scoring" / "bp_thresholds.json"
 
@@ -309,3 +311,23 @@ async def get_assessment_history(
         )
 
     return history
+
+
+async def delete_assessment_response(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    response_id: uuid.UUID,
+) -> None:
+    deleted = await assessment_crud.delete_response_by_id_and_user(
+        db=db,
+        response_id=response_id,
+        user_id=user_id,
+    )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Assessment response tidak ditemukan",
+        )
+
+    await db.commit()
