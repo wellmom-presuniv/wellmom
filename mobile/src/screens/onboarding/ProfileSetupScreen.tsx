@@ -4,12 +4,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
   withTiming,
   withDelay,
+  withSequence,
+  withSpring,
   Easing,
 } from "react-native-reanimated";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -18,6 +21,7 @@ import { fonts } from "../../theme/fonts";
 import { PregnancyProfile } from "../../types";
 import { submitProfile, getMyProfile } from "../../api/profileService";
 import { useTranslation } from "../../hooks/useTranslation";
+import AnimatedPressable from "@/components/AnimatedPressable";
 
 function daysInMonth(month: number, year: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -64,23 +68,70 @@ export default function ProfileSetupScreen() {
 
   // ===== Celebration overlay (pengganti Moti) =====
   const overlayOpacity = useSharedValue(0);
+  // Each heart gets its own size, horizontal drift, rotation and timing so the
+  // burst reads as playful/varied rather than identical hearts firing in sync.
+  const HEART_CONFIG = [
+    { size: 22, dx: -34, delay: 0, rotate: -18 },
+    { size: 30, dx: -14, delay: 90, rotate: 10 },
+    { size: 36, dx: 0, delay: 40, rotate: 0 },
+    { size: 30, dx: 14, delay: 130, rotate: -10 },
+    { size: 22, dx: 34, delay: 70, rotate: 18 },
+  ] as const;
   const heart0 = useSharedValue(0);
   const heart1 = useSharedValue(0);
   const heart2 = useSharedValue(0);
+  const heart3 = useSharedValue(0);
+  const heart4 = useSharedValue(0);
+  const heartValues = [heart0, heart1, heart2, heart3, heart4];
 
-  const overlayStyle = useAnimatedStyle(() => ({ opacity: overlayOpacity.value }));
   const heartStyle0 = useAnimatedStyle(() => ({
     opacity: heart0.value,
-    transform: [{ scale: heart0.value }, { translateY: heart0.value * -12 }],
+    transform: [
+      { translateX: HEART_CONFIG[0].dx * heart0.value },
+      { translateY: heart0.value * -28 },
+      { scale: heart0.value },
+      { rotate: `${HEART_CONFIG[0].rotate * heart0.value}deg` },
+    ],
   }));
   const heartStyle1 = useAnimatedStyle(() => ({
     opacity: heart1.value,
-    transform: [{ scale: heart1.value }, { translateY: heart1.value * -12 }],
+    transform: [
+      { translateX: HEART_CONFIG[1].dx * heart1.value },
+      { translateY: heart1.value * -28 },
+      { scale: heart1.value },
+      { rotate: `${HEART_CONFIG[1].rotate * heart1.value}deg` },
+    ],
   }));
   const heartStyle2 = useAnimatedStyle(() => ({
     opacity: heart2.value,
-    transform: [{ scale: heart2.value }, { translateY: heart2.value * -12 }],
+    transform: [
+      { translateX: HEART_CONFIG[2].dx * heart2.value },
+      { translateY: heart2.value * -28 },
+      { scale: heart2.value },
+      { rotate: `${HEART_CONFIG[2].rotate * heart2.value}deg` },
+    ],
   }));
+  const heartStyle3 = useAnimatedStyle(() => ({
+    opacity: heart3.value,
+    transform: [
+      { translateX: HEART_CONFIG[3].dx * heart3.value },
+      { translateY: heart3.value * -28 },
+      { scale: heart3.value },
+      { rotate: `${HEART_CONFIG[3].rotate * heart3.value}deg` },
+    ],
+  }));
+  const heartStyle4 = useAnimatedStyle(() => ({
+    opacity: heart4.value,
+    transform: [
+      { translateX: HEART_CONFIG[4].dx * heart4.value },
+      { translateY: heart4.value * -28 },
+      { scale: heart4.value },
+      { rotate: `${HEART_CONFIG[4].rotate * heart4.value}deg` },
+    ],
+  }));
+  const heartStyles = [heartStyle0, heartStyle1, heartStyle2, heartStyle3, heartStyle4];
+
+  const overlayStyle = useAnimatedStyle(() => ({ opacity: overlayOpacity.value }));
 
   const handleContinue = async () => {
     setError(null);
@@ -103,12 +154,20 @@ export default function ProfileSetupScreen() {
       
       setSubmittedProfile(profile);
       setShowCelebration(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       overlayOpacity.value = withTiming(1, { duration: 200 });
-      heart0.value = withDelay(0, withTiming(1, { duration: 400 }));
-      heart1.value = withDelay(120, withTiming(1, { duration: 400 }));
-      heart2.value = withDelay(240, withTiming(1, { duration: 400 }));
+      heartValues.forEach((heart, i) => {
+        const cfg = HEART_CONFIG[i];
+        heart.value = withDelay(
+          cfg.delay,
+          withSequence(
+            withSpring(1, { damping: 7, stiffness: 220 }),
+            withDelay(300, withTiming(0, { duration: 250 }))
+          )
+        );
+      });
 
-      setTimeout(() => { completeOnboarding(); }, 900);
+      setTimeout(() => { completeOnboarding(); }, 1000);
     } catch (err) {
       setError("Gagal menyimpan profil. Cek koneksi internet kamu.");
     } finally {
@@ -284,15 +343,11 @@ export default function ProfileSetupScreen() {
         ]}
       >
         <View className="flex-row mb-4">
-          <Animated.View style={[heartStyle0, { marginHorizontal: 6 }]}>
-            <Ionicons name="heart" size={28} color={colors.primary} />
-          </Animated.View>
-          <Animated.View style={[heartStyle1, { marginHorizontal: 6 }]}>
-            <Ionicons name="heart" size={28} color={colors.primary} />
-          </Animated.View>
-          <Animated.View style={[heartStyle2, { marginHorizontal: 6 }]}>
-            <Ionicons name="heart" size={28} color={colors.primary} />
-          </Animated.View>
+          {HEART_CONFIG.map((cfg, i) => (
+            <Animated.View key={i} style={[heartStyles[i], { marginHorizontal: 4 }]}>
+              <Ionicons name="heart" size={cfg.size} color={i % 2 === 0 ? colors.primary : colors.secondary} />
+            </Animated.View>
+          ))}
         </View>
         <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>
           {t.trimester.replace("{n}", String(submittedProfile?.trimester ?? ""))} , {t.week.replace("{n}", String(submittedProfile?.gestational_week ?? ""))}! 🎉
@@ -306,7 +361,7 @@ export default function ProfileSetupScreen() {
             {error}
           </Text>
         )}
-        <TouchableOpacity onPress={handleContinue} activeOpacity={0.85} disabled={isSubmitting}>
+        <AnimatedPressable haptic onPress={handleContinue} disabled={isSubmitting}>
           <LinearGradient
             colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }}
@@ -334,7 +389,7 @@ export default function ProfileSetupScreen() {
               </>
             )}
           </LinearGradient>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </SafeAreaView>
   );

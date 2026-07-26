@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import apiClient from "../../api/client";
@@ -10,6 +11,8 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import AppHeader from "../../components/AppHeader";
+import { SkeletonListItem } from "@/components/Skeleton";
+import BouncingIcon from "@/components/BouncingIcon";
 import { useFocusEffect } from "@react-navigation/native";
 
 interface EducationContent {
@@ -85,47 +88,55 @@ export default function EducationListScreen({ navigation }: any) {
         )}
 
         {isLoading ? (
-          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 32 }} />
+          <View style={{ marginTop: 4 }}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <SkeletonListItem key={i} />
+            ))}
+          </View>
         ) : filtered.length === 0 ? (
-          <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center", marginTop: 32 }}>
-            {search ? t.noTopics : t.contentLoading}
-          </Text>
+          <View className="items-center" style={{ marginTop: 32 }}>
+            <BouncingIcon name="book-outline" size={40} color={colors.outlineVariant} />
+            <Text style={{ fontFamily: fonts.regular, color: colors.textSecondary, textAlign: "center", marginTop: 12 }}>
+              {search ? t.noTopics : t.contentLoading}
+            </Text>
+          </View>
         ) : (
-          filtered.map((topic) => {
+          filtered.map((topic, idx) => {
             const style = categoryStyle[topic.category] ?? defaultStyle;
             return (
-              <TouchableOpacity
-                key={topic.content_id}
-                onPress={() => navigation.navigate("EducationDetail", { id: topic.content_id, title: topic.title, body: topic.body })}
-                className="flex-row items-center mb-3 p-4"
-                style={{ backgroundColor: colors.surface, borderRadius: 20 }}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: style.bg,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: 12,
-                  }}
+              <Animated.View key={topic.content_id} entering={FadeInDown.delay(idx * 40).duration(300)}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("EducationDetail", { id: topic.content_id, title: topic.title, body: topic.body })}
+                  className="flex-row items-center mb-3 p-4"
+                  style={{ backgroundColor: colors.surface, borderRadius: 20 }}
+                  activeOpacity={0.7}
                 >
-                  <Ionicons name={style.icon} size={22} color={style.color} />
-                </View>
-                <View className="flex-1">
-                  <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary }}>
-                    {t.educationTitles[topic.title] ?? topic.title}
-                  </Text>
-                  {topic.trimester && (
-                    <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                      {t.filterTrimester.replace("{n}", String(topic.trimester))}
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: style.bg,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Ionicons name={style.icon} size={22} color={style.color} />
+                  </View>
+                  <View className="flex-1">
+                    <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.textPrimary }}>
+                      {t.educationTitles[topic.title] ?? topic.title}
                     </Text>
-                  )}
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-              </TouchableOpacity>
+                    {topic.trimester && (
+                      <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                        {t.filterTrimester.replace("{n}", String(topic.trimester))}
+                      </Text>
+                    )}
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </Animated.View>
             );
           })
         )}

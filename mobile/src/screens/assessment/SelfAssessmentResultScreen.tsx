@@ -1,11 +1,13 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { colors, riskCategoryStyle } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { AssessmentResult } from "../../types";
 import { useTranslation } from "../../hooks/useTranslation";
+import AnimatedPressable from "@/components/AnimatedPressable";
 
 export default function SelfAssessmentResultScreen({ route, navigation }: any) {
   const result: AssessmentResult = route.params.result;
@@ -13,11 +15,22 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
   const isHigh = result.risk_category === "HIGH";
   const { t, language } = useTranslation();
 
+  const badgeScale = useSharedValue(0.8);
+  const badgeOpacity = useSharedValue(0);
+  useEffect(() => {
+    badgeScale.value = withSpring(1, { damping: 12, stiffness: 180 });
+    badgeOpacity.value = withSpring(1, { damping: 20 });
+  }, []);
+  const badgeStyle = useAnimatedStyle(() => ({
+    opacity: badgeOpacity.value,
+    transform: [{ scale: badgeScale.value }],
+  }));
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
         {/* Status card */}
-        <View className="items-center mb-6 p-6" style={{ backgroundColor: risk.bg, borderRadius: 24 }}>
+        <Animated.View className="items-center mb-6 p-6" style={[{ backgroundColor: risk.bg, borderRadius: 24 }, badgeStyle]}>
           <View
             style={{
               width: 64,
@@ -43,11 +56,11 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           >
             {result.risk_category === "LOW" ? t.riskLowResult : result.risk_category === "MEDIUM" ? t.riskMediumResult : t.riskHighResult}
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Red flags yang trigger */}
         {result.triggered_red_flags && result.triggered_red_flags.length > 0 && (
-          <View className="mb-6">
+          <Animated.View entering={FadeInUp.delay(100).duration(350)} className="mb-6">
             <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.textPrimary, marginBottom: 10 }}>
               {t.needsAttention}
             </Text>
@@ -63,11 +76,10 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
                 </Text>
               </View>
             ))}
-          </View>
-          
+          </Animated.View>
         )}
         {result.duration_triggered_symptoms && result.duration_triggered_symptoms.length > 0 && (
-          <View className="mb-6">
+          <Animated.View entering={FadeInUp.delay(150).duration(350)} className="mb-6">
             <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.textPrimary, marginBottom: 10 }}>
               {t.ongoingSymptoms}
             </Text>
@@ -96,11 +108,11 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
                 </View>
               );
             })}
-          </View>
+          </Animated.View>
         )}
 
         {result.bp_category && result.bp_category !== "NORMAL" && (
-          <View className="flex-row items-center p-4 mb-4" style={{ backgroundColor: colors.riskMediumBg, borderRadius: 16, gap: 10 }}>
+          <Animated.View entering={FadeInUp.delay(200).duration(350)} className="flex-row items-center p-4 mb-4" style={{ backgroundColor: colors.riskMediumBg, borderRadius: 16, gap: 10 }}>
             <Ionicons name="heart-outline" size={18} color={colors.riskMedium} />
             <View className="flex-1">
               <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.riskMedium }}>
@@ -110,26 +122,26 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
                 {result.bp_category === "ELEVATED" ? t.bpElevated : result.bp_category === "STAGE_1" ? t.bpStage1 : result.bp_category === "STAGE_2" ? t.bpStage2 : t.bpCrisis}
               </Text>
             </View>
-          </View>
+          </Animated.View>
         )}
 
         {/* Skor (kalau ga red-flag) */}
         {!isHigh || result.triggered_red_flags?.length === 0 ? (
-          <View className="flex-row items-center justify-between p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>
+          <Animated.View entering={FadeInUp.delay(250).duration(350)} className="flex-row items-center justify-between p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>
             <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.totalScore}</Text>
             <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.textPrimary }}>
               {result.total_score}
             </Text>
-          </View>
+          </Animated.View>
         ) : null}
 
         {/* CTA */}
         {isHigh ? (
-          <TouchableOpacity activeOpacity={0.85} style={{ marginBottom: 12 }}>
+          <AnimatedPressable haptic style={{ marginBottom: 12 }}>
             <View style={{ backgroundColor: colors.riskHigh, borderRadius: 999, paddingVertical: 16, alignItems: "center" }}>
               <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>{t.goToFaskes}</Text>
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         ) : null}
 
         {/* <TouchableOpacity
@@ -142,7 +154,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           </View>
         </TouchableOpacity> */}
 
-        <TouchableOpacity onPress={() => navigation.popToTop()} activeOpacity={0.85} style={{ marginBottom: 24 }}>
+        <AnimatedPressable haptic onPress={() => navigation.popToTop()} style={{ marginBottom: 24 }}>
           <View
             style={{
               borderWidth: 1.5,
@@ -154,7 +166,7 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           >
             <Text style={{ fontFamily: fonts.semibold, color: colors.primary }}>{t.backHome}</Text>
           </View>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </ScrollView>
     </SafeAreaView>
   );

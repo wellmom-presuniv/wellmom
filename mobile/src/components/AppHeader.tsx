@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Animated, View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import ReanimatedView, { FadeInDown } from "react-native-reanimated";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/fonts";
 import { useLanguageStore } from "../store/useLanguageStore";
 import { useNotificationStore } from "../store/useNotificationStore";
 import { useTranslation } from "../hooks/useTranslation";
 import { sendLocalNotification } from "../services/notificationService";
+import AnimatedPressable from "./AnimatedPressable";
 
 interface AppHeaderProps {
   title: string;
@@ -110,18 +112,22 @@ export default function AppHeader({ title, notificationMessage }: AppHeaderProps
 
   return (
     <View className="flex-row items-center justify-between px-5 pt-2 pb-4" style={{ position: "relative" }}>
-      <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>{title}</Text>
+      <ReanimatedView.View entering={FadeInDown.duration(350)}>
+        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>{title}</Text>
+      </ReanimatedView.View>
       <View className="flex-row" style={{ gap: 8, position: "relative" }}>
-        <TouchableOpacity
+        <AnimatedPressable
+          haptic
           onPress={() => setLanguage(language === "id" ? "en" : "id")}
           style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
         >
           <Text style={{ fontFamily: fonts.bold, fontSize: 11, color: colors.primary }}>
             {language === "id" ? "ID" : "EN"}
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
         <View style={styles.notificationWrapper}>
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             onPress={onNotificationPress}
             style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surfaceContainer, alignItems: "center", justifyContent: "center" }}
           >
@@ -130,7 +136,7 @@ export default function AppHeader({ title, notificationMessage }: AppHeaderProps
               size={18}
               color={colors.primary}
             />
-          </TouchableOpacity>
+          </AnimatedPressable>
           {bubbleVisible && (
             <Animated.View
               style={[
