@@ -51,3 +51,17 @@ export async function getLocalMonitoringHistory(type: MonitoringHistoryType): Pr
     return [];
   }
 }
+
+export function isLocalMonitoringId(id: string): boolean {
+  return id.startsWith("local-");
+}
+
+export async function removeLocalMonitoringEntry(type: MonitoringHistoryType, recordId: string): Promise<void> {
+  const existing = await getLocalMonitoringHistory(type);
+  const updated = existing.filter((entry) => entry.record_id !== recordId);
+  try {
+    await AsyncStorage.setItem(STORAGE_PREFIX + type, JSON.stringify(updated));
+  } catch (err) {
+    console.warn(`Gagal hapus riwayat lokal ${type}:`, err);
+  }
+}

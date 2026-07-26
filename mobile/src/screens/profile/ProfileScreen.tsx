@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withRepeat, withTiming, Easing } from "react-native-reanimated";
+import Animated, { FadeInDown, FadeInRight, FadeInUp, ZoomIn, useAnimatedStyle, useSharedValue, withRepeat, withTiming, Easing } from "react-native-reanimated";
 import { useAuthStore } from "../../store/useAuthStore";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
@@ -17,6 +17,7 @@ import { useNotificationStore } from "../../store/useNotificationStore"
 import { ensureNotificationPermissions } from "../../services/notificationService";
 import PressableRow from "@/components/PressableRow";
 import AnimatedPressable from "@/components/AnimatedPressable";
+import AnimatedSwitch from "@/components/AnimatedSwitch";
 function SettingsRow({ icon, label, subtitle, color, bg }: { icon: any; label: string; subtitle?: string; color: string; bg: string }) {
   return (
     <TouchableOpacity className="flex-row items-center px-4 py-3" activeOpacity={0.6}>
@@ -73,10 +74,7 @@ export default function ProfileScreen({navigation}: any) {
   useFocusEffect(
     useCallback(() => {
       getMyProfile()
-        .then((p) => {
-          console.log("✅ Profil:", p);
-          setProfile(p);
-        })
+        .then(setProfile)
         .catch((err) => console.warn("Gagal fetch profil:", err));
     }, [])
   );
@@ -115,7 +113,7 @@ export default function ProfileScreen({navigation}: any) {
           />
 
           <Animated.View entering={FadeInDown.duration(320)} className="items-center pt-8 pb-6">
-            <Animated.View style={[{ marginBottom: 12 }, avatarPulseStyle]}>
+            <Animated.View entering={ZoomIn.duration(500).delay(100)} style={[{ marginBottom: 12 }, avatarPulseStyle]}>
               <LinearGradient
                 colors={[colors.primary, colors.secondary]}
                 style={{ width: 96, height: 96, borderRadius: 48, alignItems: "center", justifyContent: "center" }}
@@ -165,7 +163,7 @@ export default function ProfileScreen({navigation}: any) {
             style={{ backgroundColor: colors.surface, borderRadius: 20, marginBottom: 20, overflow: "hidden" }}
           >
             {ACCOUNT_ITEMS.map((item, idx) => (
-              <View key={item.id}>
+              <Animated.View key={item.id} entering={FadeInRight.duration(300).delay(idx * 50)}>
                 <PressableRow
                   className="flex-row items-center px-4 py-3"
                   onPress={() => {
@@ -184,7 +182,7 @@ export default function ProfileScreen({navigation}: any) {
                     )}
                   </View>
                   {item.id === "notif" ? (
-                    <Ionicons name={notifEnabled ? "toggle" : "toggle-outline"} size={28} color={notifEnabled ? colors.primary : colors.outlineVariant} />
+                    <AnimatedSwitch value={notifEnabled} />
                   ) : (
                     <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
                   )}
@@ -192,7 +190,7 @@ export default function ProfileScreen({navigation}: any) {
                 {idx < ACCOUNT_ITEMS.length - 1 && (
                   <View style={{ height: 1, backgroundColor: colors.outlineVariant, marginLeft: 64 }} />
                 )}
-              </View>
+              </Animated.View>
             ))}
           </Animated.View>
 
@@ -207,7 +205,7 @@ export default function ProfileScreen({navigation}: any) {
             style={{ backgroundColor: colors.surface, borderRadius: 20, marginBottom: 32, overflow: "hidden" }}
           >
             {SUPPORT_ITEMS.map((item, idx) => (
-              <View key={item.id}>
+              <Animated.View key={item.id} entering={FadeInRight.duration(300).delay(idx * 50)}>
                 <PressableRow
                   className="flex-row items-center px-4 py-3"
                   onPress={() => {
@@ -226,7 +224,7 @@ export default function ProfileScreen({navigation}: any) {
                 {idx < SUPPORT_ITEMS.length - 1 && (
                   <View style={{ height: 1, backgroundColor: colors.outlineVariant, marginLeft: 64 }} />
                 )}
-              </View>
+              </Animated.View>
             ))}
           </Animated.View>
 

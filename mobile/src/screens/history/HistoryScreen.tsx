@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeIn, FadeInUp } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInUp, FadeOut, LinearTransition } from "react-native-reanimated";
 import { colors, riskCategoryStyle, RiskCategory } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
-import { getAssessmentHistory } from "../../api/assessmentService";
+import { getAssessmentHistory, deleteAssessmentResponse } from "../../api/assessmentService";
 import { getChecklistHistory } from "../../api/checklistService";
 import type { AssessmentResult, ChecklistHistoryDay } from "../../types";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -41,6 +41,34 @@ export default function HistoryScreen() {
         .finally(() => setIsLoading(false));
     }
   }, [tab, isFocused]);
+
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  const handleDeleteAssessment = (responseId: string) => {
+    Alert.alert(t.deleteHistoryConfirmTitle, t.deleteHistoryConfirmMessage, [
+      { text: t.cancel, style: "cancel" },
+      {
+        text: t.delete,
+        style: "destructive",
+        onPress: async () => {
+          setDeletingIds((prev) => new Set(prev).add(responseId));
+          try {
+            await deleteAssessmentResponse(responseId);
+            setHistory((prev) => prev.filter((entry) => entry.response_id !== responseId));
+          } catch (err) {
+            console.warn("Gagal hapus riwayat assessment:", err);
+            Alert.alert(t.deleteHistoryFailedTitle, t.deleteHistoryFailedMessage);
+          } finally {
+            setDeletingIds((prev) => {
+              const next = new Set(prev);
+              next.delete(responseId);
+              return next;
+            });
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -109,10 +137,13 @@ export default function HistoryScreen() {
               const risk = riskCategoryStyle[entry.risk_category];
               const isLast = idx === history.length - 1;
               const isLatest = idx === 0;
+              const isDeleting = deletingIds.has(entry.response_id);
               return (
                 <Animated.View
                   key={entry.response_id}
                   entering={FadeInUp.delay(Math.min(idx, 6) * 40).duration(300)}
+                  exiting={FadeOut.duration(200)}
+                  layout={LinearTransition.duration(200)}
                   className="flex-row"
                   style={{ marginBottom: isLast ? 0 : 4 }}
                 >
@@ -129,16 +160,29 @@ export default function HistoryScreen() {
                     )}
                     {!isLast && <View style={{ width: 2, flex: 1, backgroundColor: colors.outlineVariant, marginVertical: 2 }} />}
                   </View>
-                  <View className="flex-1 p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 18, marginLeft: 8 }}>
+                  <View className="flex-1 p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 18, marginLeft: 8, opacity: isDeleting ? 0.5 : 1 }}>
                     <View className="flex-row justify-between items-center mb-2">
                       <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
                         {entry.date}
                       </Text>
-                      <View className="flex-row items-center px-2 py-1" style={{ backgroundColor: risk.bg, borderRadius: 999, gap: 4 }}>
-                        <Ionicons name={entry.risk_category === "LOW" ? "checkmark-circle" : "information-circle"} size={13} color={risk.color} />
-                        <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: risk.color }}>
-                          {entry.risk_category === "LOW" ? t.riskLow : entry.risk_category === "MEDIUM" ? t.riskMedium : t.riskHigh}
-                        </Text>
+                      <View className="flex-row items-center" style={{ gap: 6 }}>
+                        <View className="flex-row items-center px-2 py-1" style={{ backgroundColor: risk.bg, borderRadius: 999, gap: 4 }}>
+                          <Ionicons name={entry.risk_category === "LOW" ? "checkmark-circle" : "information-circle"} size={13} color={risk.color} />
+                          <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: risk.color }}>
+                            {entry.risk_category === "LOW" ? t.riskLow : entry.risk_category === "MEDIUM" ? t.riskMedium : t.riskHigh}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => handleDeleteAssessment(entry.response_id)}
+                          disabled={isDeleting}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          {isDeleting ? (
+                            <ActivityIndicator size="small" color={colors.textSecondary} />
+                          ) : (
+                            <Ionicons name="trash-outline" size={14} color={colors.textSecondary} />
+                          )}
+                        </TouchableOpacity>
                       </View>
                     </View>
                     {entry.red_flag_triggered && entry.triggered_red_flags.length > 0 && (
@@ -158,7 +202,7 @@ export default function HistoryScreen() {
                       <View className="flex-row items-center px-2 py-1" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 999, gap: 4 }}>
                         <Ionicons name="stats-chart" size={11} color={colors.textSecondary} />
                         <Text style={{ fontFamily: fonts.medium, fontSize: 11, color: colors.textSecondary }}>
-                          {entry.total_score ?? "—"}
+                          {t.totalScore}: {entry.total_score ?? "—"}
                         </Text>
                       </View>
                       <View className="flex-row items-center px-2 py-1" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 999, gap: 4 }}>

@@ -33,20 +33,15 @@ export const useChecklistStore = create<ChecklistState>((set, get) => ({
         apiClient.get("/checklist/history?limit=30"),
       ]);
 
-      console.log("✅ todayData items:", todayData.items?.map((i: any) => `${i.label}: ${i.is_completed}`));
-  
       const newChecked: Record<string, Record<string, boolean>> = {};
 
       // Today
       const todayKey = new Date().toLocaleDateString("sv-SE");
-      console.log("todayKey:", todayKey);
       const todayChecked: Record<string, boolean> = {};
       (todayData.items ?? []).forEach((item: any) => {
         todayChecked[item.item_id] = item.is_completed;
       });
       newChecked[todayKey] = todayChecked;
-      console.log("✅ newChecked for today:", JSON.stringify(newChecked[todayKey]));
-      console.log("✅ todayKey in newChecked:", todayKey);
 
       // History
       historyData.forEach((day: any) => {

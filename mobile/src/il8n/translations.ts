@@ -326,6 +326,12 @@ export const translations = {
     monitoringTrackerOnly: "Data tersimpan sebagai riwayat. Evaluasi tersedia mulai Trimester 3.",
     monitoringSaved: "Tersimpan",
     monitoringSavedNoEval: "Data berhasil disimpan ke riwayat.",
+    cancel: "Batal",
+    delete: "Hapus",
+    deleteHistoryConfirmTitle: "Hapus catatan ini?",
+    deleteHistoryConfirmMessage: "Data yang sudah dihapus gak bisa dikembalikan.",
+    deleteHistoryFailedTitle: "Gagal menghapus",
+    deleteHistoryFailedMessage: "Coba lagi nanti.",
   },
 
   en: {
@@ -1009,6 +1015,12 @@ export const translations = {
     monitoringTrackerOnly: "Data saved to history. Evaluation available from Trimester 3.",
     monitoringSaved: "Saved",
     monitoringSavedNoEval: "Data successfully saved to history.",
+    cancel: "Cancel",
+    delete: "Delete",
+    deleteHistoryConfirmTitle: "Delete this entry?",
+    deleteHistoryConfirmMessage: "Deleted data can't be recovered.",
+    deleteHistoryFailedTitle: "Failed to delete",
+    deleteHistoryFailedMessage: "Please try again later.",
   },
 };
 

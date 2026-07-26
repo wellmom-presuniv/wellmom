@@ -46,3 +46,9 @@ export async function getMonitoringHistory(type: MonitoringHistoryType): Promise
   });
   return data;
 }
+
+// Backend belum punya endpoint ini (dikoordinasikan ke tim backend) — begitu tersedia,
+// kontraknya diasumsikan DELETE /monitoring/{record_id} -> 204/200 no body.
+export async function deleteMonitoringRecord(recordId: string): Promise<void> {
+  await apiClient.delete(`/monitoring/${recordId}`);
+}
