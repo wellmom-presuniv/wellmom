@@ -53,3 +53,26 @@ async def get_history(
     )
 
     return list(result.scalars().all())
+
+
+async def delete_record_by_id_and_user(
+    db: AsyncSession,
+    *,
+    record_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> bool:
+    result = await db.execute(
+        select(MonitoringRecord).where(
+            MonitoringRecord.record_id == record_id,
+            MonitoringRecord.user_id == user_id,
+        )
+    )
+    record = result.scalar_one_or_none()
+
+    if record is None:
+        return False
+
+    await db.delete(record)
+    await db.flush()
+
+    return True

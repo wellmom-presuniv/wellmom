@@ -302,3 +302,23 @@ async def get_monitoring_history(
         )
 
     return history
+
+
+async def delete_monitoring_record(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    record_id: uuid.UUID,
+) -> None:
+    deleted = await monitoring_crud.delete_record_by_id_and_user(
+        db=db,
+        record_id=record_id,
+        user_id=user_id,
+    )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Monitoring record tidak ditemukan",
+        )
+
+    await db.commit()

@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_user_id
@@ -87,3 +87,21 @@ async def get_assessment_history(
         limit=limit,
         offset=offset,
     )
+
+
+@router.delete(
+    "/assessment/{response_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_assessment_response(
+    response_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    await assessment_service.delete_assessment_response(
+        db=db,
+        user_id=user_id,
+        response_id=response_id,
+    )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

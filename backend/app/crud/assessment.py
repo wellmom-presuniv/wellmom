@@ -205,3 +205,26 @@ async def get_assessment_history(
         .limit(limit)
     )
     return result.all()
+
+
+async def delete_response_by_id_and_user(
+    db: AsyncSession,
+    *,
+    response_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> bool:
+    result = await db.execute(
+        select(AssessmentResponse).where(
+            AssessmentResponse.response_id == response_id,
+            AssessmentResponse.user_id == user_id,
+        )
+    )
+    response = result.scalar_one_or_none()
+
+    if response is None:
+        return False
+
+    await db.delete(response)
+    await db.flush()
+
+    return True

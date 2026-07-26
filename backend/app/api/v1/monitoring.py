@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user_id, get_db
@@ -108,3 +108,21 @@ async def get_monitoring_history(
         limit=limit,
         offset=offset,
     )
+
+
+@router.delete(
+    "/monitoring/{record_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_monitoring_record(
+    record_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    await monitoring_service.delete_monitoring_record(
+        db=db,
+        user_id=user_id,
+        record_id=record_id,
+    )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
