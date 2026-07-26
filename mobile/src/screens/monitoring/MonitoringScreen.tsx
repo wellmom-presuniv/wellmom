@@ -10,6 +10,8 @@ import { useTranslation } from "../../hooks/useTranslation";
 import AppHeader from "../../components/AppHeader";
 import AnimatedPressable from "@/components/AnimatedPressable";
 import BouncingIcon from "@/components/BouncingIcon";
+import { getMyProfile } from "../../api/profileService";
+import { PregnancyProfile } from "../../types";
 import {
   logFetalWeight,
   logHeadCircumference,
@@ -23,6 +25,11 @@ import {
   MonitoringHistoryEntry,
   MonitoringHistoryType,
 } from "../../types/monitoring";
+
+// "SAVED" = tersimpan tapi belum dievaluasi (trimester 1/2) — bukan status dari backend.
+type FetalResultDisplay = Omit<FetalWeightLogResponse, "status"> & {
+  status: NonNullable<FetalWeightLogResponse["status"]> | "SAVED";
+};
 
 type MonitoringTab = "janin" | "bayi";
 type BayiIndicator = "WEIGHT" | "LENGTH" | "HEAD_CIRCUMFERENCE";
@@ -119,6 +126,13 @@ function HistorySection({
 export default function MonitoringScreen() {
   const { t, language } = useTranslation();
   const [tab, setTab] = useState<MonitoringTab>("janin");
+  const [profile, setProfile] = useState<PregnancyProfile | null>(null);
+
+  useEffect(() => {
+    getMyProfile()
+      .then(setProfile)
+      .catch((err) => console.warn("Gagal ambil profil:", err));
+  }, []);
 
   const formatDate = useCallback(
     (iso: string) => {
@@ -137,7 +151,7 @@ export default function MonitoringScreen() {
 
   // ===== Section 1: Berat Janin =====
   const [fetalWeight, setFetalWeight] = useState("");
-  const [fetalResult, setFetalResult] = useState<FetalWeightLogResponse | null>(null);
+  const [fetalResult, setFetalResult] = useState<FetalResultDisplay | null>(null);
   const [isCheckingFetal, setIsCheckingFetal] = useState(false);
   const [fetalError, setFetalError] = useState<string | null>(null);
   const [fetalHistory, setFetalHistory] = useState<MonitoringHistoryEntry[]>([]);
@@ -215,7 +229,7 @@ export default function MonitoringScreen() {
   // TB ibu biasanya tetap — prefill dari entry terakhir kalau ada & user belum ngetik apa-apa
   useEffect(() => {
     if (maternalHistory.length > 0 && !maternalHeight) {
-      setMaternalHeight(String(maternalHistory[0].height_cm ?? ""));
+      setMaternalHeight(String(maternalHistory[0].maternal_height_cm ?? ""));
     }
   }, [maternalHistory]);
 
@@ -227,7 +241,12 @@ export default function MonitoringScreen() {
     try {
       const grams = Math.round(parseFloat(fetalWeight) * 1000);
       const result = await logFetalWeight(grams);
-      setFetalResult(result);
+      if (result.status === null) {
+        // Trimester 1/2 — tersimpan tapi belum dievaluasi
+        setFetalResult({ ...result, status: "SAVED", message: t.monitoringSavedNoEval });
+      } else {
+        setFetalResult(result as FetalResultDisplay);
+      }
       refreshFetalHistory();
     } catch (err) {
       console.warn("Gagal cek berat janin:", err);
@@ -298,11 +317,15 @@ export default function MonitoringScreen() {
   const getStatusStyle = (status: string) => {
     if (status === "NORMAL") return { color: colors.riskLow, bg: colors.riskLowBg, icon: "checkmark-circle" as const };
     if (status === "ABOVE_NORMAL") return { color: "#F59E0B", bg: "rgba(245,158,11,0.1)", icon: "warning" as const };
+    if (status === "SAVED") return { color: colors.primary, bg: colors.primaryContainer, icon: "checkmark-circle-outline" as const };
     return { color: colors.riskHigh, bg: colors.riskHighBg, icon: "alert-circle" as const };
   };
 
   const getStatusLabel = (status: string) =>
-    status === "NORMAL" ? t.normalResult : status === "BELOW_NORMAL" ? t.belowNormal : t.aboveNormal;
+    status === "NORMAL" ? t.normalResult
+      : status === "BELOW_NORMAL" ? t.belowNormal
+      : status === "ABOVE_NORMAL" ? t.aboveNormal
+      : t.monitoringSaved;
 
   const getZoneStyle = (zone: "NORMAL" | "CONCERN" | "SEVERE") => {
     if (zone === "NORMAL") return { color: colors.riskLow, bg: colors.riskLowBg, icon: "checkmark-circle" as const, label: t.zoneNormal };
@@ -319,9 +342,9 @@ export default function MonitoringScreen() {
   const fetalHistoryRows: HistoryRow[] = fetalHistory.map((e) => {
     const style = e.status ? getStatusStyle(e.status) : null;
     return {
-      id: e.id,
-      date: formatDate(e.measurement_date),
-      valueLabel: `${((e.weight_grams ?? 0) / 1000).toFixed(2)} kg`,
+      id: e.record_id,
+      date: formatDate(e.date),
+      valueLabel: `${((e.fetal_weight_grams ?? 0) / 1000).toFixed(2)} kg`,
       badgeText: e.status ? getStatusLabel(e.status) : undefined,
       badgeColor: style?.color,
       badgeBg: style?.bg,
@@ -329,23 +352,23 @@ export default function MonitoringScreen() {
   });
 
   const headCircHistoryRows: HistoryRow[] = headCircHistory.map((e) => ({
-    id: e.id,
-    date: formatDate(e.measurement_date),
+    id: e.record_id,
+    date: formatDate(e.date),
     valueLabel: `${e.head_circumference_cm ?? "—"} cm`,
   }));
 
   const maternalHistoryRows: HistoryRow[] = maternalHistory.map((e) => ({
-    id: e.id,
-    date: formatDate(e.measurement_date),
-    valueLabel: `${e.weight_kg ?? "—"} kg · ${e.height_cm ?? "—"} cm`,
+    id: e.record_id,
+    date: formatDate(e.date),
+    valueLabel: `${e.maternal_weight_kg ?? "—"} kg · ${e.maternal_height_cm ?? "—"} cm`,
   }));
 
   const growthHistoryRows: HistoryRow[] = growthHistory.map((e) => {
     const style = e.zone ? getZoneStyle(e.zone) : null;
     const unit = e.indicator === "WEIGHT" ? "kg" : "cm";
     return {
-      id: e.id,
-      date: formatDate(e.measurement_date),
+      id: e.record_id,
+      date: formatDate(e.date),
       valueLabel: `${e.value ?? "—"} ${unit}`,
       badgeText: style?.label,
       badgeColor: style?.color,
@@ -384,6 +407,15 @@ export default function MonitoringScreen() {
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {tab === "janin" ? (
           <Animated.View key="janin" entering={FadeIn.duration(220)}>
+            {profile && (
+              <View className="flex-row items-center p-3 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 12, gap: 8 }}>
+                <Ionicons name="information-circle" size={16} color={colors.primary} />
+                <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.primary, flex: 1 }}>
+                  {profile.trimester === 3 ? t.monitoringT3Active : t.monitoringTrackerOnly}
+                </Text>
+              </View>
+            )}
+
             {/* Section 1: Berat Janin */}
             <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
               <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary, marginBottom: 4 }}>

@@ -322,6 +322,10 @@ export const translations = {
     growthHistory: "Riwayat Pertumbuhan",
     historyEmpty: "Belum ada data",
     lastRecords: "3 catatan terakhir",
+    monitoringT3Active: "Trimester 3 — evaluasi berat janin aktif",
+    monitoringTrackerOnly: "Data tersimpan sebagai riwayat. Evaluasi tersedia mulai Trimester 3.",
+    monitoringSaved: "Tersimpan",
+    monitoringSavedNoEval: "Data berhasil disimpan ke riwayat.",
   },
 
   en: {
@@ -1001,6 +1005,10 @@ export const translations = {
     growthHistory: "Growth History",
     historyEmpty: "No data yet",
     lastRecords: "Last 3 records",
+    monitoringT3Active: "Trimester 3 — fetal weight evaluation is active",
+    monitoringTrackerOnly: "Data saved to history. Evaluation available from Trimester 3.",
+    monitoringSaved: "Saved",
+    monitoringSavedNoEval: "Data successfully saved to history.",
   },
 };
 
