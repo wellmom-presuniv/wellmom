@@ -32,8 +32,8 @@ class FetalWeightLogResponse(BaseModel):
     record_id: uuid.UUID
     date: date
     weight_grams: float
-    status: str
-    message: str
+    status: str | None = None
+    message: str | None = None
 
 
 class HeadCircumferenceLogRequest(BaseModel):

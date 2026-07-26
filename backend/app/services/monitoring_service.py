@@ -33,7 +33,7 @@ def _resolve_measurement_date(measurement_date: date | None) -> date:
     return selected_date
 
 
-async def _require_trimester_three_profile(
+async def _require_pregnancy_profile(
     db: AsyncSession,
     user_id: uuid.UUID,
     measurement_date: date,
@@ -61,10 +61,24 @@ async def _require_trimester_three_profile(
         today=measurement_date,
     )
 
+    return profile, stats
+
+
+async def _require_trimester_three_profile(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    measurement_date: date,
+):
+    profile, stats = await _require_pregnancy_profile(
+        db=db,
+        user_id=user_id,
+        measurement_date=measurement_date,
+    )
+
     if stats["trimester"] != 3:
         raise HTTPException(
             status_code=422,
-            detail="Monitoring janin hanya tersedia pada trimester 3",
+            detail="Monitoring ini hanya tersedia pada trimester 3",
         )
 
     return profile
@@ -77,14 +91,19 @@ async def log_fetal_weight(
 ) -> dict:
     measurement_date = _resolve_measurement_date(payload.measurement_date)
 
-    profile = await _require_trimester_three_profile(
+    profile, stats = await _require_pregnancy_profile(
         db=db,
         user_id=user_id,
         measurement_date=measurement_date,
     )
 
     weight_kg = payload.weight_grams / 1000
-    evaluation = check_fetal_weight(weight_kg)
+
+    evaluation = (
+        check_fetal_weight(weight_kg)
+        if stats["trimester"] == 3
+        else None
+    )
 
     record = await monitoring_crud.create_record(
         db=db,
@@ -93,8 +112,16 @@ async def log_fetal_weight(
         record_type=MonitoringType.FETAL_WEIGHT.value,
         check_date=measurement_date,
         fetal_weight_grams=payload.weight_grams,
-        evaluation_status=evaluation["status"],
-        evaluation_message=evaluation["message"],
+        evaluation_status=(
+            evaluation["status"]
+            if evaluation is not None
+            else None
+        ),
+        evaluation_message=(
+            evaluation["message"]
+            if evaluation is not None
+            else None
+        ),
     )
 
     return {
@@ -113,7 +140,7 @@ async def log_head_circumference(
 ) -> dict:
     measurement_date = _resolve_measurement_date(payload.measurement_date)
 
-    profile = await _require_trimester_three_profile(
+    profile, _ = await _require_pregnancy_profile(
         db=db,
         user_id=user_id,
         measurement_date=measurement_date,
@@ -121,7 +148,7 @@ async def log_head_circumference(
 
     info = get_head_circumference_info()
 
-    record = await crud.monitoring.create_record(
+    record = await monitoring_crud.create_record(
         db=db,
         user_id=user_id,
         pregnancy_profile_id=profile.profile_id,
@@ -157,7 +184,7 @@ async def log_maternal_measurement(
         measurement_date=measurement_date,
     )
 
-    record = await crud.monitoring.create_record(
+    record = await monitoring_crud.create_record(
         db=db,
         user_id=user_id,
         pregnancy_profile_id=profile.profile_id,
@@ -195,7 +222,7 @@ async def evaluate_and_log_growth(
             detail=result["error"],
         )
 
-    record = await crud.monitoring.create_record(
+    record = await monitoring_crud.create_record(
         db=db,
         user_id=user_id,
         pregnancy_profile_id=None,

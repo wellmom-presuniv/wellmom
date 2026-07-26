@@ -40,6 +40,6 @@ def get_head_circumference_info() -> dict:
     return {
         "reference_min_cm": min_cm,
         "reference_max_cm": max_cm,
-        "info_text": f"Lingkar kepala normal: {min_cm}-{max_cm} cm",
+        "info_text": f"Referensi lingkar kepala bayi saat lahir: {min_cm}-{max_cm} cm",
         "is_evaluated": False,  # penanda eksplisit -- ini BUKAN warning system
     }
