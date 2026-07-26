@@ -25,6 +25,7 @@ import {
   MonitoringHistoryEntry,
   MonitoringHistoryType,
 } from "../../types/monitoring";
+import { saveLocalMonitoringEntry, getLocalMonitoringHistory } from "../../services/monitoringLocalStore";
 
 // "SAVED" = tersimpan tapi belum dievaluasi (trimester 1/2) — bukan status dari backend.
 type FetalResultDisplay = Omit<FetalWeightLogResponse, "status"> & {
@@ -186,12 +187,14 @@ export default function MonitoringScreen() {
   const [isGrowthHistoryLoading, setIsGrowthHistoryLoading] = useState(true);
 
   const fetchHistory = useCallback(async (type: MonitoringHistoryType) => {
+    const local = await getLocalMonitoringHistory(type);
     try {
-      const data = await getMonitoringHistory(type);
-      return data.slice(0, 3);
+      const server = await getMonitoringHistory(type);
+      const merged = [...local, ...server].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+      return merged.slice(0, 3);
     } catch (err) {
       console.warn(`Gagal fetch history ${type}:`, err);
-      return [];
+      return local.slice(0, 3);
     }
   }, []);
 
@@ -240,17 +243,25 @@ export default function MonitoringScreen() {
     setFetalError(null);
     try {
       const grams = Math.round(parseFloat(fetalWeight) * 1000);
-      const result = await logFetalWeight(grams);
-      if (result.status === null) {
-        // Trimester 1/2 — tersimpan tapi belum dievaluasi
-        setFetalResult({ ...result, status: "SAVED", message: t.monitoringSavedNoEval });
+      // Fix backend (origin/feature/backend-monitoring-persistence, commit b58642f) belum di-merge
+      // ke yang lagi jalan — backend aktif masih hard-block non-T3. Simpan lokal dulu, sama kayak maternal.
+      if (profile && profile.trimester !== 3) {
+        const entry = await saveLocalMonitoringEntry("FETAL_WEIGHT", { fetal_weight_grams: grams });
+        setFetalResult({
+          record_id: entry.record_id,
+          date: entry.date,
+          weight_grams: grams,
+          status: "SAVED",
+          message: t.monitoringSavedNoEval,
+        });
       } else {
+        const result = await logFetalWeight(grams);
         setFetalResult(result as FetalResultDisplay);
       }
       refreshFetalHistory();
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Gagal cek berat janin:", err);
-      setFetalError(t.errorNetwork);
+      setFetalError(err?.response?.data?.detail ?? t.errorNetwork);
     } finally {
       setIsCheckingFetal(false);
     }
@@ -262,13 +273,18 @@ export default function MonitoringScreen() {
     setHeadCircError(null);
     setHeadCircSaved(false);
     try {
-      await logHeadCircumference(parseFloat(headCirc));
+      const cm = parseFloat(headCirc);
+      if (profile && profile.trimester !== 3) {
+        await saveLocalMonitoringEntry("HEAD_CIRC", { head_circumference_cm: cm });
+      } else {
+        await logHeadCircumference(cm);
+      }
       setHeadCircSaved(true);
       setHeadCirc("");
       refreshHeadCircHistory();
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Gagal simpan lingkar kepala:", err);
-      setHeadCircError(t.errorNetwork);
+      setHeadCircError(err?.response?.data?.detail ?? t.errorNetwork);
     } finally {
       setIsSavingHeadCirc(false);
     }
@@ -280,7 +296,13 @@ export default function MonitoringScreen() {
     setMaternalError(null);
     setMaternalSaved(false);
     try {
-      await logMaternal(parseFloat(maternalWeight), parseFloat(maternalHeight));
+      const weightKg = parseFloat(maternalWeight);
+      const heightCm = parseFloat(maternalHeight);
+      if (profile && profile.trimester !== 3) {
+        await saveLocalMonitoringEntry("MATERNAL", { maternal_weight_kg: weightKg, maternal_height_cm: heightCm });
+      } else {
+        await logMaternal(weightKg, heightCm);
+      }
       setMaternalSaved(true);
       setMaternalWeight("");
       refreshMaternalHistory();
@@ -315,10 +337,12 @@ export default function MonitoringScreen() {
   };
 
   const getStatusStyle = (status: string) => {
-    if (status === "NORMAL") return { color: colors.riskLow, bg: colors.riskLowBg, icon: "checkmark-circle" as const };
-    if (status === "ABOVE_NORMAL") return { color: "#F59E0B", bg: "rgba(245,158,11,0.1)", icon: "warning" as const };
-    if (status === "SAVED") return { color: colors.primary, bg: colors.primaryContainer, icon: "checkmark-circle-outline" as const };
-    return { color: colors.riskHigh, bg: colors.riskHighBg, icon: "alert-circle" as const };
+    if (status === "NORMAL") return { color: colors.riskLow, bg: colors.riskLowBg, icon: "checkmark-circle" as const, messageColor: colors.textSecondary };
+    if (status === "ABOVE_NORMAL") return { color: "#F59E0B", bg: "rgba(245,158,11,0.1)", icon: "warning" as const, messageColor: colors.textSecondary };
+    // Bg-nya (primaryContainer) itu saturated pink, bukan tint tipis kayak riskLowBg/riskHighBg —
+    // jadi teks/icon warna primary bakal nabrak warnanya. Pake warna background (putih) biar kontras.
+    if (status === "SAVED") return { color: colors.background, bg: colors.primaryContainer, icon: "checkmark-circle-outline" as const, messageColor: colors.background };
+    return { color: colors.riskHigh, bg: colors.riskHighBg, icon: "alert-circle" as const, messageColor: colors.textSecondary };
   };
 
   const getStatusLabel = (status: string) =>
@@ -409,8 +433,8 @@ export default function MonitoringScreen() {
           <Animated.View key="janin" entering={FadeIn.duration(220)}>
             {profile && (
               <View className="flex-row items-center p-3 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 12, gap: 8 }}>
-                <Ionicons name="information-circle" size={16} color={colors.primary} />
-                <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.primary, flex: 1 }}>
+                <Ionicons name="information-circle" size={16} color={colors.background} />
+                <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.background, flex: 1 }}>
                   {profile.trimester === 3 ? t.monitoringT3Active : t.monitoringTrackerOnly}
                 </Text>
               </View>
@@ -469,7 +493,7 @@ export default function MonitoringScreen() {
                       <Text style={{ fontFamily: fonts.bold, fontSize: 14, color: style.color, marginBottom: 4 }}>
                         {getStatusLabel(fetalResult.status)}
                       </Text>
-                      <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary }}>
+                      <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: style.messageColor }}>
                         {fetalResult.message}
                       </Text>
                     </View>
