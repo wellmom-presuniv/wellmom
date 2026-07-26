@@ -22,3 +22,9 @@ export async function getAssessmentHistory(limit = 20, offset = 0): Promise<Asse
   });
   return data;
 }
+
+// Backend belum punya endpoint ini (dikoordinasikan ke tim backend) — begitu tersedia,
+// kontraknya diasumsikan DELETE /assessment/{response_id} -> 204/200 no body.
+export async function deleteAssessmentResponse(responseId: string): Promise<void> {
+  await apiClient.delete(`/assessment/${responseId}`);
+}

@@ -111,10 +111,12 @@ export default function AppHeader({ title, notificationMessage }: AppHeaderProps
   };
 
   return (
-    <View className="flex-row items-center justify-between px-5 pt-2 pb-4" style={{ position: "relative" }}>
-      <ReanimatedView.View entering={FadeInDown.duration(350)}>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>{title}</Text>
-      </ReanimatedView.View>
+    <ReanimatedView.View
+      entering={FadeInDown.duration(300)}
+      className="flex-row items-center justify-between px-5 pt-2 pb-4"
+      style={{ position: "relative", zIndex: 50, elevation: 1 }}
+    >
+      <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.primary }}>{title}</Text>
       <View className="flex-row" style={{ gap: 8, position: "relative" }}>
         <AnimatedPressable
           haptic
@@ -152,7 +154,7 @@ export default function AppHeader({ title, notificationMessage }: AppHeaderProps
           )}
         </View>
       </View>
-    </View>
+    </ReanimatedView.View>
   );
 }
 

@@ -1,8 +1,7 @@
 import axios, { type AxiosRequestHeaders } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// TODO: ganti ke base URL backend Alek (staging/production) begitu ready.
-const BASE_URL = "http://192.168.1.11:8000/api/v1";
+const BASE_URL = "http://172.20.10.2:8000/api/v1";
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -11,8 +10,6 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem("auth_token");
-  console.log("🔑 Token di request interceptor:", token ? token.substring(0, 30) + "..." : "NULL");
-  console.log("📍 URL:", config.url);
   if (token) {
     config.headers = config.headers ?? ({} as AxiosRequestHeaders);
     (config.headers as AxiosRequestHeaders).Authorization = `Bearer ${token}`;

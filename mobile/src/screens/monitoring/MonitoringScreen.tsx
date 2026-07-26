@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, { SlideInLeft, SlideInRight, SlideOutLeft, SlideOutRight, FadeOut, LinearTransition } from "react-native-reanimated";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -18,6 +18,7 @@ import {
   logMaternal,
   evaluateGrowth,
   getMonitoringHistory,
+  deleteMonitoringRecord,
 } from "../../api/monitoringService";
 import {
   FetalWeightLogResponse,
@@ -25,7 +26,12 @@ import {
   MonitoringHistoryEntry,
   MonitoringHistoryType,
 } from "../../types/monitoring";
-import { saveLocalMonitoringEntry, getLocalMonitoringHistory } from "../../services/monitoringLocalStore";
+import {
+  saveLocalMonitoringEntry,
+  getLocalMonitoringHistory,
+  removeLocalMonitoringEntry,
+  isLocalMonitoringId,
+} from "../../services/monitoringLocalStore";
 
 // "SAVED" = tersimpan tapi belum dievaluasi (trimester 1/2) — bukan status dari backend.
 type FetalResultDisplay = Omit<FetalWeightLogResponse, "status"> & {
@@ -50,10 +56,14 @@ function HistorySection({
   title,
   isLoading,
   rows,
+  onDelete,
+  deletingIds,
 }: {
   title: string;
   isLoading: boolean;
   rows: HistoryRow[];
+  onDelete: (id: string) => void;
+  deletingIds: Set<string>;
 }) {
   const { t } = useTranslation();
   return (
@@ -76,8 +86,15 @@ function HistorySection({
       ) : (
         rows.map((row, idx) => {
           const isLast = idx === rows.length - 1;
+          const isDeleting = deletingIds.has(row.id);
           return (
-            <View key={row.id} className="flex-row" style={{ marginBottom: isLast ? 0 : 2 }}>
+            <Animated.View
+              key={row.id}
+              exiting={FadeOut.duration(200)}
+              layout={LinearTransition.duration(200)}
+              className="flex-row"
+              style={{ marginBottom: isLast ? 0 : 2 }}
+            >
               <View style={{ width: 18, alignItems: "center" }}>
                 <View
                   style={{
@@ -93,7 +110,7 @@ function HistorySection({
               </View>
               <View
                 className="flex-1 flex-row items-center justify-between px-3 py-2 mb-2"
-                style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 12, marginLeft: 4 }}
+                style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 12, marginLeft: 4, opacity: isDeleting ? 0.5 : 1 }}
               >
                 <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary }}>{row.date}</Text>
                 <View className="flex-row items-center" style={{ gap: 6 }}>
@@ -114,9 +131,21 @@ function HistorySection({
                       </Text>
                     </View>
                   )}
+                  <TouchableOpacity
+                    onPress={() => onDelete(row.id)}
+                    disabled={isDeleting}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={{ marginLeft: 2 }}
+                  >
+                    {isDeleting ? (
+                      <ActivityIndicator size="small" color={colors.textSecondary} />
+                    ) : (
+                      <Ionicons name="trash-outline" size={14} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
                 </View>
               </View>
-            </View>
+            </Animated.View>
           );
         })
       )}
@@ -222,6 +251,48 @@ export default function MonitoringScreen() {
     setIsGrowthHistoryLoading(false);
   }, [fetchHistory]);
 
+  const refreshHistoryByType: Record<MonitoringHistoryType, () => Promise<void>> = {
+    FETAL_WEIGHT: refreshFetalHistory,
+    HEAD_CIRC: refreshHeadCircHistory,
+    MATERNAL: refreshMaternalHistory,
+    GROWTH: refreshGrowthHistory,
+  };
+
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  const handleDeleteHistoryEntry = useCallback(
+    (type: MonitoringHistoryType, id: string) => {
+      Alert.alert(t.deleteHistoryConfirmTitle, t.deleteHistoryConfirmMessage, [
+        { text: t.cancel, style: "cancel" },
+        {
+          text: t.delete,
+          style: "destructive",
+          onPress: async () => {
+            setDeletingIds((prev) => new Set(prev).add(id));
+            try {
+              if (isLocalMonitoringId(id)) {
+                await removeLocalMonitoringEntry(type, id);
+              } else {
+                await deleteMonitoringRecord(id);
+              }
+              await refreshHistoryByType[type]();
+            } catch (err) {
+              console.warn("Gagal hapus riwayat monitoring:", err);
+              Alert.alert(t.deleteHistoryFailedTitle, t.deleteHistoryFailedMessage);
+            } finally {
+              setDeletingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+              });
+            }
+          },
+        },
+      ]);
+    },
+    [t, refreshFetalHistory, refreshHeadCircHistory, refreshMaternalHistory, refreshGrowthHistory]
+  );
+
   useEffect(() => {
     refreshFetalHistory();
     refreshHeadCircHistory();
@@ -243,19 +314,12 @@ export default function MonitoringScreen() {
     setFetalError(null);
     try {
       const grams = Math.round(parseFloat(fetalWeight) * 1000);
-      // Fix backend (origin/feature/backend-monitoring-persistence, commit b58642f) belum di-merge
-      // ke yang lagi jalan — backend aktif masih hard-block non-T3. Simpan lokal dulu, sama kayak maternal.
-      if (profile && profile.trimester !== 3) {
-        const entry = await saveLocalMonitoringEntry("FETAL_WEIGHT", { fetal_weight_grams: grams });
-        setFetalResult({
-          record_id: entry.record_id,
-          date: entry.date,
-          weight_grams: grams,
-          status: "SAVED",
-          message: t.monitoringSavedNoEval,
-        });
+      // Backend (PR #25, origin/feature/backend-monitoring-persistence) udah di-merge —
+      // fetal-weight/log sekarang terima semua trimester. T1/T2 balik status/message: null.
+      const result = await logFetalWeight(grams);
+      if (!result.status) {
+        setFetalResult({ ...result, status: "SAVED", message: t.monitoringSavedNoEval });
       } else {
-        const result = await logFetalWeight(grams);
         setFetalResult(result as FetalResultDisplay);
       }
       refreshFetalHistory();
@@ -273,12 +337,8 @@ export default function MonitoringScreen() {
     setHeadCircError(null);
     setHeadCircSaved(false);
     try {
-      const cm = parseFloat(headCirc);
-      if (profile && profile.trimester !== 3) {
-        await saveLocalMonitoringEntry("HEAD_CIRC", { head_circumference_cm: cm });
-      } else {
-        await logHeadCircumference(cm);
-      }
+      // Sama kayak fetal-weight — head-circumference/log udah terima semua trimester juga.
+      await logHeadCircumference(parseFloat(headCirc));
       setHeadCircSaved(true);
       setHeadCirc("");
       refreshHeadCircHistory();
@@ -430,7 +490,11 @@ export default function MonitoringScreen() {
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         {tab === "janin" ? (
-          <Animated.View key="janin" entering={FadeIn.duration(220)}>
+          <Animated.View
+            key="janin"
+            entering={SlideInLeft.duration(250)}
+            exiting={SlideOutLeft.duration(200)}
+          >
             {profile && (
               <View className="flex-row items-center p-3 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 12, gap: 8 }}>
                 <Ionicons name="information-circle" size={16} color={colors.background} />
@@ -502,7 +566,13 @@ export default function MonitoringScreen() {
               })()}
             </View>
 
-            <HistorySection title={t.fetalWeightHistory} isLoading={isFetalHistoryLoading} rows={fetalHistoryRows} />
+            <HistorySection
+              title={t.fetalWeightHistory}
+              isLoading={isFetalHistoryLoading}
+              rows={fetalHistoryRows}
+              onDelete={(id) => handleDeleteHistoryEntry("FETAL_WEIGHT", id)}
+              deletingIds={deletingIds}
+            />
 
             {/* Section 2: Lingkar Kepala Janin */}
             <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
@@ -555,7 +625,13 @@ export default function MonitoringScreen() {
               )}
             </View>
 
-            <HistorySection title={t.headCircHistory} isLoading={isHeadCircHistoryLoading} rows={headCircHistoryRows} />
+            <HistorySection
+              title={t.headCircHistory}
+              isLoading={isHeadCircHistoryLoading}
+              rows={headCircHistoryRows}
+              onDelete={(id) => handleDeleteHistoryEntry("HEAD_CIRC", id)}
+              deletingIds={deletingIds}
+            />
 
             {/* Section 3: BB & TB Ibu Hamil */}
             <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
@@ -626,10 +702,20 @@ export default function MonitoringScreen() {
               )}
             </View>
 
-            <HistorySection title={t.maternalHistory} isLoading={isMaternalHistoryLoading} rows={maternalHistoryRows} />
+            <HistorySection
+              title={t.maternalHistory}
+              isLoading={isMaternalHistoryLoading}
+              rows={maternalHistoryRows}
+              onDelete={(id) => handleDeleteHistoryEntry("MATERNAL", id)}
+              deletingIds={deletingIds}
+            />
           </Animated.View>
         ) : (
-          <Animated.View key="bayi" entering={FadeIn.duration(220)}>
+          <Animated.View
+            key="bayi"
+            entering={SlideInRight.duration(250)}
+            exiting={SlideOutRight.duration(200)}
+          >
             <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
               <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary, marginBottom: 16 }}>
                 {t.babyData}
@@ -757,7 +843,13 @@ export default function MonitoringScreen() {
               );
             })()}
 
-            <HistorySection title={t.growthHistory} isLoading={isGrowthHistoryLoading} rows={growthHistoryRows} />
+            <HistorySection
+              title={t.growthHistory}
+              isLoading={isGrowthHistoryLoading}
+              rows={growthHistoryRows}
+              onDelete={(id) => handleDeleteHistoryEntry("GROWTH", id)}
+              deletingIds={deletingIds}
+            />
           </Animated.View>
         )}
         <View style={{ height: 24 }} />

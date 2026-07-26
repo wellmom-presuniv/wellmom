@@ -69,7 +69,6 @@ export default function RegisterScreen({ navigation }: any) {
       <View
         style={{ height: 120, borderRadius: 16, backgroundColor: colors.primaryContainer, alignItems: "center", justifyContent: "center", marginBottom: 16, opacity: 0.85 }}
       >
-        {/* TODO: ganti pakai ilustrasi asli kalau udah ada aset-nya */}
         <Ionicons name="woman" size={48} color="#FFFFFF" />
       </View>
 
