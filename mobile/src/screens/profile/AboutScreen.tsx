@@ -20,7 +20,7 @@ export default function AboutScreen({ navigation }: any) {
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
         <View className="items-center py-8">
           <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primaryContainer, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-            <Ionicons name="heart" size={36} color={colors.primary} />
+            <Ionicons name="heart" size={36} color={colors.background} />
           </View>
           <Text style={{ fontFamily: fonts.extrabold, fontSize: 24, color: colors.primary }}>WellMom</Text>
           <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>{t.version}</Text>

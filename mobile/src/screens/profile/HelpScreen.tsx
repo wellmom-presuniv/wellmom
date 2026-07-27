@@ -46,10 +46,10 @@ export default function HelpScreen({ navigation }: any) {
         ))}
 
         <View className="p-4 mb-6" style={{ backgroundColor: colors.primaryContainer, borderRadius: 16, opacity: 0.9 }}>
-          <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.primary, marginBottom: 4 }}>
+          <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.background, marginBottom: 4 }}>
             {t.stillQuestion}
           </Text>
-          <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary }}>
+          <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.background }}>
             {t.stillQuestionBody}
           </Text>
         </View>
