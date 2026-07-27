@@ -246,7 +246,8 @@ async def admin_patch_score_cutoff(
     threshold.min_score = payload.min_score
     threshold.max_score = payload.max_score
     db.add(threshold)
-    await db.flush()
+    await db.commit()
+    await db.refresh(threshold)
     return {"min_score": threshold.min_score, "max_score": threshold.max_score}
 
 
