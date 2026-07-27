@@ -16,9 +16,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# 🚨 INI BAGIAN YANG DIPERBARUI: TAMBAHKAN DOMAIN VERCEL & VITE LOKAL 🚨
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8081"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:8081",
+        "http://localhost:5173",               # ← Wajib biar Vite lokal Alek nggak error
+        "https://wellmom-cms.vercel.app",      # ← WAJIB: Domain resmi CMS Vercel kamu!
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
