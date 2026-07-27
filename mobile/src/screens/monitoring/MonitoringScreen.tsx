@@ -27,7 +27,6 @@ import {
   MonitoringHistoryType,
 } from "../../types/monitoring";
 import {
-  saveLocalMonitoringEntry,
   getLocalMonitoringHistory,
   removeLocalMonitoringEntry,
   isLocalMonitoringId,
@@ -358,11 +357,9 @@ export default function MonitoringScreen() {
     try {
       const weightKg = parseFloat(maternalWeight);
       const heightCm = parseFloat(maternalHeight);
-      if (profile && profile.trimester !== 3) {
-        await saveLocalMonitoringEntry("MATERNAL", { maternal_weight_kg: weightKg, maternal_height_cm: heightCm });
-      } else {
-        await logMaternal(weightKg, heightCm);
-      }
+      // Backend udah buka maternal/log buat semua trimester (log_maternal_measurement
+      // sekarang pakai _require_pregnancy_profile) — gak perlu local-storage fallback lagi.
+      await logMaternal(weightKg, heightCm);
       setMaternalSaved(true);
       setMaternalWeight("");
       refreshMaternalHistory();
