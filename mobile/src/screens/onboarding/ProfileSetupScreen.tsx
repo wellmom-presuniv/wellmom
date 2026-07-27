@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, Platform, ActivityIndicator} from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import WheelPicker from "@/components/WheelPicker";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -278,40 +278,46 @@ export default function ProfileSetupScreen() {
             <Ionicons name="calendar" size={20} color={colors.primary} />
           </View>
 
-          <View className="flex-row justify-center">
-            <Picker
-              style={{ width: 100 }} 
-              mode="dropdown"
-              selectedValue={day}
-              onValueChange={setDay}
-              itemStyle={Platform.OS === "ios" ? { fontFamily: fonts.semibold } : undefined}
-            >
-              {Array.from({ length: maxDay }, (_, i) => i + 1).map((d) => (
-                <Picker.Item key={d} label={String(d)} value={d} />
-              ))}
-            </Picker>
-            <Picker
-              style={{ width: 110 }}
-              mode="dropdown"
-              selectedValue={month}
-              onValueChange={setMonth}
-              itemStyle={Platform.OS === "ios" ? { fontFamily: fonts.semibold, color: colors.primary } : undefined}
-            >
-              {t.months.map((m, i) => (
-                <Picker.Item key={m} label={m} value={i} />
-              ))}
-            </Picker>
-            <Picker
-              style={{ width: 120 }}
-              mode="dropdown"
-              selectedValue={year}
-              onValueChange={setYear}
-              itemStyle={Platform.OS === "ios" ? { fontFamily: fonts.semibold } : undefined}
-            >
-              {[today.getFullYear() - 1, today.getFullYear()].map((y) => (
-                <Picker.Item key={y} label={String(y)} value={y} />
-              ))}
-            </Picker>
+          <View className="flex-row justify-center" style={{ gap: 10 }}>
+            <View style={{ alignItems: "center" }}>
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, marginBottom: 6 }}>
+                {t.dayLabel}
+              </Text>
+              <View style={{ backgroundColor: colors.surfaceContainer, borderRadius: 12, overflow: "hidden", width: 100 }}>
+                <WheelPicker
+                  items={Array.from({ length: maxDay }, (_, i) => ({ label: String(i + 1), value: i + 1 }))}
+                  selectedValue={day}
+                  onValueChange={setDay}
+                  width={100}
+                />
+              </View>
+            </View>
+            <View style={{ alignItems: "center" }}>
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, marginBottom: 6 }}>
+                {t.monthLabel}
+              </Text>
+              <View style={{ backgroundColor: colors.surfaceContainer, borderRadius: 12, overflow: "hidden", width: 110 }}>
+                <WheelPicker
+                  items={t.months.map((m, i) => ({ label: m, value: i }))}
+                  selectedValue={month}
+                  onValueChange={setMonth}
+                  width={110}
+                />
+              </View>
+            </View>
+            <View style={{ alignItems: "center" }}>
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 11, color: colors.textSecondary, marginBottom: 6 }}>
+                {t.yearLabel}
+              </Text>
+              <View style={{ backgroundColor: colors.surfaceContainer, borderRadius: 12, overflow: "hidden", width: 120 }}>
+                <WheelPicker
+                  items={[today.getFullYear() - 1, today.getFullYear()].map((y) => ({ label: String(y), value: y }))}
+                  selectedValue={year}
+                  onValueChange={setYear}
+                  width={120}
+                />
+              </View>
+            </View>
           </View>
 
           <View className="items-center mt-2 pt-3" style={{ borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>

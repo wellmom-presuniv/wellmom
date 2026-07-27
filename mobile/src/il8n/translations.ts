@@ -22,6 +22,9 @@ export const translations = {
     hphtDesc: "Masukkan Hari Pertama Haid Terakhir (HPHT) Anda untuk menghitung usia kehamilan dan mendapatkan panduan yang personal.",
     pickHpht: "Pilih Tanggal HPHT",
     hphtSelected: "HPHT TERPILIH",
+    dayLabel: "Tanggal",
+    monthLabel: "Bulan",
+    yearLabel: "Tahun",
     continueBtn: "Lanjutkan",
     skip: "Lewati",
 
@@ -355,6 +358,9 @@ export const translations = {
     hphtDesc: "Enter your Last Menstrual Period (LMP) date to calculate your gestational age and receive personalized guidance.",
     pickHpht: "Select LMP Date",
     hphtSelected: "SELECTED LMP",
+    dayLabel: "Day",
+    monthLabel: "Month",
+    yearLabel: "Year",
     continueBtn: "Continue",
     skip: "Skip",
 
