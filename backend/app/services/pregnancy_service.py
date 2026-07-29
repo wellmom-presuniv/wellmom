@@ -6,9 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import crud
 
 
+def calculate_gestational_week(hpht: date, reference_date: date) -> int:
+    days_pregnant = (reference_date - hpht).days
+    return max(days_pregnant // 7, 0)
+
+
 def _compute_stats(hpht: date, hpl: date, today: date) -> dict:
-    days_pregnant = (today - hpht).days
-    gestational_week = max(days_pregnant // 7, 0)
+    gestational_week = calculate_gestational_week(hpht, today)
 
     if gestational_week <= 12:
         trimester = 1
