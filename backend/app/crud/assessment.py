@@ -1,14 +1,16 @@
 import uuid
 from datetime import date, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import case, func, or_, select
 
 from app.models.assessment import (
     AssessmentQuestion, AssessmentResponse,
     AssessmentResponseItem, AssessmentResult,
     SymptomOnsetTracking,
 )
+from app.models.pregnancy import PregnancyProfile
 from app.models.risk_threshold import RiskThreshold
+from app.models.user import User
 from typing import Any
 
 async def get_active_questions(db: AsyncSession) -> list[AssessmentQuestion]:
@@ -201,6 +203,59 @@ async def get_assessment_history(
         )
         .where(AssessmentResponse.user_id == user_id)
         .order_by(AssessmentResponse.assessment_date.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return result.all()
+
+
+async def get_high_risk_assessment_alerts(
+    db: AsyncSession,
+    limit: int = 20,
+    offset: int = 0,
+) -> list[tuple[AssessmentResponse, AssessmentResult, User, PregnancyProfile]]:
+    """
+    Return assessment alerts in one query, including patient and pregnancy data.
+
+    Red flags are stored as a JSONB array. The CASE expression guards
+    jsonb_array_length so nullable, empty, or non-array JSON values are safe.
+    """
+    red_flag_count = case(
+        (
+            func.jsonb_typeof(AssessmentResult.triggered_red_flags) == "array",
+            func.jsonb_array_length(AssessmentResult.triggered_red_flags),
+        ),
+        else_=0,
+    )
+
+    result = await db.execute(
+        select(
+            AssessmentResponse,
+            AssessmentResult,
+            User,
+            PregnancyProfile,
+        )
+        .select_from(AssessmentResponse)
+        .join(
+            AssessmentResult,
+            AssessmentResult.response_id == AssessmentResponse.response_id,
+        )
+        .join(User, User.id == AssessmentResponse.user_id)
+        .join(
+            PregnancyProfile,
+            PregnancyProfile.profile_id
+            == AssessmentResponse.pregnancy_profile_id,
+        )
+        .where(
+            or_(
+                AssessmentResult.risk_level == "HIGH",
+                red_flag_count > 0,
+            )
+        )
+        .order_by(
+            AssessmentResponse.assessment_date.desc(),
+            AssessmentResult.created_at.desc(),
+        )
         .offset(offset)
         .limit(limit)
     )

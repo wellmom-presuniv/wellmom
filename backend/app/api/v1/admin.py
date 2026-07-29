@@ -1,12 +1,14 @@
 import uuid
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 
 from app.api.deps import get_db, require_admin
+from app.schemas.assessment import HighRiskAssessmentAlertResponse
 from app.schemas.referral import ReferralResponse, UpsertReferralRequest
 from app.crud import referral as referral_crud
+from app.services import assessment_service
 from app.models.assessment import AssessmentQuestion
 from app.models.risk_threshold import RiskThreshold
 from app.models.content import EducationContent
@@ -16,6 +18,23 @@ from pydantic import BaseModel
 router = APIRouter()
 
 VALID_RISK_LEVELS = {"LOW", "MEDIUM", "HIGH"}
+
+
+@router.get(
+    "/admin/assessments/high-risk",
+    response_model=list[HighRiskAssessmentAlertResponse],
+)
+async def admin_get_high_risk_assessment_alerts(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    _: uuid.UUID = Depends(require_admin),
+):
+    return await assessment_service.list_high_risk_assessment_alerts(
+        db=db,
+        limit=limit,
+        offset=offset,
+    )
 
 
 # ─── Inline schemas untuk admin read endpoints ────────────────────────────────

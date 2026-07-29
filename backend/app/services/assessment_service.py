@@ -19,6 +19,7 @@ from scoring.duration_logic import (
 from scoring.risk_combiner import combine_final_risk
 
 from app.crud import assessment as assessment_crud
+from app.services.pregnancy_service import calculate_gestational_week
 
 
 BP_THRESHOLDS_PATH = Path(__file__).resolve().parents[2] / "scoring" / "bp_thresholds.json"
@@ -311,6 +312,58 @@ async def get_assessment_history(
         )
 
     return history
+
+
+async def list_high_risk_assessment_alerts(
+    db: AsyncSession,
+    limit: int = 20,
+    offset: int = 0,
+) -> list[dict]:
+    rows = await assessment_crud.get_high_risk_assessment_alerts(
+        db=db,
+        limit=limit,
+        offset=offset,
+    )
+
+    alerts = []
+    for response, result, user, profile in rows:
+        triggered_red_flags = (
+            result.triggered_red_flags
+            if isinstance(result.triggered_red_flags, list)
+            else []
+        )
+        gestational_week = None
+        if profile.hpht is not None:
+            reference_date = (
+                response.assessment_date.date()
+                if response.assessment_date is not None
+                else date.today()
+            )
+            gestational_week = calculate_gestational_week(
+                profile.hpht,
+                reference_date,
+            )
+
+        alerts.append(
+            {
+                "response_id": response.response_id,
+                "result_id": result.result_id,
+                "user_id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "pregnancy_profile_id": profile.profile_id,
+                "hpht": profile.hpht,
+                "hpl": profile.hpl,
+                "gestational_week": gestational_week,
+                "risk_category": result.risk_level,
+                "total_score": result.total_score,
+                "red_flag_triggered": bool(triggered_red_flags),
+                "triggered_red_flags": triggered_red_flags,
+                "assessment_date": response.assessment_date,
+            }
+        )
+
+    return alerts
 
 
 async def delete_assessment_response(
