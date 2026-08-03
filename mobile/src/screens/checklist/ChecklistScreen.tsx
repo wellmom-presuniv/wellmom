@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
@@ -117,10 +118,10 @@ export default function ChecklistScreen() {
     }, {});
   }, []);
 
-  const fetchChecklist = useCallback(async () => {
+  const fetchChecklist = useCallback(async (options?: { force?: boolean }) => {
     setSubmitError(null);
 
-    if (currentChecklistData) {
+    if (!options?.force && currentChecklistData) {
       setDraftState(getCheckedState(currentChecklistData));
       setIsLoading(false);
       return;
@@ -142,6 +143,31 @@ export default function ChecklistScreen() {
   useEffect(() => {
     fetchChecklist();
   }, [fetchChecklist]);
+
+  // fetchChecklist berubah reference tiap kali cache-nya keupdate (currentChecklistData
+  // ada di deps-nya) — kalau langsung dimasukin ke deps useFocusEffect, itu bikin
+  // useFocusEffect ke-trigger ulang TIAP fetch selesai (dikira focus event baru), bukan
+  // cuma pas beneran pindah tab. Makanya di-pegang lewat ref biar callback yang dikasih
+  // ke useFocusEffect tetep stabil (deps kosong) dan cuma jalan pas focus beneran.
+  const fetchChecklistRef = useRef(fetchChecklist);
+  useEffect(() => {
+    fetchChecklistRef.current = fetchChecklist;
+  }, [fetchChecklist]);
+
+  // Tab screen ini gak di-unmount pas pindah tab, jadi checklistCache nempel terus
+  // di memory. Tiap kali tab di-focus lagi (bukan mount pertama — itu udah dihandle
+  // useEffect di atas), fetch ulang paksa biar perubahan item dari CMS langsung kepakai
+  // tanpa perlu restart app.
+  const hasMountedRef = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasMountedRef.current) {
+        hasMountedRef.current = true;
+        return;
+      }
+      fetchChecklistRef.current({ force: true });
+    }, [])
+  );
 
   const toggleItem = useCallback((itemId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

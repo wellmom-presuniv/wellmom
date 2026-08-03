@@ -13,7 +13,7 @@ export default function GuideScreen({ navigation }: any) {
   const [expanded, setExpanded] = useState<string | null>("danger");
   const sectionStyle: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }> = {
     danger: { icon: "warning", color: colors.riskHigh, bg: colors.riskHighBg },
-    risk: { icon: "shield-checkmark", color: colors.primary, bg: colors.primaryContainer },
+    risk: { icon: "shield-checkmark", color: colors.background, bg: colors.primaryContainer },
     howto: { icon: "phone-portrait", color: colors.secondary, bg: "rgba(113,42,226,0.1)" },
     anc: { icon: "calendar", color: colors.riskLow, bg: colors.riskLowBg },
   };

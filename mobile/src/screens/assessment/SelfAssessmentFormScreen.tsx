@@ -39,7 +39,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
   const [diastolicBp, setDiastolicBp] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
 
@@ -136,7 +136,10 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             style={{ backgroundColor: colors.surface, borderRadius: 18 }}
           >
             <Text style={{ fontFamily: fonts.medium, fontSize: 14, color: colors.textPrimary, flex: 1, marginRight: 12 }}>
-              {t.questions[q.order_index] ?? q.question_text}
+              {/* question_text dari backend/CMS selalu Bahasa Indonesia (gak ada kolom _en) —
+                  t.questions cuma dipakai buat translate ke Inggris, ID selalu pakai teks live
+                  biar edit dari CMS langsung kepakai, gak ketimpa terjemahan hardcode lama. */}
+              {language === "en" ? t.questions[q.order_index] ?? q.question_text : q.question_text}
             </Text>
             <View className="flex-row" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 999, padding: 3 }}>
               <AnimatedPressable

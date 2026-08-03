@@ -1,11 +1,13 @@
-import React, { useEffect } from "react";
-import { View, Text, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { colors, riskCategoryStyle } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { AssessmentResult } from "../../types";
+import { ReferralResponse } from "../../types/referral";
+import { getReferral } from "../../api/referralService";
 import { useTranslation } from "../../hooks/useTranslation";
 import AnimatedPressable from "@/components/AnimatedPressable";
 
@@ -13,7 +15,22 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
   const result: AssessmentResult = route.params.result;
   const risk = riskCategoryStyle[result.risk_category];
   const isHigh = result.risk_category === "HIGH";
+  const isLow = result.risk_category === "LOW";
   const { t, language } = useTranslation();
+
+  const [referral, setReferral] = useState<ReferralResponse | null>(null);
+  const [isLoadingReferral, setIsLoadingReferral] = useState(!isLow);
+
+  useEffect(() => {
+    if (isLow) return;
+    getReferral(result.risk_category as "MEDIUM" | "HIGH")
+      .then(setReferral)
+      .catch(() => {
+        // Supplementary info — fail silently, don't block the result screen.
+        setReferral(null);
+      })
+      .finally(() => setIsLoadingReferral(false));
+  }, [isLow, result.risk_category]);
 
   const badgeScale = useSharedValue(0.8);
   const badgeOpacity = useSharedValue(0);
@@ -135,14 +152,42 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           </Animated.View>
         ) : null}
 
-        {/* CTA */}
-        {isHigh ? (
-          <AnimatedPressable haptic style={{ marginBottom: 12 }}>
-            <View style={{ backgroundColor: colors.riskHigh, borderRadius: 999, paddingVertical: 16, alignItems: "center" }}>
-              <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>{t.goToFaskes}</Text>
+        {/* Rekomendasi rujukan (MEDIUM/HIGH) — supplementary info, fail silently kalau gagal fetch */}
+        {!isLow &&
+          (isLoadingReferral ? (
+            <View
+              className="flex-row items-center justify-center p-4 mb-6"
+              style={{ backgroundColor: colors.surface, borderRadius: 20, gap: 8 }}
+            >
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
+                {t.referralLoading}
+              </Text>
             </View>
-          </AnimatedPressable>
-        ) : null}
+          ) : referral ? (
+            <Animated.View
+              entering={FadeInUp.delay(280).duration(350)}
+              className="p-4 mb-6"
+              style={{ backgroundColor: colors.surface, borderRadius: 20 }}
+            >
+              <View className="flex-row items-center justify-between mb-2">
+                <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary }}>
+                  {t.referralTitle}
+                </Text>
+                <View style={{ backgroundColor: risk.bg, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
+                  <Text style={{ fontFamily: fonts.bold, fontSize: 11, color: risk.color }}>
+                    {referral.urgency_label}
+                  </Text>
+                </View>
+              </View>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.textPrimary, marginBottom: 6 }}>
+                {referral.facility_type}
+              </Text>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, lineHeight: 19 }}>
+                {referral.recommendation}
+              </Text>
+            </Animated.View>
+          ) : null)}
 
         {/* <TouchableOpacity
           onPress={() => navigation.getParent()?.getParent()?.navigate("Edukasi")}
