@@ -12,9 +12,14 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.arkapds.wellmommobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.arkapds.wellmommobile",
       "adaptiveIcon": {
         "backgroundColor": "#EC4899"
       }
@@ -23,7 +28,13 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-status-bar"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f999d03a-8cfc-41d2-a208-faa513b080f8"
+      }
+    }
   }
 }
