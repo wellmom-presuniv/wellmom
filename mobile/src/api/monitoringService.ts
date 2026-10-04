@@ -1,5 +1,6 @@
 import apiClient from "./client";
 import {
+  FetalLengthLogResponse,
   FetalWeightLogResponse,
   HeadCircLogResponse,
   MaternalLogResponse,
@@ -22,10 +23,22 @@ export async function logHeadCircumference(headCircumferenceCm: number): Promise
   return data;
 }
 
-export async function logMaternal(weightKg: number, heightCm: number): Promise<MaternalLogResponse> {
+export async function logFetalLength(lengthCm: number): Promise<FetalLengthLogResponse> {
+  const { data } = await apiClient.post<FetalLengthLogResponse>("/monitoring/fetal-length/log", {
+    length_cm: lengthCm,
+  });
+  return data;
+}
+
+export async function logMaternal(
+  weightKg: number,
+  heightCm: number,
+  lilaCm?: number | null
+): Promise<MaternalLogResponse> {
   const { data } = await apiClient.post<MaternalLogResponse>("/monitoring/maternal/log", {
     weight_kg: weightKg,
     height_cm: heightCm,
+    ...(lilaCm != null ? { lila_cm: lilaCm } : {}),
   });
   return data;
 }

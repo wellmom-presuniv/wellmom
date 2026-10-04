@@ -19,11 +19,22 @@ export interface HeadCircLogResponse {
   is_evaluated: boolean;
 }
 
+export interface FetalLengthLogResponse {
+  record_id: string;
+  date: string;
+  length_cm: number;
+}
+
+export type LilaStatus = "NORMAL" | "KEK_RISK";
+
 export interface MaternalLogResponse {
   record_id: string;
   date: string;
   weight_kg: number;
   height_cm: number;
+  lila_cm?: number | null;
+  lila_status?: LilaStatus | null;
+  lila_message?: string | null;
 }
 
 export interface GrowthEvaluateResponse {
@@ -38,7 +49,7 @@ export interface GrowthEvaluateResponse {
   reference_month_used: number;
 }
 
-export type MonitoringHistoryType = "FETAL_WEIGHT" | "HEAD_CIRC" | "MATERNAL" | "GROWTH";
+export type MonitoringHistoryType = "FETAL_WEIGHT" | "FETAL_LENGTH" | "HEAD_CIRC" | "MATERNAL" | "GROWTH";
 
 // Persis app/schemas/monitoring.py::MonitoringHistoryItem — satu shape gabungan
 // untuk semua tipe, field yang gak relevan buat tipe tsb bakal null.
@@ -49,9 +60,12 @@ export interface MonitoringHistoryEntry {
 
   fetal_weight_grams?: number | null;
   head_circumference_cm?: number | null;
+  fetal_length_cm?: number | null;
 
   maternal_weight_kg?: number | null;
   maternal_height_cm?: number | null;
+  maternal_lila_cm?: number | null;
+  lila_status?: LilaStatus | null;
 
   indicator?: "WEIGHT" | "LENGTH" | "HEAD_CIRCUMFERENCE" | null;
   value?: number | null;

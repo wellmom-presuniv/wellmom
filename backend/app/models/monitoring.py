@@ -58,6 +58,7 @@ class MonitoringRecord(Base):
     # Monitoring ibu
     maternal_weight_kg = Column(Float, nullable=True)
     maternal_height_cm = Column(Float, nullable=True)
+    maternal_lila_cm = Column(Float, nullable=True)  # Lingkar Lengan Atas (KEK screening)
 
     # Monitoring pertumbuhan bayi
     growth_indicator = Column(String(32), nullable=True)

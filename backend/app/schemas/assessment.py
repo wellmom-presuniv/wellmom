@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -9,10 +9,24 @@ class AnswerItem(BaseModel):
     answer: bool
 
 
+MedicalHistoryCode = Literal[
+    "HYPERTENSION",
+    "DIABETES",
+    "KIDNEY_DISEASE",
+    "HEART_DISEASE",
+    "AUTOIMMUNE",
+    "CLOTTING_DISORDER",
+    "SEVERE_ANEMIA",
+    "NONE",
+]
+
+
 class SubmitAssessmentRequest(BaseModel):
     answers: list[AnswerItem]
     systolic_bp: Optional[int] = None
     diastolic_bp: Optional[int] = None
+    # Q11 riwayat penyakit: multi-select, tidak masuk skor, dipakai untuk mengarahkan edukasi.
+    medical_history: list[MedicalHistoryCode] = Field(default_factory=list)
 
 
 class TriggeredFlag(BaseModel):
@@ -36,6 +50,9 @@ class AssessmentResultResponse(BaseModel):
     total_score: Optional[int]
     bp_assessment_status: str
     bp_category: Optional[str] = None
+    # MAP = (sistolik + 2 x diastolik) / 3, null kalau tensi tidak diisi.
+    map_mmhg: Optional[float] = None
+    medical_history: list[str] = Field(default_factory=list)
 
 class AssessmentHistoryItem(BaseModel):
     response_id: uuid.UUID
