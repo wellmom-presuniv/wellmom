@@ -80,6 +80,21 @@ def _resolve_bp_status(
     return "FLAGGED", bp_category_value
 
 
+def calculate_map(systolic_bp: int | None, diastolic_bp: int | None) -> float | None:
+    """MAP = (sistolik + 2 x diastolik) / 3 (Buku KIA 2024). Informasional saja."""
+    if systolic_bp is None or diastolic_bp is None:
+        return None
+    return round((systolic_bp + 2 * diastolic_bp) / 3, 1)
+
+
+def _normalize_medical_history(medical_history: list[str] | None) -> list[str]:
+    """Dedupe; 'NONE' eksklusif -- kalau ada pilihan lain, 'NONE' dibuang."""
+    unique = list(dict.fromkeys(medical_history or []))
+    if len(unique) > 1 and "NONE" in unique:
+        unique = [item for item in unique if item != "NONE"]
+    return unique
+
+
 def _normalize_score_result(scoring: dict) -> dict:
     triggered_red_flags = scoring.get("triggered_red_flags") or []
 
@@ -158,7 +173,10 @@ async def submit_assessment(
     answers: list[dict],
     systolic_bp: int | None,
     diastolic_bp: int | None,
+    medical_history: list[str] | None = None,
 ) -> dict:
+    medical_history = _normalize_medical_history(medical_history)
+
     # 1. Profil aktif wajib ada
     profile = await crud.pregnancy.get_active_profile(db, user_id)
     if not profile:
@@ -192,7 +210,7 @@ async def submit_assessment(
     scoring = scoring_service.compute_risk(answers, questions, thresholds)
     score_result = _normalize_score_result(scoring)
 
-    # 5. Duration logic Arizal: Q2, Q5, Q9 by order_index
+    # 5. Duration logic Arizal: Q2, Q4, Q8 by order_index
     duration_category, duration_triggered_symptoms = await _evaluate_duration_logic(
         db=db,
         pregnancy_profile_id=profile.profile_id,
@@ -222,6 +240,7 @@ async def submit_assessment(
         pregnancy_profile_id=profile.profile_id,
         systolic_bp=systolic_bp,
         diastolic_bp=diastolic_bp,
+        medical_history=medical_history,
     )
 
     # 9. Simpan jawaban per-pertanyaan
@@ -253,6 +272,8 @@ async def submit_assessment(
         "total_score": final_result.total_score,
         "bp_assessment_status": bp_status,
         "bp_category": final_result.bp_category,
+        "map_mmhg": calculate_map(systolic_bp, diastolic_bp),
+        "medical_history": medical_history,
     }
 
 
@@ -264,6 +285,7 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
 
     triggered = result.triggered_red_flags or []
     duration_triggered = result.duration_triggered_symptoms or []
+    response = await crud.assessment.get_today_response(db, user_id, today)
 
     return {
         "response_id": result.response_id,
@@ -275,6 +297,11 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
         "total_score": result.total_score,
         "bp_assessment_status": result.bp_assessment_status,
         "bp_category": result.bp_category,
+        "map_mmhg": calculate_map(
+            response.systolic_bp if response else None,
+            response.diastolic_bp if response else None,
+        ),
+        "medical_history": (response.medical_history if response else None) or [],
     }
 
 

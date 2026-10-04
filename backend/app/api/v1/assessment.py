@@ -49,6 +49,7 @@ async def submit_assessment(
         answers=answers,
         systolic_bp=payload.systolic_bp,
         diastolic_bp=payload.diastolic_bp,
+        medical_history=payload.medical_history,
     )
 
 

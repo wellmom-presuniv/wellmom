@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import crud
 from app.schemas.monitoring import (
     BiologicalSex,
+    FetalLengthLogRequest,
     FetalWeightLogRequest,
     GrowthEvaluateRequest,
     GrowthIndicator,
@@ -18,6 +19,7 @@ from app.services.pregnancy_service import _compute_stats
 from app.crud import monitoring as monitoring_crud
 from scoring.fetal_weight_check import check_fetal_weight
 from scoring.growth_zscore import Indicator, evaluate_growth
+from scoring.lila_check import check_lila
 from scoring.head_circumference_info import get_head_circumference_info
 
 
@@ -133,6 +135,36 @@ async def log_fetal_weight(
     }
 
 
+async def log_fetal_length(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    payload: FetalLengthLogRequest,
+) -> dict:
+    """Panjang badan janin (PB). Disimpan saja -- belum ada rentang acuan dari tim medis."""
+    measurement_date = _resolve_measurement_date(payload.measurement_date)
+
+    profile, _ = await _require_pregnancy_profile(
+        db=db,
+        user_id=user_id,
+        measurement_date=measurement_date,
+    )
+
+    record = await monitoring_crud.create_record(
+        db=db,
+        user_id=user_id,
+        pregnancy_profile_id=profile.profile_id,
+        record_type=MonitoringType.FETAL_LENGTH.value,
+        check_date=measurement_date,
+        fetal_length_cm=payload.length_cm,
+    )
+
+    return {
+        "record_id": record.record_id,
+        "date": record.check_date,
+        "length_cm": record.fetal_length_cm,
+    }
+
+
 async def log_head_circumference(
     db: AsyncSession,
     user_id: uuid.UUID,
@@ -192,13 +224,19 @@ async def log_maternal_measurement(
         check_date=measurement_date,
         maternal_weight_kg=payload.weight_kg,
         maternal_height_cm=payload.height_cm,
+        maternal_lila_cm=payload.lila_cm,
     )
+
+    lila = check_lila(payload.lila_cm) if payload.lila_cm is not None else None
 
     return {
         "record_id": record.record_id,
         "date": record.check_date,
         "weight_kg": record.maternal_weight_kg,
         "height_cm": record.maternal_height_cm,
+        "lila_cm": record.maternal_lila_cm,
+        "lila_status": lila["status"] if lila else None,
+        "lila_message": lila["message"] if lila else None,
     }
 
 
@@ -276,9 +314,16 @@ async def get_monitoring_history(
 
                 "fetal_weight_grams": record.fetal_weight_grams,
                 "head_circumference_cm": record.head_circumference_cm,
+                "fetal_length_cm": record.fetal_length_cm,
 
                 "maternal_weight_kg": record.maternal_weight_kg,
                 "maternal_height_cm": record.maternal_height_cm,
+                "maternal_lila_cm": record.maternal_lila_cm,
+                "lila_status": (
+                    check_lila(record.maternal_lila_cm)["status"]
+                    if record.maternal_lila_cm is not None
+                    else None
+                ),
 
                 "indicator": record.growth_indicator,
                 "value": record.measurement_value,

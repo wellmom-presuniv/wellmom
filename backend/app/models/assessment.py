@@ -21,6 +21,8 @@ class AssessmentResponse(Base):
     assessment_date = Column(DateTime(timezone=True), server_default=func.now())
     systolic_bp = Column(Integer, nullable=True)
     diastolic_bp = Column(Integer, nullable=True)
+    # Pertanyaan riwayat (Q11, tidak diskor): list kode, mis. ["HYPERTENSION", "DIABETES"]
+    medical_history = Column(JSONB, nullable=True)
 
 class AssessmentResponseItem(Base):
     __tablename__ = "assessment_response_items"

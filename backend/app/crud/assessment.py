@@ -64,6 +64,7 @@ async def create_response(
     pregnancy_profile_id: uuid.UUID,
     systolic_bp: int | None,
     diastolic_bp: int | None,
+    medical_history: list[str] | None = None,
 ) -> AssessmentResponse:
     response = AssessmentResponse(
         user_id=user_id,
@@ -71,6 +72,7 @@ async def create_response(
         assessment_date=datetime.now(timezone.utc),
         systolic_bp=systolic_bp,
         diastolic_bp=diastolic_bp,
+        medical_history=medical_history or [],
     )
     db.add(response)
     await db.flush()
