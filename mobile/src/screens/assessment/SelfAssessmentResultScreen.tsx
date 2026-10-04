@@ -142,6 +142,21 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           </Animated.View>
         )}
 
+        {result.map_mmhg != null && (
+          <Animated.View entering={FadeInUp.delay(220).duration(350)} className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>
+            <View className="flex-row items-center justify-between">
+              <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.mapLabel}</Text>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: result.map_mmhg > 90 ? colors.riskMedium : colors.textPrimary }}>
+                {result.map_mmhg} mmHg
+              </Text>
+            </View>
+            <Text style={{ fontFamily: fonts.regular, fontSize: 10, color: colors.textSecondary, marginTop: 2 }}>{t.mapFormula}</Text>
+            {result.map_mmhg > 90 && (
+              <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.riskMedium, marginTop: 6 }}>{t.mapElevatedNote}</Text>
+            )}
+          </Animated.View>
+        )}
+
         {/* Skor (kalau ga red-flag) */}
         {!isHigh || result.triggered_red_flags?.length === 0 ? (
           <Animated.View entering={FadeInUp.delay(250).duration(350)} className="flex-row items-center justify-between p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>

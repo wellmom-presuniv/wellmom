@@ -14,6 +14,7 @@ import { getMyProfile } from "../../api/profileService";
 import { PregnancyProfile } from "../../types";
 import {
   logFetalWeight,
+  logFetalLength,
   logHeadCircumference,
   logMaternal,
   evaluateGrowth,
@@ -23,6 +24,7 @@ import {
 import {
   FetalWeightLogResponse,
   GrowthEvaluateResponse,
+  MaternalLogResponse,
   MonitoringHistoryEntry,
   MonitoringHistoryType,
 } from "../../types/monitoring";
@@ -194,7 +196,17 @@ export default function MonitoringScreen() {
   const [headCircHistory, setHeadCircHistory] = useState<MonitoringHistoryEntry[]>([]);
   const [isHeadCircHistoryLoading, setIsHeadCircHistoryLoading] = useState(true);
 
-  // ===== Section 3: BB & TB Ibu =====
+  // ===== Section 2b: Panjang Badan Janin =====
+  const [fetalLength, setFetalLength] = useState("");
+  const [isSavingFetalLength, setIsSavingFetalLength] = useState(false);
+  const [fetalLengthError, setFetalLengthError] = useState<string | null>(null);
+  const [fetalLengthSaved, setFetalLengthSaved] = useState(false);
+  const [fetalLengthHistory, setFetalLengthHistory] = useState<MonitoringHistoryEntry[]>([]);
+  const [isFetalLengthHistoryLoading, setIsFetalLengthHistoryLoading] = useState(true);
+
+  // ===== Section 3: BB, TB & LiLA Ibu =====
+  const [maternalLila, setMaternalLila] = useState("");
+  const [maternalResult, setMaternalResult] = useState<MaternalLogResponse | null>(null);
   const [maternalWeight, setMaternalWeight] = useState("");
   const [maternalHeight, setMaternalHeight] = useState("");
   const [isSavingMaternal, setIsSavingMaternal] = useState(false);
@@ -238,6 +250,12 @@ export default function MonitoringScreen() {
     setIsHeadCircHistoryLoading(false);
   }, [fetchHistory]);
 
+  const refreshFetalLengthHistory = useCallback(async () => {
+    setIsFetalLengthHistoryLoading(true);
+    setFetalLengthHistory(await fetchHistory("FETAL_LENGTH"));
+    setIsFetalLengthHistoryLoading(false);
+  }, [fetchHistory]);
+
   const refreshMaternalHistory = useCallback(async () => {
     setIsMaternalHistoryLoading(true);
     setMaternalHistory(await fetchHistory("MATERNAL"));
@@ -252,6 +270,7 @@ export default function MonitoringScreen() {
 
   const refreshHistoryByType: Record<MonitoringHistoryType, () => Promise<void>> = {
     FETAL_WEIGHT: refreshFetalHistory,
+    FETAL_LENGTH: refreshFetalLengthHistory,
     HEAD_CIRC: refreshHeadCircHistory,
     MATERNAL: refreshMaternalHistory,
     GROWTH: refreshGrowthHistory,
@@ -289,15 +308,16 @@ export default function MonitoringScreen() {
         },
       ]);
     },
-    [t, refreshFetalHistory, refreshHeadCircHistory, refreshMaternalHistory, refreshGrowthHistory]
+    [t, refreshFetalHistory, refreshFetalLengthHistory, refreshHeadCircHistory, refreshMaternalHistory, refreshGrowthHistory]
   );
 
   useEffect(() => {
     refreshFetalHistory();
+    refreshFetalLengthHistory();
     refreshHeadCircHistory();
     refreshMaternalHistory();
     refreshGrowthHistory();
-  }, [refreshFetalHistory, refreshHeadCircHistory, refreshMaternalHistory, refreshGrowthHistory]);
+  }, [refreshFetalHistory, refreshFetalLengthHistory, refreshHeadCircHistory, refreshMaternalHistory, refreshGrowthHistory]);
 
   // TB ibu biasanya tetap — prefill dari entry terakhir kalau ada & user belum ngetik apa-apa
   useEffect(() => {
@@ -330,6 +350,25 @@ export default function MonitoringScreen() {
     }
   };
 
+  const handleSaveFetalLength = async () => {
+    const lengthCm = parseFloat(fetalLength.replace(",", "."));
+    if (!fetalLength || !Number.isFinite(lengthCm) || lengthCm <= 0) return;
+    setIsSavingFetalLength(true);
+    setFetalLengthError(null);
+    setFetalLengthSaved(false);
+    try {
+      await logFetalLength(lengthCm);
+      setFetalLengthSaved(true);
+      setFetalLength("");
+      refreshFetalLengthHistory();
+    } catch (err: any) {
+      console.warn("Gagal simpan panjang badan janin:", err);
+      setFetalLengthError(err?.response?.data?.detail ?? t.errorNetwork);
+    } finally {
+      setIsSavingFetalLength(false);
+    }
+  };
+
   const handleSaveHeadCirc = async () => {
     if (!headCirc) return;
     setIsSavingHeadCirc(true);
@@ -359,9 +398,12 @@ export default function MonitoringScreen() {
       const heightCm = parseFloat(maternalHeight);
       // Backend udah buka maternal/log buat semua trimester (log_maternal_measurement
       // sekarang pakai _require_pregnancy_profile) — gak perlu local-storage fallback lagi.
-      await logMaternal(weightKg, heightCm);
+      const lilaCm = maternalLila ? parseFloat(maternalLila.replace(",", ".")) : null;
+      const saved = await logMaternal(weightKg, heightCm, lilaCm);
+      setMaternalResult(saved);
       setMaternalSaved(true);
       setMaternalWeight("");
+      setMaternalLila("");
       refreshMaternalHistory();
     } catch (err) {
       console.warn("Gagal simpan data ibu:", err);
@@ -441,7 +483,18 @@ export default function MonitoringScreen() {
   const maternalHistoryRows: HistoryRow[] = maternalHistory.map((e) => ({
     id: e.record_id,
     date: formatDate(e.date),
-    valueLabel: `${e.maternal_weight_kg ?? "—"} kg · ${e.maternal_height_cm ?? "—"} cm`,
+    valueLabel:
+      `${e.maternal_weight_kg ?? "—"} kg · ${e.maternal_height_cm ?? "—"} cm` +
+      (e.maternal_lila_cm != null ? ` · LiLA ${e.maternal_lila_cm} cm` : ""),
+    badgeText: e.lila_status ? (e.lila_status === "NORMAL" ? t.lilaNormal : t.lilaKek) : undefined,
+    badgeColor: e.lila_status ? (e.lila_status === "NORMAL" ? colors.riskLow : colors.riskHigh) : undefined,
+    badgeBg: e.lila_status ? (e.lila_status === "NORMAL" ? colors.riskLowBg : colors.riskHighBg) : undefined,
+  }));
+
+  const fetalLengthHistoryRows: HistoryRow[] = fetalLengthHistory.map((e) => ({
+    id: e.record_id,
+    date: formatDate(e.date),
+    valueLabel: `${e.fetal_length_cm ?? "—"} cm`,
   }));
 
   const growthHistoryRows: HistoryRow[] = growthHistory.map((e) => {
@@ -571,6 +624,65 @@ export default function MonitoringScreen() {
               deletingIds={deletingIds}
             />
 
+            {/* Section 1b: Panjang Badan Janin */}
+            <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary, marginBottom: 4 }}>
+                {t.fetalLengthTitle}
+              </Text>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 16 }}>
+                {t.fetalLengthNote}
+              </Text>
+
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 6 }}>
+                {t.fetalLengthInput}
+              </Text>
+              <View className="flex-row items-center mb-4" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 4 }}>
+                <TextInput
+                  style={{ flex: 1, color: colors.textPrimary, fontFamily: fonts.regular, fontSize: 15, paddingVertical: 10 }}
+                  placeholder={t.fetalLengthPlaceholder}
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="decimal-pad"
+                  value={fetalLength}
+                  onChangeText={(v) => { setFetalLength(v); setFetalLengthSaved(false); }}
+                />
+                <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>cm</Text>
+              </View>
+
+              <AnimatedPressable haptic onPress={handleSaveFetalLength} disabled={!fetalLength || isSavingFetalLength}>
+                <LinearGradient
+                  colors={[colors.primary, colors.secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ borderRadius: 999, paddingVertical: 14, alignItems: "center", opacity: !fetalLength || isSavingFetalLength ? 0.6 : 1 }}
+                >
+                  {isSavingFetalLength
+                    ? <ActivityIndicator color="#FFFFFF" />
+                    : <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>{t.fetalLengthSave}</Text>
+                  }
+                </LinearGradient>
+              </AnimatedPressable>
+
+              {fetalLengthError && (
+                <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskHigh, marginTop: 10, textAlign: "center" }}>
+                  {fetalLengthError}
+                </Text>
+              )}
+              {fetalLengthSaved && !fetalLengthError && (
+                <View className="flex-row items-center justify-center mt-3" style={{ gap: 6 }}>
+                  <Ionicons name="checkmark-circle" size={16} color={colors.riskLow} />
+                  <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskLow }}>{t.fetalLengthSave} ✓</Text>
+                </View>
+              )}
+            </View>
+
+            <HistorySection
+              title={t.fetalLengthHistory}
+              isLoading={isFetalLengthHistoryLoading}
+              rows={fetalLengthHistoryRows}
+              onDelete={(id) => handleDeleteHistoryEntry("FETAL_LENGTH", id)}
+              deletingIds={deletingIds}
+            />
+
             {/* Section 2: Lingkar Kepala Janin */}
             <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
               <View className="flex-row items-center p-3 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 14, gap: 10 }}>
@@ -672,6 +784,24 @@ export default function MonitoringScreen() {
                 {t.maternalTrackingNote}
               </Text>
 
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 6 }}>
+                {t.lilaLabel} <Text style={{ fontFamily: fonts.regular, fontSize: 11 }}>({t.optional})</Text>
+              </Text>
+              <View className="flex-row items-center mb-2" style={{ backgroundColor: colors.surfaceContainer, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 4 }}>
+                <TextInput
+                  style={{ flex: 1, color: colors.textPrimary, fontFamily: fonts.regular, fontSize: 15, paddingVertical: 10 }}
+                  placeholder={t.lilaPlaceholder}
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="decimal-pad"
+                  value={maternalLila}
+                  onChangeText={(v) => { setMaternalLila(v); setMaternalSaved(false); }}
+                />
+                <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>cm</Text>
+              </View>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginBottom: 14 }}>
+                {t.lilaHint}
+              </Text>
+
               <AnimatedPressable haptic onPress={handleSaveMaternal} disabled={!maternalWeight || !maternalHeight || isSavingMaternal}>
                 <LinearGradient
                   colors={[colors.primary, colors.secondary]}
@@ -697,6 +827,22 @@ export default function MonitoringScreen() {
                   <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.riskLow }}>{t.maternalSave} ✓</Text>
                 </View>
               )}
+              {maternalSaved && !maternalError && maternalResult?.lila_status && (() => {
+                const isNormal = maternalResult.lila_status === "NORMAL";
+                return (
+                  <View className="p-3 mt-3 flex-row items-start" style={{ backgroundColor: isNormal ? colors.riskLowBg : colors.riskHighBg, borderRadius: 14, gap: 8 }}>
+                    <Ionicons name={isNormal ? "checkmark-circle" : "alert-circle"} size={18} color={isNormal ? colors.riskLow : colors.riskHigh} style={{ marginTop: 1 }} />
+                    <View className="flex-1">
+                      <Text style={{ fontFamily: fonts.bold, fontSize: 13, color: isNormal ? colors.riskLow : colors.riskHigh, marginBottom: 2 }}>
+                        {isNormal ? t.lilaNormal : t.lilaKek} · {maternalResult.lila_cm} cm
+                      </Text>
+                      <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
+                        {maternalResult.lila_message}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })()}
             </View>
 
             <HistorySection
@@ -751,6 +897,9 @@ export default function MonitoringScreen() {
                 />
                 <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.monthsUnit}</Text>
               </View>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginTop: -10, marginBottom: 14 }}>
+                {t.newbornAgeHint}
+              </Text>
 
               {/* Indicator */}
               <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: colors.textSecondary, marginBottom: 8 }}>
