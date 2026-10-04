@@ -262,6 +262,8 @@ async def submit_assessment(
         bp_category=final_result.bp_category,
     )
 
+    await db.commit()
+
     return {
         "response_id": response.response_id,
         "date": today.isoformat(),

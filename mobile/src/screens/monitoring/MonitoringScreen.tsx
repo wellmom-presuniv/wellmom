@@ -390,24 +390,46 @@ export default function MonitoringScreen() {
 
   const handleSaveMaternal = async () => {
     if (!maternalWeight || !maternalHeight) return;
-    setIsSavingMaternal(true);
     setMaternalError(null);
     setMaternalSaved(false);
+
+    // Koma -> titik (keyboard desimal di locale Indonesia menghasilkan koma). Rentang sama dengan
+    // MaternalLogRequest di backend (app/schemas/monitoring.py).
+    const toNumber = (raw: string) => parseFloat(raw.trim().replace(",", "."));
+    const weightKg = toNumber(maternalWeight);
+    const heightCm = toNumber(maternalHeight);
+    const lilaCm = maternalLila.trim() ? toNumber(maternalLila) : null;
+
+    if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 250) {
+      setMaternalError(t.maternalWeightInvalid);
+      return;
+    }
+    if (!Number.isFinite(heightCm) || heightCm < 100 || heightCm > 220) {
+      setMaternalError(t.maternalHeightInvalid);
+      return;
+    }
+    if (lilaCm !== null && (!Number.isFinite(lilaCm) || lilaCm < 10 || lilaCm > 45)) {
+      setMaternalError(t.lilaInvalid);
+      return;
+    }
+
+    setIsSavingMaternal(true);
     try {
-      const weightKg = parseFloat(maternalWeight);
-      const heightCm = parseFloat(maternalHeight);
       // Backend udah buka maternal/log buat semua trimester (log_maternal_measurement
       // sekarang pakai _require_pregnancy_profile) — gak perlu local-storage fallback lagi.
-      const lilaCm = maternalLila ? parseFloat(maternalLila.replace(",", ".")) : null;
       const saved = await logMaternal(weightKg, heightCm, lilaCm);
       setMaternalResult(saved);
       setMaternalSaved(true);
       setMaternalWeight("");
       setMaternalLila("");
       refreshMaternalHistory();
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Gagal simpan data ibu:", err);
-      setMaternalError(t.errorNetwork);
+      const detail = err?.response?.data?.detail;
+      // detail dari validasi Pydantic (422) berupa array, bukan string.
+      if (typeof detail === "string") setMaternalError(detail);
+      else if (err?.response) setMaternalError(t.maternalServerInvalid);
+      else setMaternalError(t.errorNetwork);
     } finally {
       setIsSavingMaternal(false);
     }

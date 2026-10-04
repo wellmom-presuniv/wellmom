@@ -126,6 +126,8 @@ async def log_fetal_weight(
         ),
     )
 
+    await db.commit()
+
     return {
         "record_id": record.record_id,
         "date": record.check_date,
@@ -158,6 +160,8 @@ async def log_fetal_length(
         fetal_length_cm=payload.length_cm,
     )
 
+    await db.commit()
+
     return {
         "record_id": record.record_id,
         "date": record.check_date,
@@ -189,6 +193,8 @@ async def log_head_circumference(
         head_circumference_cm=payload.head_circumference_cm,
         evaluation_message=info["info_text"],
     )
+
+    await db.commit()
 
     return {
         "record_id": record.record_id,
@@ -228,6 +234,8 @@ async def log_maternal_measurement(
     )
 
     lila = check_lila(payload.lila_cm) if payload.lila_cm is not None else None
+
+    await db.commit()
 
     return {
         "record_id": record.record_id,
@@ -274,6 +282,8 @@ async def evaluate_and_log_growth(
         z_score=result["z_score"],
         reference_month_used=result["reference_month_used"],
     )
+
+    await db.commit()
 
     return {
         "record_id": record.record_id,
