@@ -1,6 +1,6 @@
 """
-Logic durasi untuk 3 gejala berat: bleeding (Q5), blurred vision (Q2), 
-high fever (Q9).
+Logic durasi untuk 3 gejala berat: bleeding (Q4), blurred vision (Q2), 
+high fever (Q8).
 
 Aturan (locked, dari Chelsea/dr. Nucky):
 - Hari 1 gejala muncul -> WARNING (belum rujuk)
@@ -45,9 +45,9 @@ class SymptomTrackingRecord:
 
 # Mapping dari order_index ke SymptomType -- sesuai keputusan final
 ORDER_INDEX_TO_SYMPTOM = {
-    2: SymptomType.BLURRED_VISION,  # "Pusing, Pandangan kabur?"
-    5: SymptomType.BLEEDING,         # "Perdarahan atau flek?"
-    9: SymptomType.HIGH_FEVER,       # "Demam tinggi (>=38°C)?"
+    2: SymptomType.BLURRED_VISION,  # "Pusing atau pandangan kabur?"
+    4: SymptomType.BLEEDING,         # "Perdarahan atau flek dari vagina?"
+    8: SymptomType.HIGH_FEVER,       # "Demam >=38°C atau menggigil?"
 }
 
 

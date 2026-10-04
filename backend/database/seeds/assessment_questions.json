@@ -1,65 +1,72 @@
 [
     {
         "order_index": 1,
-        "question_text": "Mudah lelah berlebihan?",
+        "question_text": "Mudah lelah atau sangat lemas?",
         "is_red_flag": false,
         "weight": 1,
         "is_active": true
     },
     {
         "order_index": 2,
-        "question_text": "Pusing atau Pandangan kabur?",
+        "question_text": "Pusing atau pandangan kabur?",
         "is_red_flag": false,
         "weight": 1,
         "is_active": true
     },
     {
         "order_index": 3,
-        "question_text": "Mual muntah terus-menerus?",
+        "question_text": "Mual muntah terus-menerus hingga sulit makan/minum?",
         "is_red_flag": false,
         "weight": 1,
         "is_active": true
     },
     {
         "order_index": 4,
-        "question_text": "Tidak konsumsi tablet tambah darah?",
+        "question_text": "Perdarahan atau flek dari vagina?",
         "is_red_flag": false,
         "weight": 1,
         "is_active": true
     },
     {
         "order_index": 5,
-        "question_text": "Perdarahan atau flek?",
-        "is_red_flag": false,
-        "weight": 1,
+        "question_text": "Sakit kepala berat atau terus-menerus?",
+        "is_red_flag": true,
+        "weight": 0,
         "is_active": true
     },
     {
         "order_index": 6,
-        "question_text": "Sakit kepala berat?",
+        "question_text": "Bengkak pada wajah/tangan, terutama disertai sakit kepala atau pandangan kabur?",
         "is_red_flag": true,
         "weight": 0,
         "is_active": true
     },
     {
         "order_index": 7,
-        "question_text": "Bengkak pada wajah/tangan?",
-        "is_red_flag": true,
-        "weight": 0,
+        "question_text": "Nyeri perut bagian bawah atau nyeri perut hebat?",
+        "is_red_flag": false,
+        "weight": 1,
         "is_active": true
     },
     {
         "order_index": 8,
-        "question_text": "Gerakan janin berkurang (trimester lanjut)?",
-        "is_red_flag": true,
-        "weight": 0,
+        "question_text": "Demam ≥38°C atau menggigil?",
+        "is_red_flag": false,
+        "weight": 1,
         "is_active": true
     },
     {
         "order_index": 9,
-        "question_text": "Demam tinggi (≥38°C)?",
+        "question_text": "Keluar cairan dari vagina yang tidak biasa atau terus-menerus?",
         "is_red_flag": false,
         "weight": 1,
+        "is_active": true
+    },
+    {
+        "order_index": 10,
+        "question_text": "Jika usia kehamilan sudah memungkinkan merasakan gerakan janin, apakah gerakan janin berkurang dari biasanya?",
+        "is_red_flag": true,
+        "weight": 0,
         "is_active": true
     }
 ]

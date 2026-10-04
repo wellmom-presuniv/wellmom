@@ -13,7 +13,8 @@ import Animated, {
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/fonts";
 import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
-import { AssessmentQuestion } from "../../types";
+import { AssessmentQuestion, MedicalHistoryCode } from "../../types";
+import { getMyProfile } from "../../api/profileService";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useFocusEffect } from "@react-navigation/native";
 import AnimatedPressable from "@/components/AnimatedPressable";
@@ -32,16 +33,51 @@ function ProgressDot({ answered }: { answered: boolean }) {
   return <Animated.View style={[{ flex: 1, height: 4, borderRadius: 2 }, animatedStyle]} />;
 }
 
+// Pertanyaan gerakan janin (order_index 10) hanya relevan mulai trimester 2.
+// Backend mewajibkan semua pertanyaan aktif terjawab, jadi kalau disembunyikan kita kirim "Tidak".
+const FETAL_MOVEMENT_ORDER_INDEX = 10;
+const FETAL_MOVEMENT_MIN_TRIMESTER = 2;
+
+const HISTORY_OPTIONS: { code: MedicalHistoryCode; labelKey:
+  | "historyHypertension" | "historyDiabetes" | "historyKidney" | "historyHeart"
+  | "historyAutoimmune" | "historyClotting" | "historyAnemia" | "historyNone" }[] = [
+  { code: "HYPERTENSION", labelKey: "historyHypertension" },
+  { code: "DIABETES", labelKey: "historyDiabetes" },
+  { code: "KIDNEY_DISEASE", labelKey: "historyKidney" },
+  { code: "HEART_DISEASE", labelKey: "historyHeart" },
+  { code: "AUTOIMMUNE", labelKey: "historyAutoimmune" },
+  { code: "CLOTTING_DISORDER", labelKey: "historyClotting" },
+  { code: "SEVERE_ANEMIA", labelKey: "historyAnemia" },
+  { code: "NONE", labelKey: "historyNone" },
+];
+
+// MAP = (Sistolik + 2 x Diastolik) / 3 (Buku KIA 2024). Informasional.
+function calculateMap(systolic: string, diastolic: string): number | null {
+  const sys = Number(systolic);
+  const dia = Number(diastolic);
+  if (!systolic || !diastolic || !Number.isFinite(sys) || !Number.isFinite(dia) || sys <= 0 || dia <= 0) return null;
+  return Math.round(((sys + 2 * dia) / 3) * 10) / 10;
+}
+
 export default function SelfAssessmentFormScreen({ navigation }: any) {
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [systolicBp, setSystolicBp] = useState("");
   const [diastolicBp, setDiastolicBp] = useState("");
+  const [medicalHistory, setMedicalHistory] = useState<MedicalHistoryCode[]>([]);
+  const [trimester, setTrimester] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t, language } = useTranslation();
-  const answeredCount = Object.keys(answers).length;
-  const allAnswered = answeredCount === questions.length;
+  // Q10 disembunyikan kalau profil sudah dimuat dan masih trimester 1.
+  const hideFetalMovement = trimester !== null && trimester < FETAL_MOVEMENT_MIN_TRIMESTER;
+  const visibleQuestions = questions.filter(
+    (q) => !(hideFetalMovement && q.order_index === FETAL_MOVEMENT_ORDER_INDEX)
+  );
+  const answeredCount = visibleQuestions.filter((q) => answers[q.question_id] !== undefined).length;
+  const hasHistory = medicalHistory.length > 0;
+  const allAnswered = answeredCount === visibleQuestions.length && hasHistory;
+  const mapValue = calculateMap(systolicBp, diastolicBp);
 
   useFocusEffect(
     useCallback(() => {
@@ -54,8 +90,14 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             navigation.replace("SelfAssessmentResult", { result: todayResult });
             return;
           }
-          const q = await getAssessmentQuestions();
-          if (!cancelled) setQuestions(q);
+          const [q, profile] = await Promise.all([
+            getAssessmentQuestions(),
+            getMyProfile().catch(() => null), // gagal ambil profil -> tampilkan semua pertanyaan
+          ]);
+          if (!cancelled) {
+            setQuestions(q);
+            setTrimester(profile?.trimester ?? null);
+          }
         } catch (err) {
           console.warn("Gagal fetch pertanyaan dari API:", err);
         } finally {
@@ -72,13 +114,27 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
     setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
+  const toggleHistory = (code: MedicalHistoryCode) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMedicalHistory((prev) => {
+      if (code === "NONE") return prev.includes("NONE") ? [] : ["NONE"];
+      const withoutNone = prev.filter((c) => c !== "NONE");
+      return withoutNone.includes(code) ? withoutNone.filter((c) => c !== code) : [...withoutNone, code];
+    });
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       const payload = {
-        answers: Object.entries(answers).map(([question_id, answer]) => ({ question_id, answer })),
+        answers: questions.map((q) => ({
+          question_id: q.question_id,
+          // Pertanyaan yang disembunyikan (gerakan janin di T1) dikirim sebagai "Tidak".
+          answer: visibleQuestions.includes(q) ? answers[q.question_id] === true : false,
+        })),
         systolic_bp: systolicBp ? Number(systolicBp) : null,
         diastolic_bp: diastolicBp ? Number(diastolicBp) : null,
+        medical_history: medicalHistory,
       };
       const result = await submitAssessment(payload);
       navigation.replace("SelfAssessmentResult", { result });
@@ -122,13 +178,14 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
 
       {/* Progress dots */}
       <View className="flex-row px-5 mb-4" style={{ gap: 4 }}>
-        {questions.map((q) => (
+        {visibleQuestions.map((q) => (
           <ProgressDot key={q.question_id} answered={answers[q.question_id] !== undefined} />
         ))}
+        <ProgressDot answered={hasHistory} />
       </View>
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
-        {questions.map((q, idx) => (
+        {visibleQuestions.map((q, idx) => (
           <Animated.View
             key={q.question_id}
             entering={FadeInRight.delay(idx * 40).duration(300)}
@@ -184,6 +241,49 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
           </Animated.View>
         ))}
 
+        {hideFetalMovement && (
+          <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginBottom: 12, paddingHorizontal: 4 }}>
+            {t.fetalMovementLater}
+          </Text>
+        )}
+
+        {/* Riwayat penyakit (Q11) — multi-select, tidak diskor */}
+        <View className="p-4 mb-3" style={{ backgroundColor: colors.surface, borderRadius: 18 }}>
+          <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.textPrimary, marginBottom: 4 }}>
+            {t.medicalHistoryTitle}
+          </Text>
+          <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginBottom: 12 }}>
+            {t.historySubtitle}
+          </Text>
+          <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+            {HISTORY_OPTIONS.map((opt) => {
+              const selected = medicalHistory.includes(opt.code);
+              return (
+                <AnimatedPressable
+                  key={opt.code}
+                  onPress={() => toggleHistory(opt.code)}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 999,
+                    backgroundColor: selected ? colors.primary : colors.surfaceContainer,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: fonts.medium,
+                      fontSize: 12,
+                      color: selected ? "#FFFFFF" : colors.textSecondary,
+                    }}
+                  >
+                    {t[opt.labelKey]}
+                  </Text>
+                </AnimatedPressable>
+              );
+            })}
+          </View>
+        </View>
+
         {/* Tensi darah - opsional */}
         <View className="p-4 mb-6" style={{ backgroundColor: colors.surface, borderRadius: 18 }}>
           <View className="flex-row items-center mb-3" style={{ gap: 6 }}>
@@ -224,6 +324,24 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
               />
             </View>
           </View>
+          {mapValue !== null && (
+            <View className="mt-3 p-3" style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 12 }}>
+              <View className="flex-row items-center justify-between">
+                <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.textSecondary }}>{t.mapLabel}</Text>
+                <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: mapValue > 90 ? colors.riskMedium : colors.textPrimary }}>
+                  {mapValue} mmHg
+                </Text>
+              </View>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 10, color: colors.textSecondary, marginTop: 2 }}>
+                {t.mapFormula}
+              </Text>
+              {mapValue > 90 && (
+                <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.riskMedium, marginTop: 6 }}>
+                  {t.mapElevatedNote}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -238,7 +356,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
             }}
           >
             <Text style={{ fontFamily: fonts.semibold, color: "#FFFFFF" }}>
-              {allAnswered ? t.viewResult : t.answerMore.replace("{n}", String(questions.length - answeredCount))}
+              {allAnswered ? t.viewResult : t.answerMore.replace("{n}", String(visibleQuestions.length - answeredCount + (hasHistory ? 0 : 1)))}
             </Text>
           </View>
         </AnimatedPressable>

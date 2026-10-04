@@ -17,10 +17,22 @@ export interface AssessmentAnswer {
   answer: boolean;
 }
 
+// Kode riwayat penyakit (Q11, tidak diskor) — harus sama dengan MedicalHistoryCode di backend.
+export type MedicalHistoryCode =
+  | "HYPERTENSION"
+  | "DIABETES"
+  | "KIDNEY_DISEASE"
+  | "HEART_DISEASE"
+  | "AUTOIMMUNE"
+  | "CLOTTING_DISORDER"
+  | "SEVERE_ANEMIA"
+  | "NONE";
+
 export interface AssessmentSubmitPayload {
   answers: AssessmentAnswer[];
   systolic_bp: number | null;
   diastolic_bp: number | null;
+  medical_history: MedicalHistoryCode[];
   // pregnancy_profile_id TIDAK perlu dikirim — backend resolve otomatis dari JWT, sama kayak user_id.
 }
 
@@ -55,6 +67,8 @@ export interface AssessmentResult {
   bp_assessment_status: BpAssessmentStatus;
   bp_category: BpCategory; 
   duration_triggered_symptoms: DurationTriggeredSymptom[];
+  map_mmhg?: number | null;               // MAP = (sistolik + 2 x diastolik) / 3, null kalau tensi kosong
+  medical_history?: MedicalHistoryCode[];
 }
 
 // ===== Auth — sesuai schema asli backend (token.py / user.py) =====

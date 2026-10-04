@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user_id, get_db
 from app.schemas.monitoring import (
+    FetalLengthLogRequest,
+    FetalLengthLogResponse,
     FetalWeightLogRequest,
     FetalWeightLogResponse,
     GrowthEvaluateRequest,
@@ -33,6 +35,23 @@ async def log_fetal_weight(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     return await monitoring_service.log_fetal_weight(
+        db=db,
+        user_id=user_id,
+        payload=payload,
+    )
+
+
+@router.post(
+    "/monitoring/fetal-length/log",
+    response_model=FetalLengthLogResponse,
+    status_code=201,
+)
+async def log_fetal_length(
+    payload: FetalLengthLogRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    return await monitoring_service.log_fetal_length(
         db=db,
         user_id=user_id,
         payload=payload,
