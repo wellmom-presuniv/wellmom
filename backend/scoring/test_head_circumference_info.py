@@ -12,7 +12,7 @@ def test_returns_correct_reference_range():
 def test_info_text_format():
     """Teks info harus sesuai format yang ditampilkan ke user"""
     result = get_head_circumference_info()
-    assert result["info_text"] == "Lingkar kepala normal: 33-35 cm"
+    assert result["info_text"] == "Referensi lingkar kepala bayi saat lahir: 33-35 cm"
     print("✅ test_info_text_format passed")
 
 
