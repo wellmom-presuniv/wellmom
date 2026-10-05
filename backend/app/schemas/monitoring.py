@@ -64,9 +64,9 @@ class HeadCircumferenceLogResponse(BaseModel):
 
 class MaternalLogRequest(BaseModel):
     measurement_date: date | None = None
-    weight_kg: float = Field(gt=0)
-    height_cm: float = Field(gt=0)
-    lila_cm: float | None = Field(default=None, gt=0, le=60)
+    weight_kg: float = Field(ge=20, le=250)
+    height_cm: float = Field(ge=100, le=220)
+    lila_cm: float | None = Field(default=None, ge=10, le=45)
 
 
 class MaternalLogResponse(BaseModel):
