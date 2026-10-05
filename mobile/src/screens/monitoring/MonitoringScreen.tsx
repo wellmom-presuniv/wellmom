@@ -28,6 +28,7 @@ import {
   MonitoringHistoryEntry,
   MonitoringHistoryType,
 } from "../../types/monitoring";
+import { getApiErrorMessage } from "../../utils/apiError";
 import {
   getLocalMonitoringHistory,
   removeLocalMonitoringEntry,
@@ -344,7 +345,7 @@ export default function MonitoringScreen() {
       refreshFetalHistory();
     } catch (err: any) {
       console.warn("Gagal cek berat janin:", err);
-      setFetalError(err?.response?.data?.detail ?? t.errorNetwork);
+      setFetalError(getApiErrorMessage(err, t.errorNetwork));
     } finally {
       setIsCheckingFetal(false);
     }
@@ -363,7 +364,7 @@ export default function MonitoringScreen() {
       refreshFetalLengthHistory();
     } catch (err: any) {
       console.warn("Gagal simpan panjang badan janin:", err);
-      setFetalLengthError(err?.response?.data?.detail ?? t.errorNetwork);
+      setFetalLengthError(getApiErrorMessage(err, t.errorNetwork));
     } finally {
       setIsSavingFetalLength(false);
     }
@@ -382,7 +383,7 @@ export default function MonitoringScreen() {
       refreshHeadCircHistory();
     } catch (err: any) {
       console.warn("Gagal simpan lingkar kepala:", err);
-      setHeadCircError(err?.response?.data?.detail ?? t.errorNetwork);
+      setHeadCircError(getApiErrorMessage(err, t.errorNetwork));
     } finally {
       setIsSavingHeadCirc(false);
     }
@@ -425,11 +426,7 @@ export default function MonitoringScreen() {
       refreshMaternalHistory();
     } catch (err: any) {
       console.warn("Gagal simpan data ibu:", err);
-      const detail = err?.response?.data?.detail;
-      // detail dari validasi Pydantic (422) berupa array, bukan string.
-      if (typeof detail === "string") setMaternalError(detail);
-      else if (err?.response) setMaternalError(t.maternalServerInvalid);
-      else setMaternalError(t.errorNetwork);
+      setMaternalError(getApiErrorMessage(err, t.errorNetwork));
     } finally {
       setIsSavingMaternal(false);
     }
