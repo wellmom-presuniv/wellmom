@@ -1,9 +1,11 @@
+import { APP_NAME, APP_TAGLINE } from "../constants/app";
+
 export type Language = "id" | "en";
 
 export const translations = {
   id: {
     // Auth
-    tagline: "Healthy Mom, Healthy Baby 💗",
+    tagline: APP_TAGLINE,
     email: "Email",
     password: "Password",
     login: "Masuk",
@@ -129,6 +131,15 @@ export const translations = {
     days: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
     months: ["Jan", "Feb", "Mar", "Apr", "Mei", "Juni", "Juli", "Agus", "Sept", "Okt", "Nov", "Des"],
 
+    // Isi Piringku
+    isiPiringkuTitle: "Isi Piringku Ibu Hamil",
+    isiPiringkuSubtitle: "Panduan porsi makan harian",
+    isiPiringkuCardHint: "Panduan porsi makan, TTD, dan air putih untuk ibu hamil",
+    isiPiringkuTrimesterBanner: "Porsi nasi disesuaikan dengan {trimester} Anda",
+    isiPiringkuTrimesterShort: "trimester {n}",
+    isiPiringkuNotes: "Catatan",
+    isiPiringkuSource: "Sumber",
+
     // Education
     educationTitle: "Edukasi",
     educationSubtitle: "Pilih Topik",
@@ -174,7 +185,7 @@ export const translations = {
     notificationMediumRisk: "Risiko sedang. Pantau gejala dan konsultasikan bila perlu.",
     notificationLowRisk: "Kamu dalam kondisi baik. Terus jaga kebiasaan sehat hari ini.",
  
-    aboutApp: "Tentang WellMom",
+    aboutApp: `Tentang ${APP_NAME}`,
     help: "Bantuan",
     logout: "Keluar",
     trimesterBadge: "Trimester {t} · Minggu ke-{w}",
@@ -188,20 +199,20 @@ export const translations = {
     savingNote: "Perubahan akan aktif setelah endpoint backend tersedia",
 
     // About
-    aboutTitle: "Tentang WellMom",
+    aboutTitle: `Tentang ${APP_NAME}`,
     version: "Versi 1.0.0",
 
     // Help
     helpTitle: "Bantuan",
     faqTitle: "Pertanyaan Umum (FAQ)",
     stillQuestion: "Masih ada pertanyaan?",
-    stillQuestionBody: "Hubungi tim WellMom melalui koordinator medis Anda atau melalui fasilitas kesehatan terdekat.",
+    stillQuestionBody: `Hubungi tim ${APP_NAME} melalui koordinator medis Anda atau melalui fasilitas kesehatan terdekat.`,
 
     // Guide
     guideTitle: "Panduan",
     guideSubtitle: "Informasi penting untuk kehamilan sehat",
     disclaimer: "⚕️ Disclaimer",
-    disclaimerBody: "WellMom adalah alat bantu edukasi, bukan pengganti konsultasi medis. Selalu konsultasikan kondisi Anda kepada tenaga kesehatan yang berkompeten.",
+    disclaimerBody: `${APP_NAME} adalah alat bantu edukasi, bukan pengganti konsultasi medis. Selalu konsultasikan kondisi Anda kepada tenaga kesehatan yang berkompeten.`,
 
     // Common
     loading: "Memuat...",
@@ -228,7 +239,7 @@ export const translations = {
     checklistItems: {} as Record<string, string>,
 
     aboutSections: [
-      { title: "Apa itu WellMom?", body: "WellMom adalah aplikasi pendamping kesehatan ibu hamil yang membantu memantau kehamilan secara mandiri di antara kunjungan ANC (Antenatal Care)." },
+      { title: `Apa itu ${APP_NAME}?`, body: `${APP_NAME} adalah aplikasi pendamping kesehatan ibu hamil yang membantu memantau kehamilan secara mandiri di antara kunjungan ANC (Antenatal Care).` },
       { title: "Fitur Utama", body: "• Edukasi gizi berbasis trimester\n• Self-assessment risiko kehamilan harian\n• Checklist kepatuhan kesehatan\n• Panduan rujukan ke fasilitas kesehatan" },
       { title: "Disclaimer Penting", body: "Aplikasi ini bersifat edukatif dan TIDAK menggantikan konsultasi medis. Seluruh konten telah divalidasi oleh dr. Nucky Indra Praja, Sp.OT, M.Kes." },
       { title: "Dikembangkan oleh", body: "Mahasiswa Universitas Presiden\nFakultas Ilmu Komputer × Fakultas Kedokteran\n\nTim: Arka, Alek, Thoriq, Arizal\nLiaison Medis: Chelsea Venustine" },
@@ -261,7 +272,7 @@ export const translations = {
       },
       {
         id: "howto",
-        title: "Cara Menggunakan WellMom",
+        title: `Cara Menggunakan ${APP_NAME}`,
         subtitle: "Panduan singkat penggunaan aplikasi",
         items: [
           "Daftar akun dan masukkan HPHT saat onboarding.",
@@ -370,7 +381,7 @@ export const translations = {
 
   en: {
     // Auth
-    tagline: "Healthy Mom, Healthy Baby 💗",
+    tagline: APP_TAGLINE,
     email: "Email",
     password: "Password",
     login: "Sign In",
@@ -496,6 +507,15 @@ export const translations = {
     days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     months: ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"],
 
+    // Isi Piringku
+    isiPiringkuTitle: "Isi Piringku for Pregnant Women",
+    isiPiringkuSubtitle: "Daily food portion guide",
+    isiPiringkuCardHint: "Portion guide, iron tablets, and water for pregnant women",
+    isiPiringkuTrimesterBanner: "Rice portions are adjusted to your {trimester}",
+    isiPiringkuTrimesterShort: "trimester {n}",
+    isiPiringkuNotes: "Notes",
+    isiPiringkuSource: "Source",
+
     // Education
     educationTitle: "Education",
     educationSubtitle: "Choose a Topic",
@@ -540,7 +560,7 @@ export const translations = {
     notificationHighRisk: "Self assessment shows a high risk. Consider consulting a healthcare provider.",
     notificationMediumRisk: "Medium risk detected. Keep monitoring symptoms and consult if needed.",
     notificationLowRisk: "You're in a good condition. Keep up your healthy habits today.",
-    aboutApp: "About WellMom",
+    aboutApp: `About ${APP_NAME}`,
     help: "Help",
     logout: "Sign Out",
     trimesterBadge: "Trimester {t} · Week {w}",
@@ -554,20 +574,20 @@ export const translations = {
     savingNote: "Changes will take effect once the backend endpoint is available",
 
     // About
-    aboutTitle: "About WellMom",
+    aboutTitle: `About ${APP_NAME}`,
     version: "Version 1.0.0",
 
     // Help
     helpTitle: "Help",
     faqTitle: "Frequently Asked Questions (FAQ)",
     stillQuestion: "Still have questions?",
-    stillQuestionBody: "Contact the WellMom team through your medical coordinator or the nearest healthcare facility.",
+    stillQuestionBody: `Contact the ${APP_NAME} team through your medical coordinator or the nearest healthcare facility.`,
 
     // Guide
     guideTitle: "Guide",
     guideSubtitle: "Important information for a healthy pregnancy",
     disclaimer: "⚕️ Disclaimer",
-    disclaimerBody: "WellMom is an educational tool and does not replace medical consultation. Always consult a qualified healthcare professional.",
+    disclaimerBody: `${APP_NAME} is an educational tool and does not replace medical consultation. Always consult a qualified healthcare professional.`,
 
     // Common
     loading: "Loading...",
@@ -605,7 +625,7 @@ export const translations = {
     } as Record<string, string>,
 
     aboutSections: [
-      { title: "What is WellMom?", body: "WellMom is a maternal health companion app that helps pregnant women monitor their pregnancy independently between ANC visits." },
+      { title: `What is ${APP_NAME}?`, body: `${APP_NAME} is a maternal health companion app that helps pregnant women monitor their pregnancy independently between ANC visits.` },
       { title: "Key Features", body: "• Trimester-based nutrition education\n• Daily pregnancy risk self-assessment\n• Daily health habit checklist\n• Healthcare facility referral guidance" },
       { title: "Important Disclaimer", body: "This app is educational and does NOT replace medical consultation. All content has been validated by dr. Nucky Indra Praja, Sp.OT, M.Kes." },
       { title: "Developed by", body: "Students of President University\nFaculty of Computer Science × Faculty of Medicine\n\nTeam: Arka, Alek, Thoriq, Arizal\nMedical Liaison: Chelsea Venustine" },
@@ -638,7 +658,7 @@ export const translations = {
       },
       {
         id: "howto",
-        title: "How to Use WellMom",
+        title: `How to Use ${APP_NAME}`,
         subtitle: "Quick guide to using the app",
         items: [
           "Register and enter your LMP date during onboarding.",

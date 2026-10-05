@@ -1,3 +1,4 @@
+import { APP_NAME } from "../constants/app";
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 
@@ -26,7 +27,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
   }
 }
 
-export async function sendLocalNotification(body: string, title = "WellMom Reminder") {
+export async function sendLocalNotification(body: string, title = `${APP_NAME} Reminder`) {
   try {
     const permission = await Notifications.getPermissionsAsync();
     if (!(permission.granted || permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL)) {

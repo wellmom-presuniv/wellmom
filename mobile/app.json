@@ -1,13 +1,10 @@
 {
   "expo": {
-    "name": "WellMom",
+    "name": "MaterLife",
     "slug": "wellmom-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "splash": {
-      "backgroundColor": "#FFF5F9"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -21,7 +18,8 @@
     "android": {
       "package": "com.arkapds.wellmommobile",
       "adaptiveIcon": {
-        "backgroundColor": "#EC4899"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
       }
     },
     "web": {
@@ -29,12 +27,22 @@
     },
     "plugins": [
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "backgroundColor": "#000000",
+          "resizeMode": "contain",
+          "imageWidth": 240
+        }
+      ]
     ],
     "extra": {
       "eas": {
         "projectId": "f999d03a-8cfc-41d2-a208-faa513b080f8"
       }
-    }
+    },
+    "icon": "./assets/icon.png"
   }
 }

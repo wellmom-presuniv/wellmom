@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { APP_NAME } from "../../constants/app";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -98,7 +99,7 @@ function formatTanggalIndo(isoDate: string) {
     return (
     <SafeAreaView className="flex-1 bg-background">
         {/* Header */}
-      <AppHeader title="WellMom" notificationMessage={notificationMessage} />
+      <AppHeader title={APP_NAME} notificationMessage={notificationMessage} />
       <ScrollView className="px-4 pt-2" showsVerticalScrollIndicator={false}>
         {/* Trimester progress card */}
         <LinearGradient
