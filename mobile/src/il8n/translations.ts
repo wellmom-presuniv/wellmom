@@ -131,6 +131,15 @@ export const translations = {
     days: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
     months: ["Jan", "Feb", "Mar", "Apr", "Mei", "Juni", "Juli", "Agus", "Sept", "Okt", "Nov", "Des"],
 
+    // Isi Piringku
+    isiPiringkuTitle: "Isi Piringku Ibu Hamil",
+    isiPiringkuSubtitle: "Panduan porsi makan harian",
+    isiPiringkuCardHint: "Panduan porsi makan, TTD, dan air putih untuk ibu hamil",
+    isiPiringkuTrimesterBanner: "Porsi nasi disesuaikan dengan {trimester} Anda",
+    isiPiringkuTrimesterShort: "trimester {n}",
+    isiPiringkuNotes: "Catatan",
+    isiPiringkuSource: "Sumber",
+
     // Education
     educationTitle: "Edukasi",
     educationSubtitle: "Pilih Topik",
@@ -497,6 +506,15 @@ export const translations = {
     noChecklist: "No checklist items yet.\nThe medical team will add them soon.",
     days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     months: ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"],
+
+    // Isi Piringku
+    isiPiringkuTitle: "Isi Piringku for Pregnant Women",
+    isiPiringkuSubtitle: "Daily food portion guide",
+    isiPiringkuCardHint: "Portion guide, iron tablets, and water for pregnant women",
+    isiPiringkuTrimesterBanner: "Rice portions are adjusted to your {trimester}",
+    isiPiringkuTrimesterShort: "trimester {n}",
+    isiPiringkuNotes: "Notes",
+    isiPiringkuSource: "Source",
 
     // Education
     educationTitle: "Education",

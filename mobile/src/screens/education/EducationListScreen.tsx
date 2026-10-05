@@ -87,6 +87,24 @@ export default function EducationListScreen({ navigation }: any) {
           </View>
         )}
 
+        {!search && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate("IsiPiringku")}
+            className="flex-row items-center mb-4 p-4"
+            style={{ backgroundColor: colors.primaryContainer, borderRadius: 20 }}
+            activeOpacity={0.8}
+          >
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+              <Ionicons name="restaurant" size={22} color={colors.background} />
+            </View>
+            <View className="flex-1">
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 15, color: colors.background }}>{t.isiPiringkuTitle}</Text>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.background, marginTop: 2 }}>{t.isiPiringkuCardHint}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.background} />
+          </TouchableOpacity>
+        )}
+
         {isLoading ? (
           <View style={{ marginTop: 4 }}>
             {[0, 1, 2, 3, 4].map((i) => (
