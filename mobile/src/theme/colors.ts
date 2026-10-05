@@ -1,11 +1,11 @@
 /**
- * Design tokens — WellMom
+ * Design tokens — MaterLife
  * Sumber warna tunggal untuk dipakai di tempat yang butuh JS value langsung
  * (mis. style prop dinamis, icon color, LinearGradient).
  * Untuk styling lewat className, pakai token yang sama di tailwind.config.js.
  */
 /**
- * Design tokens — WellMom ("Serene Glow")
+ * Design tokens — MaterLife ("Serene Glow")
  * Sumber: Stitch AI design system (DESIGN.md), dengan beberapa fix konsistensi:
  * - DESIGN.md dijadikan single source of truth (code.html dashboard & onboarding
  *   punya beberapa token yang sedikit beda satu sama lain — dianggap kesalahan generate)

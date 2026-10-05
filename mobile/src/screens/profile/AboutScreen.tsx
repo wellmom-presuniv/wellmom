@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { APP_NAME } from "../../constants/app";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
@@ -22,7 +23,7 @@ export default function AboutScreen({ navigation }: any) {
           <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primaryContainer, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
             <Ionicons name="heart" size={36} color={colors.background} />
           </View>
-          <Text style={{ fontFamily: fonts.extrabold, fontSize: 24, color: colors.primary }}>WellMom</Text>
+          <Text style={{ fontFamily: fonts.extrabold, fontSize: 24, color: colors.primary }}>{APP_NAME}</Text>
           <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>{t.version}</Text>
         </View>
 

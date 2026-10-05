@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { APP_NAME } from "../../constants/app";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -34,7 +35,7 @@ export default function LoginScreen({ navigation }: any) {
         >
           <Ionicons name="heart" size={36} color="#FFFFFF" />
         </LinearGradient>
-        <Text style={{ fontFamily: fonts.extrabold, fontSize: 28, color: colors.primary }}>WellMom</Text>
+        <Text style={{ fontFamily: fonts.extrabold, fontSize: 28, color: colors.primary }}>{APP_NAME}</Text>
         <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>
           {t.tagline}
         </Text>
