@@ -74,6 +74,9 @@ async def toggle_item(
         item_id=item_id,
         today=today,
     )
+    # Commit sebelum respons: commit di teardown get_db jalan SETELAH respons terkirim,
+    # sehingga GET berikutnya bisa membaca data lama (lihat #35 di monitoring_service).
+    await db.commit()
 
     return {
         "item_id":      item_id,
@@ -115,6 +118,8 @@ async def submit_checklist_for_date(
             target_date=selected_date,
             is_completed=submitted_item["is_completed"],
         )
+
+    await db.commit()
 
     return await get_checklist_for_date(db, user_id, selected_date)
 
