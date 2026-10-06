@@ -52,6 +52,8 @@ class AssessmentResultResponse(BaseModel):
     bp_category: Optional[str] = None
     # MAP = (sistolik + 2 x diastolik) / 3, null kalau tensi tidak diisi.
     map_mmhg: Optional[float] = None
+    # MAP > cutoff KIA (scoring/map_check.py) -> berisiko; sudah ikut menaikkan risk_category.
+    map_at_risk: bool = False
     medical_history: list[str] = Field(default_factory=list)
 
 class AssessmentHistoryItem(BaseModel):
