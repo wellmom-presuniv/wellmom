@@ -52,8 +52,11 @@ class AssessmentResultResponse(BaseModel):
     bp_category: Optional[str] = None
     # MAP = (sistolik + 2 x diastolik) / 3, null kalau tensi tidak diisi.
     map_mmhg: Optional[float] = None
-    # MAP > cutoff KIA (scoring/map_check.py) -> berisiko; sudah ikut menaikkan risk_category.
+    # MAP > cutoff KIA hanya pada usia kehamilan < 20 minggu (scoring/map_check.py);
+    # kalau true sudah ikut menaikkan risk_category (Risiko Sedang).
     map_at_risk: bool = False
+    # Minggu penuh dari HPHT saat assessment; null kalau HPHT tidak tersedia.
+    gestational_week: Optional[int] = None
     medical_history: list[str] = Field(default_factory=list)
 
 class AssessmentHistoryItem(BaseModel):

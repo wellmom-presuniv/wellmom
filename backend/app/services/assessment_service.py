@@ -81,6 +81,13 @@ def _resolve_bp_status(
     return "FLAGGED", bp_category_value
 
 
+def _gestational_week_or_none(profile, reference_date: date) -> int | None:
+    """Minggu penuh usia kehamilan dari HPHT; None kalau profil/HPHT tidak ada (tanpa error)."""
+    if profile is None or getattr(profile, "hpht", None) is None:
+        return None
+    return calculate_gestational_week(profile.hpht, reference_date)
+
+
 def _normalize_medical_history(medical_history: list[str] | None) -> list[str]:
     """Dedupe; 'NONE' eksklusif -- kalau ada pilihan lain, 'NONE' dibuang."""
     unique = list(dict.fromkeys(medical_history or []))
@@ -220,7 +227,8 @@ async def submit_assessment(
     )
 
     # 7. Combine final risk. Komponen tensi ditentukan MAP (KIA); kategori AHA tetap informasional.
-    map_at_risk = is_map_at_risk(systolic_bp, diastolic_bp)
+    gestational_week = _gestational_week_or_none(profile, today)
+    map_at_risk = is_map_at_risk(systolic_bp, diastolic_bp, gestational_week)
     final_result = combine_final_risk(
         score_result=score_result,
         duration_category=duration_category,
@@ -272,6 +280,7 @@ async def submit_assessment(
         "bp_category": final_result.bp_category,
         "map_mmhg": calculate_map(systolic_bp, diastolic_bp),
         "map_at_risk": map_at_risk,
+        "gestational_week": gestational_week,
         "medical_history": medical_history,
     }
 
@@ -285,6 +294,8 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
     triggered = result.triggered_red_flags or []
     duration_triggered = result.duration_triggered_symptoms or []
     response = await crud.assessment.get_today_response(db, user_id, today)
+    profile = await crud.pregnancy.get_active_profile(db, user_id)
+    gestational_week = _gestational_week_or_none(profile, today)
 
     return {
         "response_id": result.response_id,
@@ -303,7 +314,9 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
         "map_at_risk": is_map_at_risk(
             response.systolic_bp if response else None,
             response.diastolic_bp if response else None,
+            gestational_week,
         ),
+        "gestational_week": gestational_week,
         "medical_history": (response.medical_history if response else None) or [],
     }
 
