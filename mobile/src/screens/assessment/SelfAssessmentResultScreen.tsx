@@ -149,12 +149,11 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           const mapNotApplicable = result.gestational_week != null && !isMapRuleApplicable(result.gestational_week);
           return (
           <Animated.View entering={FadeInUp.delay(220).duration(350)} className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>
-            <View className="flex-row items-center justify-between">
-              <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.mapLabel}</Text>
-              <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: mapAtRisk ? colors.riskMedium : colors.textPrimary }}>
-                {result.map_mmhg} mmHg{mapAtRisk ? ` · ${t.mapAtRiskLabel}` : ""}
-              </Text>
-            </View>
+            {/* Judul di baris sendiri, nilai + label di baris berikutnya (boleh wrap) supaya tidak kepotong di layar sempit. */}
+            <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.mapLabel}</Text>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: mapAtRisk ? colors.riskMedium : colors.textPrimary, marginTop: 2, flexShrink: 1 }}>
+              {result.map_mmhg} mmHg{mapAtRisk ? ` · ${t.mapAtRiskLabel}` : ""}
+            </Text>
             <Text style={{ fontFamily: fonts.regular, fontSize: 10, color: colors.textSecondary, marginTop: 2 }}>{t.mapFormula}</Text>
             {mapAtRisk && (
               <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.riskMedium, marginTop: 6 }}>{t.mapElevatedNote}</Text>

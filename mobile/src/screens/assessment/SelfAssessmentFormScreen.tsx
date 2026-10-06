@@ -332,12 +332,11 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
           </View>
           {mapValue !== null && (
             <View className="mt-3 p-3" style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 12 }}>
-              <View className="flex-row items-center justify-between">
-                <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.textSecondary }}>{t.mapLabel}</Text>
-                <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: mapAtRisk ? colors.riskMedium : colors.textPrimary }}>
-                  {mapValue} mmHg{mapAtRisk ? ` · ${t.mapAtRiskLabel}` : ""}
-                </Text>
-              </View>
+              {/* Judul di baris sendiri, nilai + label di baris berikutnya (boleh wrap) supaya tidak kepotong di layar sempit. */}
+              <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.textSecondary }}>{t.mapLabel}</Text>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: mapAtRisk ? colors.riskMedium : colors.textPrimary, marginTop: 2, flexShrink: 1 }}>
+                {mapValue} mmHg{mapAtRisk ? ` · ${t.mapAtRiskLabel}` : ""}
+              </Text>
               <Text style={{ fontFamily: fonts.regular, fontSize: 10, color: colors.textSecondary, marginTop: 2 }}>
                 {t.mapFormula}
               </Text>
