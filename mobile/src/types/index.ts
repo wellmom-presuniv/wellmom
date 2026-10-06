@@ -67,6 +67,7 @@ export interface AssessmentResult {
   bp_assessment_status: BpAssessmentStatus;
   bp_category: BpCategory; 
   duration_triggered_symptoms: DurationTriggeredSymptom[];
+  map_at_risk?: boolean;                  // MAP > 90 (KIA) -> berisiko; backend sudah menaikkan risk_category
   map_mmhg?: number | null;               // MAP = (sistolik + 2 x diastolik) / 3, null kalau tensi kosong
   medical_history?: MedicalHistoryCode[];
 }

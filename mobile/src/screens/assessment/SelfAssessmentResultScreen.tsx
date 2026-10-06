@@ -8,6 +8,7 @@ import { fonts } from "../../theme/fonts";
 import { AssessmentResult } from "../../types";
 import { ReferralResponse } from "../../types/referral";
 import { getReferral } from "../../api/referralService";
+import { MAP_RISK_CUTOFF } from "../../constants/clinical";
 import { useTranslation } from "../../hooks/useTranslation";
 import AnimatedPressable from "@/components/AnimatedPressable";
 
@@ -142,20 +143,24 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
           </Animated.View>
         )}
 
-        {result.map_mmhg != null && (
+        {result.map_mmhg != null && (() => {
+          // Flag dari backend (sumber kebenaran); fallback ke perbandingan lokal untuk respons lama.
+          const mapAtRisk = result.map_at_risk ?? result.map_mmhg > MAP_RISK_CUTOFF;
+          return (
           <Animated.View entering={FadeInUp.delay(220).duration(350)} className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>
             <View className="flex-row items-center justify-between">
               <Text style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary }}>{t.mapLabel}</Text>
-              <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: result.map_mmhg > 90 ? colors.riskMedium : colors.textPrimary }}>
-                {result.map_mmhg} mmHg
+              <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: mapAtRisk ? colors.riskMedium : colors.textPrimary }}>
+                {result.map_mmhg} mmHg{mapAtRisk ? ` · ${t.mapAtRiskLabel}` : ""}
               </Text>
             </View>
             <Text style={{ fontFamily: fonts.regular, fontSize: 10, color: colors.textSecondary, marginTop: 2 }}>{t.mapFormula}</Text>
-            {result.map_mmhg > 90 && (
+            {mapAtRisk && (
               <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.riskMedium, marginTop: 6 }}>{t.mapElevatedNote}</Text>
             )}
           </Animated.View>
-        )}
+          );
+        })()}
 
         {/* Skor (kalau ga red-flag) */}
         {!isHigh || result.triggered_red_flags?.length === 0 ? (
