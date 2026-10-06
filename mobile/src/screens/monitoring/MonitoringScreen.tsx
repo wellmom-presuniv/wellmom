@@ -878,6 +878,21 @@ export default function MonitoringScreen() {
             entering={SlideInRight.duration(250)}
             exiting={SlideOutRight.duration(200)}
           >
+            <View className="p-4 mb-4" style={{ backgroundColor: colors.primaryContainer, borderRadius: 20 }}>
+              <View className="flex-row items-center mb-2" style={{ gap: 8 }}>
+                <Ionicons name="information-circle" size={18} color={colors.background} />
+                <Text style={{ fontFamily: fonts.bold, fontSize: 14, color: colors.background }}>{t.babyRefTitle}</Text>
+              </View>
+              {[t.babyRefWeight, t.babyRefLength, t.babyRefHead].map((line) => (
+                <Text key={line} style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.background, lineHeight: 18, marginBottom: 4 }}>
+                  • {line}
+                </Text>
+              ))}
+              <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.background, marginTop: 4, opacity: 0.9 }}>
+                {t.babyRefNote}
+              </Text>
+            </View>
+
             <View className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 20 }}>
               <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.textPrimary, marginBottom: 16 }}>
                 {t.babyData}

@@ -38,7 +38,8 @@ class FinalAssessmentResult:
     triggered_red_flags: list[dict]
     total_score: Optional[int]
     duration_triggered_symptoms: list[dict]
-    bp_category: Optional[str]  # informasional, tidak pengaruhi risk_category
+    bp_category: Optional[str]  # kategori AHA, informasional, tidak pengaruhi risk_category
+    map_at_risk: bool = False  # MAP > cutoff KIA (lihat map_check.py), ikut menentukan risk_category
 
 
 def _map_score_category(score_result: dict) -> FinalRiskCategory:
@@ -91,10 +92,13 @@ def combine_final_risk(
     duration_category: str,
     duration_triggered_symptoms: list[dict],
     bp_category: Optional[str] = None,
+    map_at_risk: bool = False,
 ) -> FinalAssessmentResult:
     """
     Gabungkan jalur skor dan jalur durasi, ambil yang paling parah.
-    Tensi (bp_category) TIDAK ikut menentukan kategori -- murni informasional.
+    Kategori AHA (bp_category) TIDAK ikut menentukan kategori -- murni informasional.
+    Komponen tensi ditentukan MAP: map_at_risk=True menaikkan hasil minimal ke WARNING
+    (disimpan sebagai MEDIUM, sama seperti jalur durasi hari-1). Tidak pernah menurunkan risiko.
     
     risk_category yang di-return SUDAH melalui storage mapping -- WARNING 
     tidak akan pernah muncul di field ini, otomatis jadi MEDIUM. Detail 
@@ -108,6 +112,7 @@ def combine_final_risk(
             -- "NONE" / "WARNING" / "HIGH"
         duration_triggered_symptoms: list detail dari evaluate_all_duration_symptoms()
         bp_category: hasil dari classify_blood_pressure(), opsional
+        map_at_risk: hasil is_map_at_risk() (map_check.py); False kalau tensi kosong
     
     Returns:
         FinalAssessmentResult dengan kategori final yang sudah storage-safe
@@ -118,7 +123,11 @@ def combine_final_risk(
     score_rank = _SEVERITY_ORDER.index(score_category)
     duration_rank = _SEVERITY_ORDER.index(duration_cat)
     
-    raw_category = _SEVERITY_ORDER[max(score_rank, duration_rank)]
+    map_rank = (
+        _SEVERITY_ORDER.index(FinalRiskCategory.WARNING) if map_at_risk else 0
+    )
+
+    raw_category = _SEVERITY_ORDER[max(score_rank, duration_rank, map_rank)]
     final_category = map_to_storage_category(raw_category)
     
     return FinalAssessmentResult(
@@ -128,4 +137,5 @@ def combine_final_risk(
         total_score=score_result["total_score"],
         duration_triggered_symptoms=duration_triggered_symptoms,
         bp_category=bp_category,
+        map_at_risk=map_at_risk,
     )

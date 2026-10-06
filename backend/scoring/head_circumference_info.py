@@ -21,6 +21,10 @@ HEAD_CIRCUMFERENCE_REFERENCE_CM = {
     "max": 35,
 }
 
+# Rata-rata saat lahir (Chelsea, "Rules of thumb", batch 2). Dipakai untuk teks tampilan;
+# rentang min/max di atas dipertahankan agar kontrak API (normal_range) tidak berubah.
+HEAD_CIRCUMFERENCE_AVERAGE_AT_BIRTH_CM = 35
+
 
 def get_head_circumference_info() -> dict:
     """
@@ -40,6 +44,6 @@ def get_head_circumference_info() -> dict:
     return {
         "reference_min_cm": min_cm,
         "reference_max_cm": max_cm,
-        "info_text": f"Referensi lingkar kepala bayi saat lahir: {min_cm}-{max_cm} cm",
+        "info_text": f"Referensi lingkar kepala bayi saat lahir: ±{HEAD_CIRCUMFERENCE_AVERAGE_AT_BIRTH_CM} cm",
         "is_evaluated": False,  # penanda eksplisit -- ini BUKAN warning system
     }

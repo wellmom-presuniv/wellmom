@@ -16,6 +16,7 @@ from scoring.duration_logic import (
     evaluate_all_duration_symptoms,
     update_tracking_record,
 )
+from scoring.map_check import calculate_map, is_map_at_risk
 from scoring.risk_combiner import combine_final_risk
 
 from app.crud import assessment as assessment_crud
@@ -73,18 +74,18 @@ def _resolve_bp_status(
     # Detailed BP severity must be read from bp_category:
     # NORMAL | ELEVATED | STAGE_1 | STAGE_2 | CRISIS
     #
-    # BP is currently informational only and does not affect final risk_category.
+    # Kategori AHA ini informasional saja; yang memengaruhi risk_category adalah MAP (map_check.py).
     if bp_category_value == "NORMAL":
         return "NORMAL", bp_category_value
 
     return "FLAGGED", bp_category_value
 
 
-def calculate_map(systolic_bp: int | None, diastolic_bp: int | None) -> float | None:
-    """MAP = (sistolik + 2 x diastolik) / 3 (Buku KIA 2024). Informasional saja."""
-    if systolic_bp is None or diastolic_bp is None:
+def _gestational_week_or_none(profile, reference_date: date) -> int | None:
+    """Minggu penuh usia kehamilan dari HPHT; None kalau profil/HPHT tidak ada (tanpa error)."""
+    if profile is None or getattr(profile, "hpht", None) is None:
         return None
-    return round((systolic_bp + 2 * diastolic_bp) / 3, 1)
+    return calculate_gestational_week(profile.hpht, reference_date)
 
 
 def _normalize_medical_history(medical_history: list[str] | None) -> list[str]:
@@ -225,12 +226,15 @@ async def submit_assessment(
         diastolic_bp=diastolic_bp,
     )
 
-    # 7. Combine final risk
+    # 7. Combine final risk. Komponen tensi ditentukan MAP (KIA); kategori AHA tetap informasional.
+    gestational_week = _gestational_week_or_none(profile, today)
+    map_at_risk = is_map_at_risk(systolic_bp, diastolic_bp, gestational_week)
     final_result = combine_final_risk(
         score_result=score_result,
         duration_category=duration_category,
         duration_triggered_symptoms=duration_triggered_symptoms,
         bp_category=bp_category,
+        map_at_risk=map_at_risk,
     )
 
     # 8. Simpan response
@@ -275,6 +279,8 @@ async def submit_assessment(
         "bp_assessment_status": bp_status,
         "bp_category": final_result.bp_category,
         "map_mmhg": calculate_map(systolic_bp, diastolic_bp),
+        "map_at_risk": map_at_risk,
+        "gestational_week": gestational_week,
         "medical_history": medical_history,
     }
 
@@ -288,6 +294,8 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
     triggered = result.triggered_red_flags or []
     duration_triggered = result.duration_triggered_symptoms or []
     response = await crud.assessment.get_today_response(db, user_id, today)
+    profile = await crud.pregnancy.get_active_profile(db, user_id)
+    gestational_week = _gestational_week_or_none(profile, today)
 
     return {
         "response_id": result.response_id,
@@ -303,6 +311,12 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
             response.systolic_bp if response else None,
             response.diastolic_bp if response else None,
         ),
+        "map_at_risk": is_map_at_risk(
+            response.systolic_bp if response else None,
+            response.diastolic_bp if response else None,
+            gestational_week,
+        ),
+        "gestational_week": gestational_week,
         "medical_history": (response.medical_history if response else None) or [],
     }
 
