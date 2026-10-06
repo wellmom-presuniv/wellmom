@@ -15,7 +15,7 @@ import { fonts } from "../../theme/fonts";
 import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
 import { AssessmentQuestion, MedicalHistoryCode } from "../../types";
 import { getMyProfile } from "../../api/profileService";
-import { isMapAtRisk } from "../../constants/clinical";
+import { isMapAtRisk, isMapRuleApplicable } from "../../constants/clinical";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useFocusEffect } from "@react-navigation/native";
 import AnimatedPressable from "@/components/AnimatedPressable";
@@ -67,6 +67,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
   const [diastolicBp, setDiastolicBp] = useState("");
   const [medicalHistory, setMedicalHistory] = useState<MedicalHistoryCode[]>([]);
   const [trimester, setTrimester] = useState<number | null>(null);
+  const [gestationalWeek, setGestationalWeek] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t, language } = useTranslation();
@@ -79,7 +80,9 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
   const hasHistory = medicalHistory.length > 0;
   const allAnswered = answeredCount === visibleQuestions.length && hasHistory;
   const mapValue = calculateMap(systolicBp, diastolicBp);
-  const mapAtRisk = mapValue !== null && isMapAtRisk(Number(systolicBp), Number(diastolicBp));
+  const mapAtRisk = mapValue !== null && isMapAtRisk(Number(systolicBp), Number(diastolicBp), gestationalWeek);
+  // Usia kehamilan diketahui dan >= 20 minggu: MAP hanya informasi.
+  const mapNotApplicable = mapValue !== null && gestationalWeek !== null && !isMapRuleApplicable(gestationalWeek);
 
   useFocusEffect(
     useCallback(() => {
@@ -99,6 +102,7 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
           if (!cancelled) {
             setQuestions(q);
             setTrimester(profile?.trimester ?? null);
+            setGestationalWeek(profile?.gestational_week ?? null);
           }
         } catch (err) {
           console.warn("Gagal fetch pertanyaan dari API:", err);
@@ -340,6 +344,11 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
               {mapAtRisk && (
                 <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.riskMedium, marginTop: 6 }}>
                   {t.mapElevatedNote}
+                </Text>
+              )}
+              {mapNotApplicable && (
+                <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginTop: 6 }}>
+                  {t.mapNotApplicableNote}
                 </Text>
               )}
             </View>

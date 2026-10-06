@@ -8,7 +8,7 @@ import { fonts } from "../../theme/fonts";
 import { AssessmentResult } from "../../types";
 import { ReferralResponse } from "../../types/referral";
 import { getReferral } from "../../api/referralService";
-import { MAP_RISK_CUTOFF } from "../../constants/clinical";
+import { isMapRuleApplicable } from "../../constants/clinical";
 import { useTranslation } from "../../hooks/useTranslation";
 import AnimatedPressable from "@/components/AnimatedPressable";
 
@@ -144,8 +144,9 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
         )}
 
         {result.map_mmhg != null && (() => {
-          // Flag dari backend (sumber kebenaran); fallback ke perbandingan lokal untuk respons lama.
-          const mapAtRisk = result.map_at_risk ?? result.map_mmhg > MAP_RISK_CUTOFF;
+          // Label "Berisiko" hanya dari flag backend (sumber kebenaran). Nilai MAP tetap tampil sebagai informasi.
+          const mapAtRisk = result.map_at_risk === true;
+          const mapNotApplicable = result.gestational_week != null && !isMapRuleApplicable(result.gestational_week);
           return (
           <Animated.View entering={FadeInUp.delay(220).duration(350)} className="p-4 mb-4" style={{ backgroundColor: colors.surface, borderRadius: 16 }}>
             <View className="flex-row items-center justify-between">
@@ -157,6 +158,9 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
             <Text style={{ fontFamily: fonts.regular, fontSize: 10, color: colors.textSecondary, marginTop: 2 }}>{t.mapFormula}</Text>
             {mapAtRisk && (
               <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.riskMedium, marginTop: 6 }}>{t.mapElevatedNote}</Text>
+            )}
+            {mapNotApplicable && (
+              <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.textSecondary, marginTop: 6 }}>{t.mapNotApplicableNote}</Text>
             )}
           </Animated.View>
           );
