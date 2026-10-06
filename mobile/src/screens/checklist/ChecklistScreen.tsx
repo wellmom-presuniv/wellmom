@@ -99,14 +99,21 @@ export default function ChecklistScreen() {
   const weekDates = useMemo(() => getWeekDates(today), [today]);
   const [selectedDate, setSelectedDate] = useState(today);
   const [checklistCache, setChecklistCache] = useState<Record<string, TodayChecklistResponse>>({});
-  const [draftState, setDraftState] = useState<Record<string, boolean>>({});
+  // Centangan yang belum disimpan, per tanggal (dateKey -> item_id -> nilai). Terpisah dari data server
+  // supaya refetch saat tab di-focus tidak menimpa centangan yang belum ditekan "Simpan".
+  const [draftOverrides, setDraftOverrides] = useState<Record<string, Record<string, boolean>>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isSameDay = (a: Date, b: Date) =>
     a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
-  const dateKey = selectedDate.toISOString().split("T")[0];
+  // Tanggal LOKAL (bukan toISOString yang UTC): di WIB sebelum 07.00 toISOString masih menunjuk hari kemarin.
+  const dateKey = [
+    selectedDate.getFullYear(),
+    String(selectedDate.getMonth() + 1).padStart(2, "0"),
+    String(selectedDate.getDate()).padStart(2, "0"),
+  ].join("-");
   const isTodaySelected = isSameDay(selectedDate, today);
   const currentChecklistData = checklistCache[dateKey] ?? null;
 
@@ -122,7 +129,6 @@ export default function ChecklistScreen() {
     setSubmitError(null);
 
     if (!options?.force && currentChecklistData) {
-      setDraftState(getCheckedState(currentChecklistData));
       setIsLoading(false);
       return;
     }
@@ -132,7 +138,6 @@ export default function ChecklistScreen() {
     try {
       const data = await getChecklistForDate(dateKey);
       setChecklistCache((previous) => ({ ...previous, [dateKey]: data }));
-      setDraftState(getCheckedState(data));
     } catch (err) {
       console.warn("Gagal fetch checklist:", err);
     } finally {
@@ -169,13 +174,19 @@ export default function ChecklistScreen() {
     }, [])
   );
 
+  // Nilai yang ditampilkan = data server + centangan yang belum disimpan untuk tanggal ini.
+  const currentChecked = useMemo(
+    () => ({ ...getCheckedState(currentChecklistData), ...(draftOverrides[dateKey] ?? {}) }),
+    [currentChecklistData, draftOverrides, dateKey, getCheckedState]
+  );
+
   const toggleItem = useCallback((itemId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setDraftState((previous) => ({
-      ...previous,
-      [itemId]: !previous[itemId],
-    }));
-  }, []);
+    setDraftOverrides((previous) => {
+      const base = { ...getCheckedState(currentChecklistData), ...(previous[dateKey] ?? {}) };
+      return { ...previous, [dateKey]: { ...(previous[dateKey] ?? {}), [itemId]: !base[itemId] } };
+    });
+  }, [currentChecklistData, dateKey, getCheckedState]);
 
   const handleSubmitChecklist = async () => {
     if (!currentChecklistData) return;
@@ -186,12 +197,15 @@ export default function ChecklistScreen() {
     try {
       const submittedItems = currentChecklistData.items.map((item) => ({
         item_id: item.item_id,
-        is_completed: !!draftState[item.item_id],
+        is_completed: !!currentChecked[item.item_id],
       }));
 
       const savedChecklist = await submitChecklist(dateKey, { items: submittedItems });
       setChecklistCache((previous) => ({ ...previous, [dateKey]: savedChecklist }));
-      setDraftState(getCheckedState(savedChecklist));
+      setDraftOverrides((previous) => {
+        const { [dateKey]: _saved, ...rest } = previous;
+        return rest;
+      });
     } catch (err) {
       console.warn("Gagal submit checklist:", err);
       setSubmitError(t.errorNetwork);
@@ -200,7 +214,6 @@ export default function ChecklistScreen() {
     }
   };
 
-  const currentChecked = draftState;
   const items = currentChecklistData?.items ?? [];
   const doneCount = Object.values(currentChecked).filter(Boolean).length;
   const totalItems = items.length > 0 ? items.length : currentChecklistData?.summary.total ?? 0;
