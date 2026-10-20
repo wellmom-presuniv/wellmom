@@ -137,7 +137,13 @@ export default function SelfAssessmentResultScreen({ route, navigation }: any) {
                 {t.bloodPressureLabel}
               </Text>
               <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.textSecondary }}>
-                {result.bp_category === "ELEVATED" ? t.bpElevated : result.bp_category === "STAGE_1" ? t.bpStage1 : result.bp_category === "STAGE_2" ? t.bpStage2 : t.bpCrisis}
+                {result.bp_category === "ELEVATED"
+                  ? t.bpElevated
+                  : result.bp_category === "STAGE_1"
+                    ? t.bpStage1
+                    : result.bp_category === "STAGE_2"
+                      ? (result.bp_at_risk ? t.bpAtRisk : t.bpStage2)
+                      : t.bpCrisis}
               </Text>
             </View>
           </Animated.View>

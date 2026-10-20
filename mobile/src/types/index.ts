@@ -68,6 +68,7 @@ export interface AssessmentResult {
   bp_category: BpCategory; 
   duration_triggered_symptoms: DurationTriggeredSymptom[];
   map_at_risk?: boolean;                  // MAP > 90 dan usia kehamilan < 20 minggu (KIA) -> berisiko; backend sudah menaikkan risk_category
+  bp_at_risk?: boolean;                   // AHA >= STAGE_2 (semua usia kehamilan) -> berisiko; ikut menaikkan risk_category ke minimal MEDIUM
   gestational_week?: number | null;       // minggu penuh dari HPHT saat assessment; null kalau HPHT kosong
   map_mmhg?: number | null;               // MAP = (sistolik + 2 x diastolik) / 3, null kalau tensi kosong
   medical_history?: MedicalHistoryCode[];
