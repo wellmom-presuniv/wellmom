@@ -9,6 +9,7 @@ import {
     Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@/lib/appName";
 
 const navItems = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -27,7 +28,7 @@ export default function AdminLayout() {
                 <div className="h-16 flex items-center gap-2 px-6 border-b border-slate-200">
                     <Heart className="w-5 h-5 text-rose-500" />
                     <span className="font-semibold text-slate-800 text-sm">
-                        WellMom <span className="text-slate-400 font-normal">CMS</span>
+                        {APP_NAME} <span className="text-slate-400 font-normal">CMS</span>
                     </span>
                 </div>
 
@@ -54,7 +55,7 @@ export default function AdminLayout() {
                 </nav>
 
                 <div className="px-6 py-4 border-t border-slate-200">
-                    <p className="text-xs text-slate-400">WellMom Admin · v0.1.0</p>
+                    <p className="text-xs text-slate-400">{APP_NAME} Admin · v0.1.0</p>
                 </div>
             </aside>
 

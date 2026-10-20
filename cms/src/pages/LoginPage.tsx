@@ -7,6 +7,7 @@ import { Heart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/axios";
+import { APP_NAME } from "@/lib/appName";
 
 const loginSchema = z.object({
     email: z.string().email("Invalid email format"),
@@ -48,7 +49,7 @@ export default function LoginPage() {
                 <div className="flex items-center gap-2 mb-6">
                     <Heart className="w-5 h-5 text-rose-500" />
                     <span className="font-semibold text-slate-800">
-                        WellMom <span className="text-slate-400 font-normal">CMS</span>
+                        {APP_NAME} <span className="text-slate-400 font-normal">CMS</span>
                     </span>
                 </div>
 
@@ -56,7 +57,7 @@ export default function LoginPage() {
                     Sign In to Admin Panel
                 </h1>
                 <p className="text-sm text-slate-500 mb-6">
-                    For WellMom internal team only.
+                    For {APP_NAME} internal team only.
                 </p>
 
                 <div className="space-y-4">
