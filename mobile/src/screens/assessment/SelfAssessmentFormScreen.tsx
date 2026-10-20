@@ -15,7 +15,7 @@ import { fonts } from "../../theme/fonts";
 import { getAssessmentQuestions, submitAssessment, getTodayAssessment } from "../../api/assessmentService";
 import { AssessmentQuestion, MedicalHistoryCode } from "../../types";
 import { getMyProfile } from "../../api/profileService";
-import { isMapAtRisk, isMapRuleApplicable } from "../../constants/clinical";
+import { isBpAtRisk, isMapAtRisk, isMapRuleApplicable } from "../../constants/clinical";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useFocusEffect } from "@react-navigation/native";
 import AnimatedPressable from "@/components/AnimatedPressable";
@@ -80,6 +80,8 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
   const hasHistory = medicalHistory.length > 0;
   const allAnswered = answeredCount === visibleQuestions.length && hasHistory;
   const mapValue = calculateMap(systolicBp, diastolicBp);
+  // Pratinjau jalur tensi AHA >= STAGE_2 (usia kehamilan berapa pun); hasil akhir tetap dari backend.
+  const bpAtRisk = mapValue !== null && isBpAtRisk(Number(systolicBp), Number(diastolicBp));
   const mapAtRisk = mapValue !== null && isMapAtRisk(Number(systolicBp), Number(diastolicBp), gestationalWeek);
   // Usia kehamilan diketahui dan >= 20 minggu: MAP hanya informasi.
   const mapNotApplicable = mapValue !== null && gestationalWeek !== null && !isMapRuleApplicable(gestationalWeek);
@@ -330,6 +332,11 @@ export default function SelfAssessmentFormScreen({ navigation }: any) {
               />
             </View>
           </View>
+          {bpAtRisk && (
+            <Text style={{ fontFamily: fonts.regular, fontSize: 11, color: colors.riskMedium, marginTop: 10 }}>
+              {t.bpAtRiskPreview}
+            </Text>
+          )}
           {mapValue !== null && (
             <View className="mt-3 p-3" style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 12 }}>
               {/* Judul di baris sendiri, nilai + label di baris berikutnya (boleh wrap) supaya tidak kepotong di layar sempit. */}

@@ -6,6 +6,7 @@ obstetri kalau nanti dr. Nucky ubah keputusan.
 Owner: Arizal.
 """
 from enum import Enum
+from typing import Optional
 
 
 class BPCategory(str, Enum):
@@ -83,3 +84,16 @@ def classify_blood_pressure(
     dia_rank = _SEVERITY_ORDER.index(dia_category)
     
     return _SEVERITY_ORDER[max(sys_rank, dia_rank)]
+
+
+# Jalur risiko tensi independen (keputusan Chelsea, 20 Okt): kategori AHA >= STAGE_2
+# (140/90 ke atas, termasuk CRISIS yang lebih parah) dianggap berisiko di usia kehamilan berapa pun.
+# Tidak mendefinisikan ambang baru: hanya memakai kategori hasil classify_blood_pressure.
+BP_RISK_MIN_CATEGORY = BPCategory.STAGE_2
+
+
+def is_bp_at_risk(bp_category: Optional[str]) -> bool:
+    """True kalau kategori AHA >= BP_RISK_MIN_CATEGORY. None (tensi kosong) -> False."""
+    if bp_category is None:
+        return False
+    return _SEVERITY_ORDER.index(BPCategory(bp_category)) >= _SEVERITY_ORDER.index(BP_RISK_MIN_CATEGORY)

@@ -40,6 +40,7 @@ class FinalAssessmentResult:
     duration_triggered_symptoms: list[dict]
     bp_category: Optional[str]  # kategori AHA, informasional, tidak pengaruhi risk_category
     map_at_risk: bool = False  # MAP > cutoff KIA (lihat map_check.py), ikut menentukan risk_category
+    bp_at_risk: bool = False  # AHA >= STAGE_2 (lihat bp_classifier.is_bp_at_risk), ikut menentukan risk_category
 
 
 def _map_score_category(score_result: dict) -> FinalRiskCategory:
@@ -93,12 +94,16 @@ def combine_final_risk(
     duration_triggered_symptoms: list[dict],
     bp_category: Optional[str] = None,
     map_at_risk: bool = False,
+    bp_at_risk: bool = False,
 ) -> FinalAssessmentResult:
     """
     Gabungkan jalur skor dan jalur durasi, ambil yang paling parah.
-    Kategori AHA (bp_category) TIDAK ikut menentukan kategori -- murni informasional.
-    Komponen tensi ditentukan MAP: map_at_risk=True menaikkan hasil minimal ke WARNING
-    (disimpan sebagai MEDIUM, sama seperti jalur durasi hari-1). Tidak pernah menurunkan risiko.
+    Dua jalur tensi independen, masing-masing menaikkan hasil minimal ke WARNING
+    (disimpan sebagai MEDIUM, sama seperti jalur durasi hari-1), tidak pernah ke HIGH:
+      - map_at_risk: MAP > 90 pada usia kehamilan < 20 minggu (map_check.py)
+      - bp_at_risk: kategori AHA >= STAGE_2 pada usia kehamilan berapa pun (bp_classifier.py)
+    Risiko akhir tetap yang terparah antar jalur. Tidak pernah menurunkan risiko.
+    Kategori AHA lain (ELEVATED, STAGE_1) murni informasional.
     
     risk_category yang di-return SUDAH melalui storage mapping -- WARNING 
     tidak akan pernah muncul di field ini, otomatis jadi MEDIUM. Detail 
@@ -113,6 +118,7 @@ def combine_final_risk(
         duration_triggered_symptoms: list detail dari evaluate_all_duration_symptoms()
         bp_category: hasil dari classify_blood_pressure(), opsional
         map_at_risk: hasil is_map_at_risk() (map_check.py); False kalau tensi kosong
+        bp_at_risk: hasil is_bp_at_risk() (bp_classifier.py); False kalau tensi kosong
     
     Returns:
         FinalAssessmentResult dengan kategori final yang sudah storage-safe
@@ -123,11 +129,11 @@ def combine_final_risk(
     score_rank = _SEVERITY_ORDER.index(score_category)
     duration_rank = _SEVERITY_ORDER.index(duration_cat)
     
-    map_rank = (
-        _SEVERITY_ORDER.index(FinalRiskCategory.WARNING) if map_at_risk else 0
-    )
+    warning_rank = _SEVERITY_ORDER.index(FinalRiskCategory.WARNING)
+    map_rank = warning_rank if map_at_risk else 0
+    bp_rank = warning_rank if bp_at_risk else 0
 
-    raw_category = _SEVERITY_ORDER[max(score_rank, duration_rank, map_rank)]
+    raw_category = _SEVERITY_ORDER[max(score_rank, duration_rank, map_rank, bp_rank)]
     final_category = map_to_storage_category(raw_category)
     
     return FinalAssessmentResult(
@@ -138,4 +144,5 @@ def combine_final_risk(
         duration_triggered_symptoms=duration_triggered_symptoms,
         bp_category=bp_category,
         map_at_risk=map_at_risk,
+        bp_at_risk=bp_at_risk,
     )

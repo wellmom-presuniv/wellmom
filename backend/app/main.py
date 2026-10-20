@@ -11,7 +11,7 @@ async def lifespan(app: FastAPI):
     print("WellMom backend shutting down...")
 
 app = FastAPI(
-    title="WellMom API",
+    title="MaterLife API",
     version="1.0.0",
     lifespan=lifespan,
 )
