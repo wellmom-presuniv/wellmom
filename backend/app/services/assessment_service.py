@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import crud
 from app.services import scoring_service
 
-from scoring.bp_classifier import classify_blood_pressure
+from scoring.bp_classifier import classify_blood_pressure, is_bp_at_risk
 from scoring.duration_logic import (
     ORDER_INDEX_TO_SYMPTOM,
     SymptomTrackingRecord,
@@ -226,15 +226,17 @@ async def submit_assessment(
         diastolic_bp=diastolic_bp,
     )
 
-    # 7. Combine final risk. Komponen tensi ditentukan MAP (KIA); kategori AHA tetap informasional.
+    # 7. Combine final risk. Dua jalur tensi independen: MAP (KIA, < 20 minggu) dan AHA >= STAGE_2 (semua usia).
     gestational_week = _gestational_week_or_none(profile, today)
     map_at_risk = is_map_at_risk(systolic_bp, diastolic_bp, gestational_week)
+    bp_at_risk = is_bp_at_risk(bp_category)
     final_result = combine_final_risk(
         score_result=score_result,
         duration_category=duration_category,
         duration_triggered_symptoms=duration_triggered_symptoms,
         bp_category=bp_category,
         map_at_risk=map_at_risk,
+        bp_at_risk=bp_at_risk,
     )
 
     # 8. Simpan response
@@ -280,6 +282,7 @@ async def submit_assessment(
         "bp_category": final_result.bp_category,
         "map_mmhg": calculate_map(systolic_bp, diastolic_bp),
         "map_at_risk": map_at_risk,
+        "bp_at_risk": bp_at_risk,
         "gestational_week": gestational_week,
         "medical_history": medical_history,
     }
@@ -317,6 +320,7 @@ async def get_today_result(db: AsyncSession, user_id: uuid.UUID) -> dict | None:
             gestational_week,
         ),
         "gestational_week": gestational_week,
+        "bp_at_risk": is_bp_at_risk(result.bp_category),
         "medical_history": (response.medical_history if response else None) or [],
     }
 
